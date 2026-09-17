@@ -1,5 +1,6 @@
-import './ClientDashboard.css';
+ import { useNavigate } from 'react-router-dom';
 
+import './ClientDashboard.css';
 const activeRequests = [
   {
     id: 1,
@@ -37,6 +38,14 @@ const favorites = [
 ];
 
 const ClientDashboard = () => {
+     const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+
+    navigate('/login');
+  };
   return (
     <div className="client-dashboard">
 
@@ -85,7 +94,12 @@ const ClientDashboard = () => {
 
         <div className="client-sidebar-bottom">
           <a href="/">← Volver a Feisin</a>
-          <button>Cerrar sesión</button>
+  <button
+  type="button"
+  onClick={handleLogout}
+>
+  Cerrar sesión
+</button>
         </div>
 
       </aside>

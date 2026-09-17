@@ -52,7 +52,7 @@ const Home = () => {
           </a>
 
           <nav>
-            <a href="#categories">Servicios</a>
+           <a href="/services">Servbgicios</a>
             <a href="#specialists">Especialistas</a>
             <a href="/login">Iniciar sesión</a>
             <a href="/register" className="register-button">

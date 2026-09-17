@@ -8,6 +8,7 @@ import SpecialistProfile from '../pages/SpecialistProfile/SpecialistProfile';
 import SpecialistDashboard from '../pages/SpecialistDashboard/SpecialistDashboard';
 import ClientDashboard from '../pages/ClientDashboard/ClientDashboard';
 import SpecialistSetup from '../pages/SpecialistSetup/SpecialistSetup';
+import CreateService from '../pages/CreateService/CreateService';
 const AppRoutes = () => {
   return (
     <BrowserRouter>
@@ -32,6 +33,9 @@ const AppRoutes = () => {
 <Route
   path="/specialist/setup"
   element={<SpecialistSetup />}
+/><Route
+  path="/specialist/services/new"
+  element={<CreateService />}
 />
 
       </Routes>
