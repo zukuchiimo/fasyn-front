@@ -19,6 +19,14 @@ type PriceType =
   | 'DAY'
   | 'ACTIVITY';
 
+type RequestStatus =
+  | 'PENDING_ADMIN'
+  | 'APPROVED'
+  | 'REJECTED'
+  | 'IN_PROGRESS'
+  | 'COMPLETED'
+  | 'CANCELLED';
+
 type Category = {
   id: number;
   name: string;
@@ -30,7 +38,6 @@ type Service = {
   description?: string | null;
   price: number;
   priceType: PriceType;
-
   category: Category;
 };
 
@@ -55,88 +62,230 @@ type Specialist = {
   startingPrice?: number | null;
 };
 
+type ClientServiceRequest = {
+  id: number;
+  clientId?: number;
+  serviceId: number;
+  status: RequestStatus;
+  message?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
 const SpecialistProfile = () => {
   const navigate = useNavigate();
   const { id } = useParams();
 
-  const [specialist, setSpecialist] =
-    useState<Specialist | null>(null);
+  const [
+    specialist,
+    setSpecialist,
+  ] = useState<Specialist | null>(
+    null
+  );
 
-  const [loading, setLoading] =
-    useState(true);
+  const [
+    loading,
+    setLoading,
+  ] = useState(true);
 
-  const [error, setError] =
-    useState('');
+  const [
+    error,
+    setError,
+  ] = useState('');
 
-  const loadSpecialist = async () => {
-    try {
-      setLoading(true);
-      setError('');
+  /*
+    SOLICITUDES DEL CLIENTE
+  */
+  const [
+    myRequests,
+    setMyRequests,
+  ] = useState<
+    ClientServiceRequest[]
+  >([]);
 
-      const response =
-        await api.get('/specialists');
+  const [
+    requestingServiceId,
+    setRequestingServiceId,
+  ] = useState<number | null>(
+    null
+  );
 
-      const specialists:
-        Specialist[] =
-          response.data?.specialists ||
-          [];
+  const [
+    cancellingRequestId,
+    setCancellingRequestId,
+  ] = useState<number | null>(
+    null
+  );
 
-      const found =
-        specialists.find(
-          (item) =>
-            String(item.id) ===
-            String(id)
+  const [
+    requestMessage,
+    setRequestMessage,
+  ] = useState('');
+
+  const [
+    requestError,
+    setRequestError,
+  ] = useState('');
+
+  /*
+    CARGAR ESPECIALISTA
+  */
+  const loadSpecialist =
+    async () => {
+      try {
+        setLoading(true);
+        setError('');
+
+        const response =
+          await api.get(
+            '/specialists'
+          );
+
+        const specialists:
+          Specialist[] =
+            response.data
+              ?.specialists ||
+            [];
+
+        const found =
+          specialists.find(
+            (item) =>
+              String(item.id) ===
+              String(id)
+          );
+
+        if (!found) {
+          setSpecialist(null);
+
+          setError(
+            'No encontramos este especialista.'
+          );
+
+          return;
+        }
+
+        setSpecialist(found);
+      } catch (
+        requestError: any
+      ) {
+        console.error(
+          'ERROR CARGANDO PERFIL:',
+          requestError.response
+            ?.data ||
+            requestError
         );
-
-      if (!found) {
-        setSpecialist(null);
 
         setError(
-          'No encontramos este especialista.'
+          requestError.response
+            ?.data?.message ||
+            'No fue posible cargar el perfil.'
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+  /*
+    CARGAR SOLICITUDES
+    DEL CLIENTE
+  */
+  const loadMyRequests =
+    async () => {
+      const token =
+        localStorage.getItem(
+          'token'
         );
 
+      if (!token) {
+        setMyRequests([]);
         return;
       }
 
-      setSpecialist(found);
-    } catch (requestError: any) {
-      console.error(
-        'ERROR CARGANDO PERFIL:',
-        requestError.response?.data ||
-          requestError
-      );
+      try {
+        const response =
+          await api.get(
+            '/requests/my',
+            {
+              headers: {
+                Authorization:
+                  `Bearer ${token}`,
+              },
+            }
+          );
 
-      setError(
-        requestError.response?.data
-          ?.message ||
-          'No fue posible cargar el perfil.'
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
+        console.log(
+          'MIS SOLICITUDES:',
+          response.data
+        );
+
+        setMyRequests(
+          response.data
+            ?.requests ||
+            []
+        );
+      } catch (
+        requestError: any
+      ) {
+        /*
+          Puede ocurrir si el usuario
+          autenticado no es CLIENT.
+        */
+        if (
+          requestError.response
+            ?.status === 403
+        ) {
+          setMyRequests([]);
+          return;
+        }
+
+        if (
+          requestError.response
+            ?.status === 401
+        ) {
+          setMyRequests([]);
+          return;
+        }
+
+        console.error(
+          'ERROR CARGANDO SOLICITUDES:',
+          requestError.response
+            ?.data ||
+            requestError
+        );
+      }
+    };
 
   useEffect(() => {
     loadSpecialist();
+    loadMyRequests();
   }, [id]);
 
-  const initials = useMemo(() => {
-    if (!specialist?.name) {
-      return 'ES';
-    }
+  /*
+    INICIALES
+  */
+  const initials =
+    useMemo(() => {
+      if (
+        !specialist?.name
+      ) {
+        return 'ES';
+      }
 
-    return specialist.name
-      .trim()
-      .split(' ')
-      .filter(Boolean)
-      .map((word) =>
-        word.charAt(0)
-      )
-      .join('')
-      .substring(0, 2)
-      .toUpperCase();
-  }, [specialist]);
+      return specialist.name
+        .trim()
+        .split(' ')
+        .filter(Boolean)
+        .map((word) =>
+          word.charAt(0)
+        )
+        .join('')
+        .substring(0, 2)
+        .toUpperCase();
+    }, [specialist]);
 
+  /*
+    FORMATO DE ESPECIALIDAD
+  */
   const formatCategoryName = (
     value: string
   ) => {
@@ -144,14 +293,21 @@ const SpecialistProfile = () => {
       return 'Especialidad';
     }
 
-    const formatted = value
-      .replace(
-        /([a-záéíóúñ])([A-ZÁÉÍÓÚÑ])/g,
-        '$1 $2'
-      )
-      .replace(/[_-]+/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim();
+    const formatted =
+      value
+        .replace(
+          /([a-záéíóúñ])([A-ZÁÉÍÓÚÑ])/g,
+          '$1 $2'
+        )
+        .replace(
+          /[_-]+/g,
+          ' '
+        )
+        .replace(
+          /\s+/g,
+          ' '
+        )
+        .trim();
 
     if (!formatted) {
       return 'Especialidad';
@@ -160,11 +316,16 @@ const SpecialistProfile = () => {
     return (
       formatted
         .charAt(0)
-        .toLocaleUpperCase('es-MX') +
+        .toLocaleUpperCase(
+          'es-MX'
+        ) +
       formatted.slice(1)
     );
   };
 
+  /*
+    TIPO DE PRECIO
+  */
   const getPriceType = (
     type: PriceType
   ) => {
@@ -175,56 +336,434 @@ const SpecialistProfile = () => {
       case 'DAY':
         return 'día';
 
+      case 'ACTIVITY':
+        return 'servicio';
+
       default:
         return 'servicio';
     }
   };
 
+  /*
+    FORMATO PRECIO
+  */
   const formatPrice = (
     price: number
   ) => {
     return Number(
       price
-    ).toLocaleString('es-MX', {
-      style: 'currency',
-      currency: 'MXN',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 2,
-    });
+    ).toLocaleString(
+      'es-MX',
+      {
+        style: 'currency',
+        currency: 'MXN',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2,
+      }
+    );
   };
 
-  const location = useMemo(() => {
-    if (!specialist) {
-      return '';
-    }
+  /*
+    UBICACIÓN
+  */
+  const location =
+    useMemo(() => {
+      if (!specialist) {
+        return '';
+      }
 
-    return [
-      specialist.neighborhood,
-      specialist.municipality,
-      specialist.state,
-    ]
-      .filter(Boolean)
-      .join(', ');
-  }, [specialist]);
+      return [
+        specialist.neighborhood,
+        specialist.municipality,
+        specialist.state,
+      ]
+        .filter(Boolean)
+        .join(', ');
+    }, [specialist]);
 
+  /*
+    SERVICIO MÁS ECONÓMICO
+  */
   const lowestService =
     useMemo(() => {
       if (
         !specialist ||
-        specialist.services.length ===
-          0
+        specialist.services
+          .length === 0
       ) {
         return null;
       }
 
-      return [...specialist.services]
-        .sort(
-          (a, b) =>
-            Number(a.price) -
-            Number(b.price)
-        )[0];
+      return [
+        ...specialist.services,
+      ].sort(
+        (a, b) =>
+          Number(a.price) -
+          Number(b.price)
+      )[0];
     }, [specialist]);
 
+  /*
+    BUSCAR SOLICITUD ACTIVA
+    DE UN SERVICIO
+  */
+  const getActiveRequest = (
+    serviceId: number
+  ) => {
+    return myRequests.find(
+      (request) =>
+        Number(
+          request.serviceId
+        ) ===
+          Number(serviceId) &&
+        request.status !==
+          'CANCELLED' &&
+        request.status !==
+          'REJECTED'
+    );
+  };
+
+  /*
+    SOLICITAR SERVICIO
+  */
+  const handleRequestService =
+    async (
+      service: Service
+    ) => {
+      try {
+        const token =
+          localStorage.getItem(
+            'token'
+          );
+
+        if (!token) {
+          navigate('/login');
+          return;
+        }
+
+        setRequestingServiceId(
+          service.id
+        );
+
+        setRequestMessage('');
+        setRequestError('');
+
+        const response =
+          await api.post(
+            '/requests',
+            {
+              serviceId:
+                service.id,
+            },
+            {
+              headers: {
+                Authorization:
+                  `Bearer ${token}`,
+              },
+            }
+          );
+
+        console.log(
+          'SOLICITUD CREADA:',
+          response.data
+        );
+
+        /*
+          MUY IMPORTANTE:
+          volvemos a consultar la BD
+          para que Solicitar cambie
+          inmediatamente a Cancelar.
+        */
+        await loadMyRequests();
+
+        setRequestMessage(
+          response.data?.message ||
+            'Tu solicitud fue enviada al administrador para revisión.'
+        );
+      } catch (
+        requestError: any
+      ) {
+        console.error(
+          'ERROR SOLICITANDO SERVICIO:',
+          requestError.response
+            ?.data ||
+            requestError
+        );
+
+        if (
+          requestError.response
+            ?.status === 401
+        ) {
+          localStorage.removeItem(
+            'token'
+          );
+
+          localStorage.removeItem(
+            'user'
+          );
+
+          navigate('/login');
+          return;
+        }
+
+        setRequestError(
+          requestError.response
+            ?.data?.message ||
+            'No fue posible enviar la solicitud.'
+        );
+      } finally {
+        setRequestingServiceId(
+          null
+        );
+      }
+    };
+
+  /*
+    CANCELAR SOLICITUD
+  */
+  const handleCancelRequest =
+    async (
+      requestId: number
+    ) => {
+      try {
+        const token =
+          localStorage.getItem(
+            'token'
+          );
+
+        if (!token) {
+          navigate('/login');
+          return;
+        }
+
+        setCancellingRequestId(
+          requestId
+        );
+
+        setRequestMessage('');
+        setRequestError('');
+
+        const response =
+          await api.patch(
+            `/requests/${requestId}/cancel`,
+            {},
+            {
+              headers: {
+                Authorization:
+                  `Bearer ${token}`,
+              },
+            }
+          );
+
+        console.log(
+          'SOLICITUD CANCELADA:',
+          response.data
+        );
+
+        /*
+          Volvemos a consultar.
+          Como ahora estará CANCELLED,
+          volverá a aparecer Solicitar.
+        */
+        await loadMyRequests();
+
+        setRequestMessage(
+          response.data?.message ||
+            'Solicitud cancelada correctamente.'
+        );
+      } catch (
+        requestError: any
+      ) {
+        console.error(
+          'ERROR CANCELANDO SOLICITUD:',
+          requestError.response
+            ?.data ||
+            requestError
+        );
+
+        setRequestError(
+          requestError.response
+            ?.data?.message ||
+            'No fue posible cancelar la solicitud.'
+        );
+      } finally {
+        setCancellingRequestId(
+          null
+        );
+      }
+    };
+
+  /*
+    BOTÓN SEGÚN ESTADO
+  */
+  const renderRequestButton = (
+    service: Service
+  ) => {
+    const existingRequest =
+      getActiveRequest(
+        service.id
+      );
+
+    /*
+      TODAVÍA NO HAY SOLICITUD
+    */
+    if (!existingRequest) {
+      return (
+        <button
+          type="button"
+          disabled={
+            requestingServiceId ===
+            service.id
+          }
+          onClick={() =>
+            handleRequestService(
+              service
+            )
+          }
+        >
+          {requestingServiceId ===
+          service.id
+            ? 'Enviando...'
+            : 'Solicitar'}
+
+          <b>
+            →
+          </b>
+        </button>
+      );
+    }
+
+    /*
+      PENDIENTE DE ADMIN
+    */
+    if (
+      existingRequest.status ===
+      'PENDING_ADMIN'
+    ) {
+      return (
+        <button
+          type="button"
+          className="public-service-cancel"
+          disabled={
+            cancellingRequestId ===
+            existingRequest.id
+          }
+          onClick={() =>
+            handleCancelRequest(
+              existingRequest.id
+            )
+          }
+        >
+          {cancellingRequestId ===
+          existingRequest.id
+            ? 'Cancelando...'
+            : 'Cancelar'}
+
+          <b>
+            ×
+          </b>
+        </button>
+      );
+    }
+
+    /*
+      APROBADA
+    */
+    if (
+      existingRequest.status ===
+      'APPROVED'
+    ) {
+      return (
+        <button
+          type="button"
+          disabled
+          className="public-service-approved"
+        >
+          Solicitud aprobada
+
+          <b>
+            ✓
+          </b>
+        </button>
+      );
+    }
+
+    /*
+      EN PROCESO
+    */
+    if (
+      existingRequest.status ===
+      'IN_PROGRESS'
+    ) {
+      return (
+        <button
+          type="button"
+          disabled
+          className="public-service-approved"
+        >
+          En proceso
+
+          <b>
+            ✓
+          </b>
+        </button>
+      );
+    }
+
+    /*
+      COMPLETADA
+    */
+    if (
+      existingRequest.status ===
+      'COMPLETED'
+    ) {
+      return (
+        <button
+          type="button"
+          disabled
+          className="public-service-completed"
+        >
+          Completado
+
+          <b>
+            ✓
+          </b>
+        </button>
+      );
+    }
+
+    /*
+      CANCELADA / RECHAZADA
+      permite volver a solicitar.
+    */
+    return (
+      <button
+        type="button"
+        disabled={
+          requestingServiceId ===
+          service.id
+        }
+        onClick={() =>
+          handleRequestService(
+            service
+          )
+        }
+      >
+        {requestingServiceId ===
+        service.id
+          ? 'Enviando...'
+          : 'Solicitar'}
+
+        <b>
+          →
+        </b>
+      </button>
+    );
+  };
+
+  /*
+    LOADING
+  */
   if (loading) {
     return (
       <div className="public-profile-loading">
@@ -236,15 +775,21 @@ const SpecialistProfile = () => {
         </strong>
 
         <span>
-          Estamos preparando su perfil
-          profesional.
+          Estamos preparando su
+          perfil profesional.
         </span>
 
       </div>
     );
   }
 
-  if (!specialist || error) {
+  /*
+    ERROR
+  */
+  if (
+    !specialist ||
+    error
+  ) {
     return (
       <div className="public-profile-error-page">
 
@@ -253,7 +798,8 @@ const SpecialistProfile = () => {
         </div>
 
         <h1>
-          Especialista no encontrado
+          Especialista no
+          encontrado
         </h1>
 
         <p>
@@ -264,7 +810,9 @@ const SpecialistProfile = () => {
         <button
           type="button"
           onClick={() =>
-            navigate('/specialists')
+            navigate(
+              '/specialists'
+            )
           }
         >
           Volver a especialistas
@@ -322,7 +870,9 @@ const SpecialistProfile = () => {
             <button
               type="button"
               onClick={() =>
-                navigate('/login')
+                navigate(
+                  '/login'
+                )
               }
             >
               Iniciar sesión
@@ -348,21 +898,25 @@ const SpecialistProfile = () => {
 
       <main className="public-profile-container">
 
-        {/* BREADCRUMB */}
+        {/* VOLVER */}
 
         <button
           type="button"
           className="public-profile-back"
           onClick={() =>
-            navigate('/specialists')
+            navigate(
+              '/specialists'
+            )
           }
         >
-          <span>←</span>
+          <span>
+            ←
+          </span>
 
           Volver a especialistas
         </button>
 
-        {/* HERO PERFIL */}
+        {/* HERO */}
 
         <section className="public-profile-hero">
 
@@ -379,11 +933,13 @@ const SpecialistProfile = () => {
                 <div className="public-profile-status-row">
 
                   <span className="public-profile-status">
+
                     <i />
 
                     {specialist.available
                       ? 'Disponible'
                       : 'No disponible'}
+
                   </span>
 
                   {specialist.profileCompleted && (
@@ -401,7 +957,9 @@ const SpecialistProfile = () => {
                 <div className="public-profile-specialties">
 
                   {specialist.specialties.map(
-                    (specialty) => (
+                    (
+                      specialty
+                    ) => (
                       <span
                         key={
                           specialty.id
@@ -414,10 +972,12 @@ const SpecialistProfile = () => {
                     )
                   )}
 
-                  {specialist.specialties
+                  {specialist
+                    .specialties
                     .length === 0 && (
                     <span>
-                      Especialista FASYN
+                      Especialista
+                      FASYN
                     </span>
                   )}
 
@@ -438,6 +998,7 @@ const SpecialistProfile = () => {
             <div className="public-profile-meta">
 
               <div>
+
                 <span>
                   EXPERIENCIA
                 </span>
@@ -452,9 +1013,11 @@ const SpecialistProfile = () => {
                       }`
                     : 'No especificada'}
                 </strong>
+
               </div>
 
               <div>
+
                 <span>
                   UBICACIÓN
                 </span>
@@ -463,19 +1026,23 @@ const SpecialistProfile = () => {
                   {location ||
                     'No especificada'}
                 </strong>
+
               </div>
 
               <div>
+
                 <span>
                   SERVICIOS
                 </span>
 
                 <strong>
                   {
-                    specialist.services
+                    specialist
+                      .services
                       .length
                   }
                 </strong>
+
               </div>
 
             </div>
@@ -501,28 +1068,36 @@ const SpecialistProfile = () => {
                 </span>
 
                 <div>
+
                   <small>
-                    ss
+                    PERFIL PROFESIONAL
                   </small>
 
                   <h2>
                     Acerca de mí
                   </h2>
+
                 </div>
 
               </div>
 
               <p className="public-profile-description">
+
                 {specialist.description ||
                   'Este especialista aún no ha agregado una descripción profesional.'}
+
               </p>
 
-              {specialist.specialties.length >
-                0 && (
+              {specialist
+                .specialties
+                .length > 0 && (
+
                 <div className="public-profile-tags">
 
                   {specialist.specialties.map(
-                    (specialty) => (
+                    (
+                      specialty
+                    ) => (
                       <span
                         key={
                           specialty.id
@@ -536,13 +1111,17 @@ const SpecialistProfile = () => {
                   )}
 
                 </div>
+
               )}
 
             </section>
 
             {/* SERVICIOS */}
 
-            <section className="public-profile-section">
+            <section
+              id="specialist-services"
+              className="public-profile-section"
+            >
 
               <div className="public-profile-section-heading services">
 
@@ -551,6 +1130,7 @@ const SpecialistProfile = () => {
                 </span>
 
                 <div>
+
                   <small>
                     LO QUE OFRECE
                   </small>
@@ -560,20 +1140,74 @@ const SpecialistProfile = () => {
                   </h2>
 
                   <p>
-                    Selecciona el trabajo
-                    que necesitas.
+                    Selecciona el
+                    trabajo que
+                    necesitas.
                   </p>
+
                 </div>
 
               </div>
 
-              {specialist.services.length >
-              0 ? (
+              {/* MENSAJES */}
+
+              {requestMessage && (
+
+                <div className="public-request-success">
+
+                  <div className="public-request-feedback-icon">
+                    ✓
+                  </div>
+
+                  <div>
+
+                    <strong>
+                      Solicitud actualizada
+                    </strong>
+
+                    <p>
+                      {requestMessage}
+                    </p>
+
+                  </div>
+
+                </div>
+
+              )}
+
+              {requestError && (
+
+                <div className="public-request-error">
+
+                  <div className="public-request-feedback-icon">
+                    !
+                  </div>
+
+                  <div>
+
+                    <strong>
+                      No se pudo realizar
+                      la operación
+                    </strong>
+
+                    <p>
+                      {requestError}
+                    </p>
+
+                  </div>
+
+                </div>
+
+              )}
+
+              {specialist.services
+                .length > 0 ? (
 
                 <div className="public-services-list">
 
                   {specialist.services.map(
                     (service) => (
+
                       <article
                         className="public-service-card"
                         key={
@@ -584,11 +1218,13 @@ const SpecialistProfile = () => {
                         <div className="public-service-content">
 
                           <span className="public-service-category">
+
                             {formatCategoryName(
                               service
                                 .category
                                 .name
                             )}
+
                           </span>
 
                           <h3>
@@ -623,16 +1259,14 @@ const SpecialistProfile = () => {
                             )}
                           </span>
 
-                          <button
-                            type="button"
-                          >
-                            Solicitar
-                            <b>→</b>
-                          </button>
+                          {renderRequestButton(
+                            service
+                          )}
 
                         </div>
 
                       </article>
+
                     )
                   )}
 
@@ -647,12 +1281,15 @@ const SpecialistProfile = () => {
                   </div>
 
                   <h3>
-                    Sin servicios publicados
+                    Sin servicios
+                    publicados
                   </h3>
 
                   <p>
-                    Este especialista aún no
-                    tiene servicios disponibles.
+                    Este especialista
+                    aún no tiene
+                    servicios
+                    disponibles.
                   </p>
 
                 </div>
@@ -672,6 +1309,7 @@ const SpecialistProfile = () => {
                 </span>
 
                 <div>
+
                   <small>
                     REPUTACIÓN
                   </small>
@@ -681,10 +1319,12 @@ const SpecialistProfile = () => {
                   </h2>
 
                   <p>
-                    Las valoraciones aparecerán
-                    después de servicios
+                    Las valoraciones
+                    aparecerán después
+                    de servicios
                     completados.
                   </p>
+
                 </div>
 
               </div>
@@ -696,16 +1336,19 @@ const SpecialistProfile = () => {
                 </div>
 
                 <div>
+
                   <h3>
                     Aún sin opiniones
                   </h3>
 
                   <p>
-                    Cuando clientes completen
-                    servicios con este
-                    especialista podrán dejar
-                    una valoración.
+                    Cuando clientes
+                    completen servicios
+                    con este especialista
+                    podrán dejar una
+                    valoración.
                   </p>
+
                 </div>
 
               </div>
@@ -723,16 +1366,19 @@ const SpecialistProfile = () => {
             </span>
 
             <h2>
-              ¿Necesitas alguno de sus servicios?
+              ¿Necesitas alguno de
+              sus servicios?
             </h2>
 
             <p>
-              Revisa sus servicios y envía
-              una solicitud cuando encuentres
-              el trabajo que necesitas.
+              Revisa sus servicios y
+              envía una solicitud cuando
+              encuentres el trabajo que
+              necesitas.
             </p>
 
             {lowestService && (
+
               <div className="public-hire-price">
 
                 <span>
@@ -753,6 +1399,7 @@ const SpecialistProfile = () => {
                 </small>
 
               </div>
+
             )}
 
             <div className="public-hire-divider" />
@@ -764,6 +1411,7 @@ const SpecialistProfile = () => {
               </span>
 
               <div>
+
                 <strong>
                   Perfil en FASYN
                 </strong>
@@ -772,6 +1420,7 @@ const SpecialistProfile = () => {
                   Información profesional
                   registrada
                 </small>
+
               </div>
 
             </div>
@@ -783,14 +1432,17 @@ const SpecialistProfile = () => {
               </span>
 
               <div>
+
                 <strong>
                   Servicios publicados
                 </strong>
 
                 <small>
                   Precios y modalidades
-                  definidos por el especialista
+                  definidos por el
+                  especialista
                 </small>
+
               </div>
 
             </div>
@@ -802,14 +1454,18 @@ const SpecialistProfile = () => {
               </span>
 
               <div>
+
                 <strong>
-                  Solicitud sin cobro
+                  Solicitud sujeta a
+                  aprobación
                 </strong>
 
                 <small>
-                  Enviar una solicitud no
-                  genera un pago inmediato
+                  FASYN revisará la
+                  solicitud antes de
+                  enviarla al especialista
                 </small>
+
               </div>
 
             </div>
@@ -822,25 +1478,33 @@ const SpecialistProfile = () => {
                   .length === 0
               }
               onClick={() => {
-                const servicesElement =
+                const element =
                   document.getElementById(
                     'specialist-services'
                   );
 
-                servicesElement?.scrollIntoView({
+                element?.scrollIntoView({
                   behavior: 'smooth',
+                  block: 'start',
                 });
               }}
             >
+
               Ver servicios disponibles
+
               <span>
                 →
               </span>
+
             </button>
 
             <small className="public-hire-disclaimer">
-              Podrás revisar los detalles antes
-              de confirmar cualquier solicitud.
+
+              La solicitud primero será
+              revisada por FASYN. No se
+              realizará ningún cobro en
+              este momento.
+
             </small>
 
           </aside>

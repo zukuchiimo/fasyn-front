@@ -29,6 +29,35 @@ type Service = {
   };
 };
 
+type SpecialistRequest = {
+  id: number;
+  status:
+    | 'APPROVED'
+    | 'IN_PROGRESS'
+    | 'COMPLETED';
+  message?: string | null;
+  createdAt: string;
+  updatedAt: string;
+
+  client: {
+    id: number;
+    name: string;
+    email: string;
+  };
+
+  service: {
+    id: number;
+    name: string;
+    price: string | number;
+    priceType: PriceType;
+
+    category: {
+      id: number;
+      name: string;
+    };
+  };
+};
+
 type EditForm = {
   name: string;
   description: string;
@@ -76,6 +105,19 @@ const SpecialistDashboard = () => {
 
   const [services, setServices] =
     useState<Service[]>([]);
+
+  const [requests, setRequests] =
+    useState<SpecialistRequest[]>([]);
+
+  const [
+    loadingRequests,
+    setLoadingRequests,
+  ] = useState(true);
+
+  const [
+    requestsError,
+    setRequestsError,
+  ] = useState('');
 
   const [
     loadingServices,
@@ -162,8 +204,57 @@ const SpecialistDashboard = () => {
     }
   };
 
+  const loadRequests = async () => {
+    try {
+      setLoadingRequests(true);
+      setRequestsError('');
+
+      const token =
+        localStorage.getItem('token');
+
+      if (!token) {
+        navigate('/login');
+        return;
+      }
+
+      const response = await api.get(
+        '/requests/specialist',
+        {
+          headers: {
+            Authorization:
+              `Bearer ${token}`,
+          },
+        }
+      );
+
+      console.log(
+        'SOLICITUDES ESPECIALISTA:',
+        response.data
+      );
+
+      setRequests(
+        response.data?.requests || []
+      );
+
+    } catch (error: any) {
+      console.error(
+        'ERROR CARGANDO SOLICITUDES:',
+        error.response?.data || error
+      );
+
+      setRequestsError(
+        error.response?.data?.message ||
+          'No fue posible cargar tus solicitudes.'
+      );
+
+    } finally {
+      setLoadingRequests(false);
+    }
+  };
+
   useEffect(() => {
     loadServices();
+    loadRequests();
   }, []);
 
   const getPriceTypeLabel = (
@@ -422,6 +513,19 @@ const SpecialistDashboard = () => {
     });
   };
 
+
+  const goToRequests = () => {
+    const element =
+      document.getElementById(
+        'my-requests'
+      );
+
+    element?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+    });
+  };
+
   return (
     <div className="pro-dashboard">
 
@@ -454,6 +558,7 @@ const SpecialistDashboard = () => {
             <button
               type="button"
               className="pro-nav-item"
+              onClick={goToRequests}
             >
               Solicitudes
             </button>
@@ -682,7 +787,10 @@ const SpecialistDashboard = () => {
             <article className="metric-card">
 
               <div className="metric-number">
-                0
+                {requests.filter(
+                  (request) =>
+                    request.status === 'APPROVED'
+                ).length}
               </div>
 
               <div>
@@ -700,7 +808,10 @@ const SpecialistDashboard = () => {
             <article className="metric-card">
 
               <div className="metric-number">
-                0
+                {requests.filter(
+                  (request) =>
+                    request.status === 'COMPLETED'
+                ).length}
               </div>
 
               <div>
@@ -757,7 +868,10 @@ const SpecialistDashboard = () => {
 
         <section className="pro-content-grid">
 
-          <article className="pro-section-card">
+          <article
+            id="my-requests"
+            className="pro-section-card"
+          >
 
             <div className="pro-section-header">
 
@@ -778,7 +892,10 @@ const SpecialistDashboard = () => {
 
               </div>
 
-              <button type="button">
+              <button
+                type="button"
+                onClick={loadRequests}
+              >
                 Ver todas
                 <span>
                   →
@@ -787,25 +904,129 @@ const SpecialistDashboard = () => {
 
             </div>
 
-            <div className="requests-empty">
+            {requestsError && (
+              <div className="services-dashboard-error">
+                {requestsError}
+              </div>
+            )}
 
-              <div className="empty-graphic">
-                <div className="empty-line" />
-                <div className="empty-line short" />
-                <div className="empty-line smaller" />
+            {loadingRequests ? (
+
+              <div className="requests-empty">
+
+                <strong>
+                  Cargando solicitudes...
+                </strong>
+
               </div>
 
-              <strong>
-                Todo tranquilo por ahora
-              </strong>
+            ) : requests.length === 0 ? (
 
-              <p>
-                Cuando recibas una solicitud
-                de servicio, aparecerá en este
-                espacio.
-              </p>
+              <div className="requests-empty">
 
-            </div>
+                <div className="empty-graphic">
+                  <div className="empty-line" />
+                  <div className="empty-line short" />
+                  <div className="empty-line smaller" />
+                </div>
+
+                <strong>
+                  Todo tranquilo por ahora
+                </strong>
+
+                <p>
+                  Cuando el administrador apruebe
+                  una solicitud de servicio,
+                  aparecerá en este espacio.
+                </p>
+
+              </div>
+
+            ) : (
+
+              <div className="service-management-grid">
+
+                {requests.map(
+                  (request) => (
+
+                    <article
+                      key={request.id}
+                      className="management-service-card"
+                    >
+
+                      <div className="management-service-top">
+
+                        <span className="management-category">
+                          {request.service.category.name}
+                        </span>
+
+                        <span className="management-status active">
+                          <i />
+
+                          {request.status === 'APPROVED'
+                            ? 'Aprobada'
+                            : request.status === 'IN_PROGRESS'
+                              ? 'En proceso'
+                              : 'Completada'}
+                        </span>
+
+                      </div>
+
+                      <div className="management-service-content">
+
+                        <h3>
+                          {request.service.name}
+                        </h3>
+
+                        <p>
+                          Cliente: {request.client.name}
+                        </p>
+
+                        <p>
+                          {request.client.email}
+                        </p>
+
+                        {request.message && (
+                          <p>
+                            Mensaje: {request.message}
+                          </p>
+                        )}
+
+                      </div>
+
+                      <div className="management-service-price">
+
+                        <strong>
+                          {formatPrice(
+                            request.service.price
+                          )}
+                        </strong>
+
+                        <span>
+                          {getPriceTypeLabel(
+                            request.service.priceType
+                          )}
+                        </span>
+
+                      </div>
+
+                      <div className="management-service-bottom">
+
+                        <span className="management-status active">
+                          <i />
+                          Solicitud #{request.id}
+                        </span>
+
+                      </div>
+
+                    </article>
+
+                  )
+                )}
+
+              </div>
+
+            )}
 
           </article>
 
@@ -881,6 +1102,7 @@ const SpecialistDashboard = () => {
             <button
               type="button"
               className="quick-action"
+              onClick={goToRequests}
             >
               <span className="quick-number">
                 03

@@ -1,0 +1,918 @@
+/* =========================================
+   FASYN - ADMIN DASHBOARD
+========================================= */
+
+* {
+  box-sizing: border-box;
+}
+
+.admin-page {
+  min-height: 100vh;
+
+  background: #f7f8fc;
+
+  color: #17223a;
+
+  font-family:
+    Inter,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+}
+
+/* =========================================
+   SIDEBAR FLOTANTE
+========================================= */
+
+.admin-sidebar {
+  position: fixed;
+
+  top: 24px;
+  left: 24px;
+  bottom: 24px;
+
+  width: 220px;
+
+  padding: 22px 16px;
+
+  display: flex;
+  flex-direction: column;
+
+  border-radius: 20px;
+
+  background: #111c33;
+
+  box-shadow:
+    0 18px 45px
+    rgba(15, 29, 55, 0.15);
+
+  z-index: 100;
+}
+
+/* =========================================
+   LOGO
+========================================= */
+
+.admin-brand {
+  min-height: 58px;
+
+  padding: 0 8px 20px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  border-bottom:
+    1px solid
+    rgba(255, 255, 255, 0.08);
+}
+
+.admin-brand img {
+  width: 90px;
+  height: 38px;
+
+  object-fit: contain;
+}
+
+.admin-brand span {
+  padding: 5px 7px;
+
+  border-radius: 7px;
+
+  background:
+    rgba(92, 124, 255, 0.14);
+
+  color: #91a4ff;
+
+  font-size: 8px;
+  font-weight: 800;
+
+  letter-spacing: 0.12em;
+}
+
+/* =========================================
+   MENU
+========================================= */
+
+.admin-menu {
+  margin-top: 22px;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 5px;
+}
+
+.admin-menu button {
+  width: 100%;
+  min-height: 43px;
+
+  padding: 0 13px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 11px;
+
+  border: 0;
+  border-radius: 10px;
+
+  background: transparent;
+
+  color: #aab4c6;
+
+  font-size: 11px;
+  font-weight: 600;
+
+  text-align: left;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.admin-menu button span {
+  width: 21px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  color: #7f95ff;
+
+  font-size: 14px;
+}
+
+.admin-menu button:hover {
+  background:
+    rgba(255, 255, 255, 0.05);
+
+  color: #ffffff;
+
+  transform: translateX(2px);
+}
+
+.admin-menu button.active {
+  background:
+    rgba(92, 124, 255, 0.15);
+
+  color: #ffffff;
+}
+
+/* =========================================
+   LOGOUT
+========================================= */
+
+.admin-sidebar-bottom {
+  margin-top: auto;
+
+  padding-top: 17px;
+
+  border-top:
+    1px solid
+    rgba(255, 255, 255, 0.08);
+}
+
+.admin-sidebar-bottom button {
+  width: 100%;
+  min-height: 40px;
+
+  border:
+    1px solid
+    rgba(255, 255, 255, 0.1);
+
+  border-radius: 10px;
+
+  background: transparent;
+
+  color: #aab4c6;
+
+  font-size: 10px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.admin-sidebar-bottom button:hover {
+  background:
+    rgba(255, 255, 255, 0.06);
+
+  color: #ffffff;
+}
+
+/* =========================================
+   MAIN
+========================================= */
+
+.admin-content {
+  min-height: 100vh;
+
+  margin-left: 268px;
+
+  padding:
+    35px 42px 50px;
+}
+
+/* =========================================
+   HEADER
+========================================= */
+
+.admin-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 30px;
+}
+
+.admin-header > div:first-child > span {
+  color: #5c7cff;
+
+  font-size: 9px;
+  font-weight: 800;
+
+  letter-spacing: 0.14em;
+}
+
+.admin-header h1 {
+  margin: 7px 0 0;
+
+  color: #18233a;
+
+  font-size: 31px;
+  font-weight: 750;
+
+  letter-spacing: -0.03em;
+}
+
+.admin-header p {
+  margin: 7px 0 0;
+
+  color: #667085;
+
+  font-size: 12px;
+}
+
+/* =========================================
+   ADMIN USER
+========================================= */
+
+.admin-user {
+  padding: 9px 12px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  border: 1px solid #e6e9f0;
+  border-radius: 12px;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 5px 16px
+    rgba(16, 24, 40, 0.03);
+}
+
+.admin-user-avatar {
+  width: 36px;
+  height: 36px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 10px;
+
+  background: #eef1ff;
+
+  color: #5c7cff;
+
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.admin-user strong {
+  display: block;
+
+  color: #344054;
+
+  font-size: 10px;
+}
+
+.admin-user span {
+  display: block;
+
+  margin-top: 2px;
+
+  color: #98a2b3;
+
+  font-size: 8px;
+}
+
+/* =========================================
+   STAT CARDS
+========================================= */
+
+.admin-stats {
+  margin-top: 30px;
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+
+  gap: 14px;
+}
+
+.admin-stats article {
+  min-height: 120px;
+
+  padding: 20px;
+
+  border: 1px solid #e8ebf1;
+  border-radius: 15px;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 6px 20px
+    rgba(16, 24, 40, 0.03);
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.admin-stats article:hover {
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 10px 28px
+    rgba(16, 24, 40, 0.06);
+}
+
+.admin-stats article > span {
+  color: #8f9aaa;
+
+  font-size: 8px;
+  font-weight: 800;
+
+  letter-spacing: 0.1em;
+}
+
+.admin-stats strong {
+  display: block;
+
+  margin-top: 14px;
+
+  color: #17223a;
+
+  font-size: 30px;
+  font-weight: 760;
+
+  line-height: 1;
+}
+
+.admin-stats small {
+  display: block;
+
+  margin-top: 8px;
+
+  color: #667085;
+
+  font-size: 9px;
+}
+
+/* =========================================
+   PANEL
+========================================= */
+
+.admin-panel {
+  margin-top: 18px;
+
+  overflow: hidden;
+
+  border: 1px solid #e8ebf1;
+  border-radius: 16px;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 6px 22px
+    rgba(16, 24, 40, 0.03);
+}
+
+.admin-panel-header {
+  padding: 20px 22px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 20px;
+
+  border-bottom: 1px solid #f0f2f5;
+}
+
+.admin-panel-header span {
+  color: #5c7cff;
+
+  font-size: 8px;
+  font-weight: 800;
+
+  letter-spacing: 0.12em;
+}
+
+.admin-panel-header h2 {
+  margin: 5px 0 0;
+
+  color: #344054;
+
+  font-size: 17px;
+  font-weight: 700;
+}
+
+/* =========================================
+   REFRESH
+========================================= */
+
+.admin-refresh {
+  min-height: 36px;
+
+  padding: 0 14px;
+
+  border: 1px solid #dfe3eb;
+  border-radius: 9px;
+
+  background: #ffffff;
+
+  color: #475467;
+
+  font-size: 10px;
+  font-weight: 650;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.admin-refresh:hover {
+  background: #f8f9ff;
+
+  border-color: #bac5ff;
+}
+
+/* =========================================
+   ERROR
+========================================= */
+
+.admin-error {
+  margin: 18px 20px 0;
+
+  padding: 13px 15px;
+
+  border: 1px solid #fecdd3;
+  border-radius: 10px;
+
+  background: #fff1f2;
+
+  color: #be123c;
+
+  font-size: 10px;
+}
+
+/* =========================================
+   EMPTY
+========================================= */
+
+.admin-empty {
+  padding: 65px 30px;
+
+  text-align: center;
+}
+
+.admin-empty > div {
+  width: 45px;
+  height: 45px;
+
+  margin: 0 auto 14px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 12px;
+
+  background: #eef1ff;
+
+  color: #5c7cff;
+
+  font-size: 16px;
+  font-weight: 900;
+}
+
+.admin-empty h3 {
+  margin: 0;
+
+  color: #344054;
+
+  font-size: 14px;
+}
+
+.admin-empty p {
+  max-width: 440px;
+
+  margin: 7px auto 0;
+
+  color: #98a2b3;
+
+  font-size: 10px;
+
+  line-height: 1.6;
+}
+
+/* =========================================
+   REQUEST LIST
+========================================= */
+
+.admin-requests-list {
+  padding: 18px;
+
+  display: grid;
+
+  gap: 12px;
+}
+
+.admin-request-card {
+  padding: 20px;
+
+  border: 1px solid #e8ebf1;
+  border-radius: 13px;
+
+  background: #ffffff;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.admin-request-card:hover {
+  transform: translateY(-1px);
+
+  border-color: #ccd4ff;
+
+  box-shadow:
+    0 8px 25px
+    rgba(16, 24, 40, 0.05);
+}
+
+.admin-request-main {
+  display: grid;
+
+  grid-template-columns:
+    75px 1fr;
+
+  gap: 20px;
+}
+
+.admin-request-number {
+  padding-right: 16px;
+
+  border-right: 1px solid #edf0f4;
+}
+
+.admin-request-number span {
+  display: block;
+
+  color: #98a2b3;
+
+  font-size: 8px;
+  font-weight: 800;
+
+  letter-spacing: 0.1em;
+}
+
+.admin-request-number strong {
+  display: block;
+
+  margin-top: 6px;
+
+  color: #5c7cff;
+
+  font-size: 19px;
+}
+
+.admin-request-info {
+  min-width: 0;
+}
+
+.admin-request-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 20px;
+}
+
+.admin-request-title-row > div > span {
+  color: #5c7cff;
+
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.admin-request-title-row h3 {
+  margin: 5px 0 0;
+
+  color: #17223a;
+
+  font-size: 16px;
+}
+
+/* =========================================
+   STATUS
+========================================= */
+
+.admin-request-status {
+  flex-shrink: 0;
+
+  padding: 6px 10px;
+
+  border-radius: 999px;
+
+  font-size: 8px;
+  font-weight: 800;
+}
+
+.admin-request-status.pending_admin {
+  background: #fff7ed;
+  color: #c2410c;
+}
+
+.admin-request-status.approved {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.admin-request-status.rejected {
+  background: #fff1f2;
+  color: #be123c;
+}
+
+.admin-request-status.cancelled {
+  background: #f2f4f7;
+  color: #667085;
+}
+
+.admin-request-status.in_progress {
+  background: #eef1ff;
+  color: #4864df;
+}
+
+.admin-request-status.completed {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+/* =========================================
+   REQUEST DATA
+========================================= */
+
+.admin-request-data {
+  margin-top: 18px;
+
+  padding-top: 16px;
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+
+  gap: 16px;
+
+  border-top: 1px solid #f0f2f5;
+}
+
+.admin-request-data span {
+  display: block;
+
+  color: #98a2b3;
+
+  font-size: 8px;
+  font-weight: 800;
+
+  letter-spacing: 0.08em;
+}
+
+.admin-request-data strong {
+  display: block;
+
+  margin-top: 5px;
+
+  color: #344054;
+
+  font-size: 10px;
+}
+
+.admin-request-data small {
+  display: block;
+
+  margin-top: 3px;
+
+  color: #98a2b3;
+
+  font-size: 8px;
+}
+
+/* =========================================
+   MESSAGE
+========================================= */
+
+.admin-request-message {
+  margin-top: 16px;
+
+  padding: 12px 14px;
+
+  border-radius: 9px;
+
+  background: #f8f9fc;
+}
+
+.admin-request-message span {
+  color: #98a2b3;
+
+  font-size: 8px;
+  font-weight: 800;
+}
+
+.admin-request-message p {
+  margin: 6px 0 0;
+
+  color: #475467;
+
+  font-size: 10px;
+
+  line-height: 1.55;
+}
+
+/* =========================================
+   ACTIONS
+========================================= */
+
+.admin-request-actions {
+  margin-top: 16px;
+
+  padding-top: 15px;
+
+  display: flex;
+
+  gap: 8px;
+
+  border-top: 1px solid #f0f2f5;
+}
+
+.admin-request-actions button {
+  min-height: 37px;
+
+  padding: 0 15px;
+
+  border-radius: 9px;
+
+  font-size: 10px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.admin-request-actions button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.admin-approve {
+  border: 0;
+
+  background: #5c7cff;
+
+  color: #ffffff;
+}
+
+.admin-approve:hover {
+  background: #4d6eec;
+}
+
+.admin-reject {
+  border: 1px solid #fecdd3;
+
+  background: #fff1f2;
+
+  color: #be123c;
+}
+
+.admin-reject:hover {
+  background: #ffe4e6;
+}
+
+.admin-request-actions button:disabled {
+  opacity: 0.55;
+
+  cursor: not-allowed;
+}
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media (max-width: 1050px) {
+  .admin-stats {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-request-data {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 850px) {
+  .admin-sidebar {
+    display: none;
+  }
+
+  .admin-content {
+    margin-left: 0;
+
+    padding:
+      28px 22px 40px;
+  }
+}
+
+@media (max-width: 560px) {
+  .admin-header {
+    align-items: flex-start;
+
+    flex-direction: column;
+  }
+
+  .admin-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-request-main {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-request-number {
+    padding-right: 0;
+    padding-bottom: 12px;
+
+    border-right: 0;
+
+    border-bottom:
+      1px solid #edf0f4;
+  }
+
+  .admin-request-title-row {
+    flex-direction: column;
+  }
+
+  .admin-request-data {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-request-actions {
+    flex-direction: column;
+  }
+
+  .admin-request-actions button {
+    width: 100%;
+  }
+
+  .admin-panel-header {
+    align-items: flex-start;
+
+    flex-direction: column;
+  }
+
+  .admin-refresh {
+    width: 100%;
+  }
+}
