@@ -466,12 +466,15 @@ const SpecialistDashboard = () => {
               Servicios
             </button>
 
-            <button
-              type="button"
-              className="pro-nav-item"
-            >
-              Mi perfil
-            </button>
+  <button
+  type="button"
+  className="pro-nav-item"
+  onClick={() =>
+    navigate('/specialist/profile')
+  }
+>
+  Mi perfil
+</button>
 
           </nav>
 
@@ -662,16 +665,16 @@ const SpecialistDashboard = () => {
 
             </div>
 
-            <button
-              type="button"
-              className="profile-edit"
-            >
-              Editar mi perfil
-              <span>
-                →
-              </span>
-            </button>
-
+         <button
+  type="button"
+  className="profile-edit"
+  onClick={() =>
+    navigate('/specialist/profile')
+  }
+>
+  Editar mi perfil
+  <span>→</span>
+</button>
           </article>
 
           <div className="pro-metrics">
@@ -849,30 +852,32 @@ const SpecialistDashboard = () => {
               </span>
             </button>
 
-            <button
-              type="button"
-              className="quick-action"
-            >
-              <span className="quick-number">
-                02
-              </span>
+    <button
+  type="button"
+  className="quick-action"
+  onClick={() =>
+    navigate('/specialist/profile')
+  }
+>
+  <span className="quick-number">
+    02
+  </span>
 
-              <div>
-                <strong>
-                  Editar mi perfil
-                </strong>
+  <div>
+    <strong>
+      Editar mi perfil
+    </strong>
 
-                <small>
-                  Actualiza tu información
-                  profesional
-                </small>
-              </div>
+    <small>
+      Actualiza tu información
+      profesional
+    </small>
+  </div>
 
-              <span className="quick-arrow">
-                →
-              </span>
-            </button>
-
+  <span className="quick-arrow">
+    →
+  </span>
+</button>
             <button
               type="button"
               className="quick-action"

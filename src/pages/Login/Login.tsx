@@ -73,7 +73,7 @@ const Login = () => {
           </span>
 
           <h1>
-            Encuentra al especialista
+            Encuentra al esdpecialista
             <span> que necesitas.</span>
           </h1>
 

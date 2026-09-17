@@ -1,309 +1,944 @@
-import { useState } from 'react';
+import {
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
+
+import {
+  useNavigate,
+} from 'react-router-dom';
+
+import { api } from '../../api/api';
+import logo from '../../assets/logo.png';
+
 import './Specialists.css';
 
-const specialists = [
-  {
-    id: 1,
-    initials: 'JP',
-    name: 'Juan Pérez',
-    specialty: 'Carpintero',
-    description:
-      'Fabricación, reparación e instalación de muebles y trabajos de carpintería.',
-    rating: 4.9,
-    reviews: 127,
-    price: 250,
-    unit: 'hora',
-    experience: '8 años',
-    verified: true,
-  },
-  {
-    id: 2,
-    initials: 'ML',
-    name: 'María López',
-    specialty: 'Limpieza',
-    description:
-      'Servicio profesional de limpieza para casas, departamentos y oficinas.',
-    rating: 4.8,
-    reviews: 94,
-    price: 700,
-    unit: 'día',
-    experience: '5 años',
-    verified: true,
-  },
-  {
-    id: 3,
-    initials: 'CR',
-    name: 'Carlos Ramírez',
-    specialty: 'Electricista',
-    description:
-      'Instalaciones eléctricas, reparación de contactos, lámparas y mantenimiento.',
-    rating: 4.9,
-    reviews: 83,
-    price: 350,
-    unit: 'hora',
-    experience: '10 años',
-    verified: true,
-  },
-  {
-    id: 4,
-    initials: 'AG',
-    name: 'Andrea García',
-    specialty: 'Pintura',
-    description:
-      'Pintura de interiores y exteriores para hogares, oficinas y comercios.',
-    rating: 4.7,
-    reviews: 61,
-    price: 1200,
-    unit: 'actividad',
-    experience: '6 años',
-    verified: false,
-  },
-];
+type PriceType =
+  | 'HOUR'
+  | 'DAY'
+  | 'ACTIVITY';
 
-const categories = [
-  'Todos',
-  'Carpintero',
-  'Limpieza',
-  'Electricista',
-  'Pintura',
-  'Plomería',
-];
+type Category = {
+  id: number;
+  name: string;
+};
+
+type Service = {
+  id: number;
+  name: string;
+  description?: string | null;
+  price: number;
+  priceType: PriceType;
+
+  category: Category;
+};
+
+type Specialist = {
+  id: number;
+  userId: number;
+  name: string;
+  description?: string | null;
+  experience?: number | null;
+
+  state?: string | null;
+  municipality?: string | null;
+  neighborhood?: string | null;
+
+  available: boolean;
+  profileCompleted: boolean;
+
+  specialties: Category[];
+  services: Service[];
+
+  startingPrice?: number | null;
+};
+
+type SortOption =
+  | 'DEFAULT'
+  | 'PRICE_ASC'
+  | 'EXPERIENCE_DESC'
+  | 'NAME_ASC';
 
 const Specialists = () => {
-  const [search, setSearch] = useState('');
-  const [category, setCategory] = useState('Todos');
+  const navigate = useNavigate();
 
-  const filteredSpecialists = specialists.filter((specialist) => {
-    const matchesSearch =
-      specialist.name.toLowerCase().includes(search.toLowerCase()) ||
-      specialist.specialty.toLowerCase().includes(search.toLowerCase()) ||
-      specialist.description.toLowerCase().includes(search.toLowerCase());
+  const [specialists, setSpecialists] =
+    useState<Specialist[]>([]);
 
-    const matchesCategory =
-      category === 'Todos' || specialist.specialty === category;
+  const [categories, setCategories] =
+    useState<Category[]>([]);
 
-    return matchesSearch && matchesCategory;
-  });
+  const [search, setSearch] =
+    useState('');
+
+  const [categoryId, setCategoryId] =
+    useState('ALL');
+
+  const [priceType, setPriceType] =
+    useState<'ALL' | PriceType>(
+      'ALL'
+    );
+
+  const [sort, setSort] =
+    useState<SortOption>(
+      'DEFAULT'
+    );
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [error, setError] =
+    useState('');
+
+  const formatCategoryName = (
+    value: string
+  ) => {
+    if (!value) {
+      return 'Especialidad';
+    }
+
+    const formatted = value
+      .replace(
+        /([a-záéíóúñ])([A-ZÁÉÍÓÚÑ])/g,
+        '$1 $2'
+      )
+      .replace(/[_-]+/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    return (
+      formatted
+        .charAt(0)
+        .toLocaleUpperCase(
+          'es-MX'
+        ) +
+      formatted.slice(1)
+    );
+  };
+
+  const getInitials = (
+    name: string
+  ) => {
+    return (
+      name
+        .trim()
+        .split(' ')
+        .filter(Boolean)
+        .map((word) =>
+          word.charAt(0)
+        )
+        .join('')
+        .substring(0, 2)
+        .toUpperCase() ||
+      'ES'
+    );
+  };
+
+  const getPriceTypeLabel = (
+    value: PriceType
+  ) => {
+    switch (value) {
+      case 'HOUR':
+        return 'hora';
+
+      case 'DAY':
+        return 'día';
+
+      default:
+        return 'servicio';
+    }
+  };
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      setError('');
+
+      const [
+        specialistsResponse,
+        categoriesResponse,
+      ] = await Promise.all([
+        api.get('/specialists'),
+        api.get('/categories'),
+      ]);
+
+      setSpecialists(
+        specialistsResponse.data
+          ?.specialists || []
+      );
+
+      setCategories(
+        categoriesResponse.data
+          ?.categories || []
+      );
+    } catch (requestError: any) {
+      console.error(
+        'ERROR CARGANDO ESPECIALISTAS:',
+        requestError.response?.data ||
+          requestError
+      );
+
+      setError(
+        requestError.response?.data
+          ?.message ||
+          'No fue posible cargar los especialistas.'
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const filteredSpecialists =
+    useMemo(() => {
+      const normalizedSearch =
+        search
+          .trim()
+          .toLocaleLowerCase(
+            'es-MX'
+          );
+
+      let result =
+        specialists.filter(
+          (specialist) => {
+            const specialtyNames =
+              specialist.specialties
+                .map(
+                  (specialty) =>
+                    specialty.name
+                )
+                .join(' ');
+
+            const serviceNames =
+              specialist.services
+                .map(
+                  (service) =>
+                    `${service.name} ${
+                      service.description ||
+                      ''
+                    }`
+                )
+                .join(' ');
+
+            const searchableText =
+              [
+                specialist.name,
+                specialist.description ||
+                  '',
+                specialtyNames,
+                serviceNames,
+                specialist.state ||
+                  '',
+                specialist.municipality ||
+                  '',
+                specialist.neighborhood ||
+                  '',
+              ]
+                .join(' ')
+                .toLocaleLowerCase(
+                  'es-MX'
+                );
+
+            const matchesSearch =
+              !normalizedSearch ||
+              searchableText.includes(
+                normalizedSearch
+              );
+
+            const matchesCategory =
+              categoryId === 'ALL' ||
+              specialist.specialties.some(
+                (specialty) =>
+                  String(
+                    specialty.id
+                  ) ===
+                  categoryId
+              ) ||
+              specialist.services.some(
+                (service) =>
+                  String(
+                    service.category
+                      .id
+                  ) ===
+                  categoryId
+              );
+
+            const matchesPriceType =
+              priceType === 'ALL' ||
+              specialist.services.some(
+                (service) =>
+                  service.priceType ===
+                  priceType
+              );
+
+            return (
+              matchesSearch &&
+              matchesCategory &&
+              matchesPriceType
+            );
+          }
+        );
+
+      result = [...result];
+
+      if (
+        sort === 'PRICE_ASC'
+      ) {
+        result.sort((a, b) => {
+          const priceA =
+            a.startingPrice ??
+            Number.MAX_SAFE_INTEGER;
+
+          const priceB =
+            b.startingPrice ??
+            Number.MAX_SAFE_INTEGER;
+
+          return priceA - priceB;
+        });
+      }
+
+      if (
+        sort ===
+        'EXPERIENCE_DESC'
+      ) {
+        result.sort(
+          (a, b) =>
+            (b.experience || 0) -
+            (a.experience || 0)
+        );
+      }
+
+      if (
+        sort === 'NAME_ASC'
+      ) {
+        result.sort((a, b) =>
+          a.name.localeCompare(
+            b.name,
+            'es'
+          )
+        );
+      }
+
+      return result;
+    }, [
+      specialists,
+      search,
+      categoryId,
+      priceType,
+      sort,
+    ]);
+
+  const clearFilters = () => {
+    setSearch('');
+    setCategoryId('ALL');
+    setPriceType('ALL');
+    setSort('DEFAULT');
+  };
 
   return (
     <div className="specialists-page">
 
       <header className="specialists-navbar">
+
         <div className="specialists-navbar-content">
-          <a href="/" className="specialists-logo">
-            Feisin
-          </a>
+
+          <button
+            type="button"
+            className="specialists-logo"
+            onClick={() =>
+              navigate('/')
+            }
+          >
+            <img
+              src={logo}
+              alt="FASYN"
+            />
+          </button>
 
           <nav>
-            <a href="/">Inicio</a>
-            <a href="/specialists">Especialistas</a>
-            <a href="/login">Iniciar sesión</a>
 
-            <a href="/register" className="create-account">
+            <button
+              type="button"
+              onClick={() =>
+                navigate('/')
+              }
+            >
+              Inicio
+            </button>
+
+            <button
+              type="button"
+              className="active"
+            >
+              Especialistas
+            </button>
+
+            <button
+              type="button"
+              onClick={() =>
+                navigate('/login')
+              }
+            >
+              Iniciar sesión
+            </button>
+
+            <button
+              type="button"
+              className="create-account"
+              onClick={() =>
+                navigate(
+                  '/register'
+                )
+              }
+            >
               Crear cuenta
-            </a>
+            </button>
+
           </nav>
+
         </div>
+
       </header>
 
       <section className="specialists-hero">
-        <div>
-          <span>ENCUENTRA PROFESIONALES</span>
+
+        <div className="specialists-hero-inner">
+
+          <span className="specialists-eyebrow">
+            ENCUENTRA PROFESIONALES
+          </span>
 
           <h1>
             Encuentra al especialista
-            <strong> ideal para tu proyecto</strong>
+            <strong>
+              {' '}
+              ideal para tu proyecto.
+            </strong>
           </h1>
 
           <p>
-            Compara profesionales, precios y opiniones antes de elegir.
+            Explora profesionales
+            registrados en FASYN y
+            encuentra el servicio que
+            necesitas.
           </p>
 
           <div className="specialists-search">
+
             <span>⌕</span>
 
             <input
               type="text"
-              placeholder="¿Qué servicio necesitas?"
+              placeholder="Ej. carpintería, plomería, aire acondicionado..."
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(event) =>
+                setSearch(
+                  event.target.value
+                )
+              }
             />
 
-            <button>Buscar</button>
+            <button
+              type="button"
+            >
+              Buscar
+            </button>
+
           </div>
+
         </div>
+
       </section>
 
       <main className="specialists-content">
 
         <aside className="filters">
+
           <div className="filters-header">
-            <h3>Filtros</h3>
+
+            <h3>
+              Filtros
+            </h3>
 
             <button
-              onClick={() => {
-                setCategory('Todos');
-                setSearch('');
-              }}
+              type="button"
+              onClick={
+                clearFilters
+              }
             >
               Limpiar
             </button>
+
           </div>
 
           <div className="filter-section">
-            <h4>Especialidad</h4>
 
-            {categories.map((item) => (
-              <label key={item}>
-                <input
-                  type="radio"
-                  name="category"
-                  checked={category === item}
-                  onChange={() => setCategory(item)}
-                />
+            <h4>
+              Especialidad
+            </h4>
 
-                {item}
-              </label>
-            ))}
+            <label>
+              <input
+                type="radio"
+                name="category"
+                checked={
+                  categoryId ===
+                  'ALL'
+                }
+                onChange={() =>
+                  setCategoryId(
+                    'ALL'
+                  )
+                }
+              />
+
+              <span>
+                Todos
+              </span>
+            </label>
+
+            {categories.map(
+              (category) => (
+                <label
+                  key={
+                    category.id
+                  }
+                >
+                  <input
+                    type="radio"
+                    name="category"
+                    checked={
+                      categoryId ===
+                      String(
+                        category.id
+                      )
+                    }
+                    onChange={() =>
+                      setCategoryId(
+                        String(
+                          category.id
+                        )
+                      )
+                    }
+                  />
+
+                  <span>
+                    {formatCategoryName(
+                      category.name
+                    )}
+                  </span>
+                </label>
+              )
+            )}
+
           </div>
 
           <div className="filter-section">
-            <h4>Calificación</h4>
+
+            <h4>
+              Tipo de cobro
+            </h4>
 
             <label>
-              <input type="checkbox" />
-              ★ 4.5 o más
+              <input
+                type="radio"
+                name="price-type"
+                checked={
+                  priceType ===
+                  'ALL'
+                }
+                onChange={() =>
+                  setPriceType(
+                    'ALL'
+                  )
+                }
+              />
+
+              <span>
+                Cualquier tipo
+              </span>
             </label>
 
             <label>
-              <input type="checkbox" />
-              ★ 4.0 o más
+              <input
+                type="radio"
+                name="price-type"
+                checked={
+                  priceType ===
+                  'HOUR'
+                }
+                onChange={() =>
+                  setPriceType(
+                    'HOUR'
+                  )
+                }
+              />
+
+              <span>
+                Por hora
+              </span>
             </label>
+
+            <label>
+              <input
+                type="radio"
+                name="price-type"
+                checked={
+                  priceType ===
+                  'DAY'
+                }
+                onChange={() =>
+                  setPriceType(
+                    'DAY'
+                  )
+                }
+              />
+
+              <span>
+                Por día
+              </span>
+            </label>
+
+            <label>
+              <input
+                type="radio"
+                name="price-type"
+                checked={
+                  priceType ===
+                  'ACTIVITY'
+                }
+                onChange={() =>
+                  setPriceType(
+                    'ACTIVITY'
+                  )
+                }
+              />
+
+              <span>
+                Por servicio
+              </span>
+            </label>
+
           </div>
 
-          <div className="filter-section">
-            <h4>Tipo de cobro</h4>
-
-            <label>
-              <input type="checkbox" />
-              Por hora
-            </label>
-
-            <label>
-              <input type="checkbox" />
-              Por día
-            </label>
-
-            <label>
-              <input type="checkbox" />
-              Por actividad
-            </label>
-          </div>
         </aside>
 
         <section className="results">
 
           <div className="results-header">
+
             <div>
-              <h2>Especialistas</h2>
+
+              <span className="results-eyebrow">
+                PROFESIONALES
+              </span>
+
+              <h2>
+                Especialistas
+              </h2>
 
               <p>
-                {filteredSpecialists.length} profesionales encontrados
+                {loading
+                  ? 'Buscando especialistas...'
+                  : `${filteredSpecialists.length} ${
+                      filteredSpecialists.length ===
+                      1
+                        ? 'profesional encontrado'
+                        : 'profesionales encontrados'
+                    }`}
               </p>
+
             </div>
 
-            <select>
-              <option>Mejor calificados</option>
-              <option>Menor precio</option>
-              <option>Mayor experiencia</option>
+            <select
+              value={sort}
+              onChange={(event) =>
+                setSort(
+                  event.target
+                    .value as SortOption
+                )
+              }
+            >
+              <option value="DEFAULT">
+                Más recientes
+              </option>
+
+              <option value="PRICE_ASC">
+                Menor precio
+              </option>
+
+              <option value="EXPERIENCE_DESC">
+                Mayor experiencia
+              </option>
+
+              <option value="NAME_ASC">
+                Nombre A-Z
+              </option>
             </select>
+
           </div>
 
-          <div className="results-list">
+          {error && (
+            <div className="specialists-error">
+              {error}
+            </div>
+          )}
 
-            {filteredSpecialists.map((specialist) => (
-              <article
-                className="result-card"
-                key={specialist.id}
-              >
+          {loading ? (
 
-                <div className="result-avatar">
-                  {specialist.initials}
-                </div>
+            <div className="specialists-loading">
 
-                <div className="result-information">
+              <div className="specialists-spinner" />
 
-                  <div className="result-name">
-                    <div>
-                      <h3>
-                        {specialist.name}
+              <strong>
+                Buscando profesionales
+              </strong>
 
-                        {specialist.verified && (
-                          <span className="verified">✓</span>
+              <p>
+                Estamos cargando los
+                especialistas disponibles.
+              </p>
+
+            </div>
+
+          ) : (
+
+            <div className="results-list">
+
+              {filteredSpecialists.map(
+                (specialist) => {
+                  const firstService =
+                    specialist.services[
+                      0
+                    ];
+
+                  return (
+                    <article
+                      className="result-card"
+                      key={
+                        specialist.id
+                      }
+                    >
+
+                      <div className="result-avatar">
+                        {getInitials(
+                          specialist.name
                         )}
-                      </h3>
+                      </div>
 
-                      <strong>{specialist.specialty}</strong>
-                    </div>
+                      <div className="result-information">
 
-                    <button className="favorite">
-                      ♡
-                    </button>
+                        <div className="result-name">
+
+                          <div>
+
+                            <h3>
+                              {
+                                specialist.name
+                              }
+
+                              {specialist.profileCompleted && (
+                                <span
+                                  className="profile-complete"
+                                  title="Perfil completo"
+                                >
+                                  ✓
+                                </span>
+                              )}
+                            </h3>
+
+                            <div className="specialist-specialties">
+
+                              {specialist.specialties
+                                .slice(
+                                  0,
+                                  3
+                                )
+                                .map(
+                                  (
+                                    specialty
+                                  ) => (
+                                    <strong
+                                      key={
+                                        specialty.id
+                                      }
+                                    >
+                                      {formatCategoryName(
+                                        specialty.name
+                                      )}
+                                    </strong>
+                                  )
+                                )}
+
+                            </div>
+
+                          </div>
+
+                        </div>
+
+                        <p className="description">
+                          {specialist.description ||
+                            'Este especialista aún no ha agregado una descripción profesional.'}
+                        </p>
+
+                        <div className="specialist-meta">
+
+                          {specialist.experience ? (
+                            <span>
+                              <b>◷</b>
+                              {
+                                specialist.experience
+                              }{' '}
+                              {specialist.experience ===
+                              1
+                                ? 'año de experiencia'
+                                : 'años de experiencia'}
+                            </span>
+                          ) : (
+                            <span>
+                              Experiencia no especificada
+                            </span>
+                          )}
+
+                          {(specialist.municipality ||
+                            specialist.state) && (
+                            <span>
+                              <b>⌖</b>
+
+                              {[
+                                specialist.municipality,
+                                specialist.state,
+                              ]
+                                .filter(
+                                  Boolean
+                                )
+                                .join(
+                                  ', '
+                                )}
+                            </span>
+                          )}
+
+                          <span>
+                            <b>●</b>
+                            Disponible
+                          </span>
+
+                        </div>
+
+                        <div className="result-bottom">
+
+                          <div className="result-price">
+
+                            <small>
+                              {firstService
+                                ? 'Desde'
+                                : 'Servicios'}
+                            </small>
+
+                            {specialist.startingPrice !==
+                            null &&
+                            specialist.startingPrice !==
+                              undefined ? (
+                              <>
+                                <strong>
+                                  {Number(
+                                    specialist.startingPrice
+                                  ).toLocaleString(
+                                    'es-MX',
+                                    {
+                                      style:
+                                        'currency',
+                                      currency:
+                                        'MXN',
+                                      minimumFractionDigits: 0,
+                                      maximumFractionDigits: 2,
+                                    }
+                                  )}
+                                </strong>
+
+                                {firstService && (
+                                  <span>
+                                    {' '}
+                                    /{' '}
+                                    {getPriceTypeLabel(
+                                      firstService.priceType
+                                    )}
+                                  </span>
+                                )}
+                              </>
+                            ) : (
+                              <strong>
+                                Consultar
+                              </strong>
+                            )}
+
+                          </div>
+
+                          <button
+                            type="button"
+                            className="profile-button"
+                            onClick={() =>
+                              navigate(
+                                `/specialists/${specialist.id}`
+                              )
+                            }
+                          >
+                            Ver perfil
+                            <span>
+                              →
+                            </span>
+                          </button>
+
+                        </div>
+
+                      </div>
+
+                    </article>
+                  );
+                }
+              )}
+
+              {filteredSpecialists.length ===
+                0 && (
+                <div className="no-results">
+
+                  <div>
+                    ⌕
                   </div>
 
-                  <p className="description">
-                    {specialist.description}
+                  <h3>
+                    No encontramos especialistas
+                  </h3>
+
+                  <p>
+                    Intenta buscar otro
+                    servicio o cambia los
+                    filtros seleccionados.
                   </p>
 
-                  <div className="specialist-meta">
-                    <span>
-                      ★ <strong>{specialist.rating}</strong>
-                      {' '}({specialist.reviews})
-                    </span>
+                  <button
+                    type="button"
+                    onClick={
+                      clearFilters
+                    }
+                  >
+                    Limpiar filtros
+                  </button>
 
-                    <span>
-                      Experiencia: {specialist.experience}
-                    </span>
-                  </div>
-
-                  <div className="result-bottom">
-
-                    <div className="result-price">
-                      <small>Desde</small>
-
-                      <strong>
-                        ${specialist.price.toLocaleString()}
-                      </strong>
-
-                      <span> / {specialist.unit}</span>
-                    </div>
-
-                    <a
-                      href={`/specialists/${specialist.id}`}
-                      className="profile-button"
-                    >
-                      Ver perfil
-                    </a>
-
-                  </div>
                 </div>
-              </article>
-            ))}
+              )}
 
-            {filteredSpecialists.length === 0 && (
-              <div className="no-results">
-                <h3>No encontramos especialistas</h3>
+            </div>
 
-                <p>
-                  Intenta buscar otro servicio o cambiar los filtros.
-                </p>
-              </div>
-            )}
+          )}
 
-          </div>
         </section>
 
       </main>
+
     </div>
   );
 };

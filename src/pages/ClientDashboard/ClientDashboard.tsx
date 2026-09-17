@@ -1,180 +1,417 @@
- import { useNavigate } from 'react-router-dom';
+import { useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
+
+import logo from '../../assets/logo.png';
 
 import './ClientDashboard.css';
-const activeRequests = [
-  {
-    id: 1,
-    specialist: 'Juan Pérez',
-    service: 'Reparación de muebles',
-    date: '15 Sep',
-    status: 'Confirmada',
-  },
-  {
-    id: 2,
-    specialist: 'María López',
-    service: 'Limpieza profesional',
-    date: '18 Sep',
-    status: 'Pendiente',
-  },
-];
 
-const favorites = [
-  {
-    id: 1,
-    initials: 'JP',
-    name: 'Juan Pérez',
-    specialty: 'Carpintero',
-    rating: 4.9,
-    price: '$250 / hora',
-  },
-  {
-    id: 2,
-    initials: 'CR',
-    name: 'Carlos Ramírez',
-    specialty: 'Electricista',
-    rating: 4.9,
-    price: '$350 / hora',
-  },
-];
+type ClientRequest = {
+  id: number;
+  specialist: string;
+  specialistId: number;
+  service: string;
+  date: string;
+  status: 'Confirmada' | 'Pendiente' | 'Completada';
+};
+
+type Favorite = {
+  id: number;
+  initials: string;
+  name: string;
+  specialty: string;
+  rating?: number | null;
+  price?: string | null;
+};
 
 const ClientDashboard = () => {
-     const navigate = useNavigate();
+  const navigate = useNavigate();
 
+  /*
+    Por ahora estos datos quedan vacíos.
+
+    Después los vamos a cargar desde el backend.
+  */
+  const activeRequests: ClientRequest[] = [];
+
+  const favorites: Favorite[] = [];
+
+  /*
+    USUARIO REAL
+  */
+  const storedUser =
+    localStorage.getItem('user');
+
+  let user = {
+    name: 'Cliente',
+    email: '',
+  };
+
+  if (storedUser) {
+    try {
+      user = JSON.parse(storedUser);
+    } catch (error) {
+      console.error(
+        'ERROR LEYENDO USUARIO:',
+        error
+      );
+    }
+  }
+
+  const firstName =
+    user.name
+      ?.trim()
+      .split(' ')[0] ||
+    'Cliente';
+
+  const initials = useMemo(() => {
+    return (
+      user.name
+        ?.trim()
+        .split(' ')
+        .filter(Boolean)
+        .map((word: string) =>
+          word.charAt(0)
+        )
+        .join('')
+        .substring(0, 2)
+        .toUpperCase() || 'CL'
+    );
+  }, [user.name]);
+
+  /*
+    ESTADÍSTICAS
+  */
+  const activeRequestCount =
+    activeRequests.filter(
+      (request) =>
+        request.status !==
+        'Completada'
+    ).length;
+
+  const completedRequestCount =
+    activeRequests.filter(
+      (request) =>
+        request.status ===
+        'Completada'
+    ).length;
+
+  const upcomingRequest =
+    activeRequests.find(
+      (request) =>
+        request.status ===
+          'Confirmada' ||
+        request.status ===
+          'Pendiente'
+    );
+
+  /*
+    CERRAR SESIÓN
+  */
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    localStorage.removeItem(
+      'token'
+    );
+
+    localStorage.removeItem(
+      'user'
+    );
 
     navigate('/login');
   };
+
+  /*
+    FUNCIONES TEMPORALES
+
+    Las dejamos mientras hacemos
+    solicitudes, favoritos e historial.
+  */
+  const handlePendingSection = (
+    section: string
+  ) => {
+    alert(
+      `${section} estará disponible próximamente.`
+    );
+  };
+
   return (
     <div className="client-dashboard">
 
+      {/* SIDEBAR */}
+
       <aside className="client-sidebar">
 
-        <a href="/" className="client-logo">
-          Feisin
-        </a>
+        <button
+          type="button"
+          className="client-logo"
+          onClick={() =>
+            navigate('/')
+          }
+        >
+          <img
+            src={logo}
+            alt="FASYN"
+          />
+        </button>
 
         <div className="client-user">
+
           <div className="client-avatar">
-            RH
+            {initials}
           </div>
 
-          <div>
-            <strong>Roberto Hernández</strong>
-            <span>Cliente</span>
+          <div className="client-user-info">
+
+            <strong>
+              {user.name}
+            </strong>
+
+            <span>
+              Cliente
+            </span>
+
           </div>
+
         </div>
 
         <nav className="client-menu">
-          <a href="/client" className="active">
-            ◫ Inicio
-          </a>
 
-          <a href="/specialists">
-            ⌕ Buscar especialistas
-          </a>
+          <button
+            type="button"
+            className="active"
+            onClick={() =>
+              navigate('/client')
+            }
+          >
+            <span>⌂</span>
+            Inicio
+          </button>
 
-          <a href="#">
-            ◉ Mis solicitudes
-          </a>
+          <button
+            type="button"
+            onClick={() =>
+              navigate(
+                '/specialists'
+              )
+            }
+          >
+            <span>⌕</span>
+            Buscar especialistas
+          </button>
 
-          <a href="#">
-            ♡ Favoritos
-          </a>
+          <button
+            type="button"
+            onClick={() =>
+              handlePendingSection(
+                'Mis solicitudes'
+              )
+            }
+          >
+            <span>◉</span>
+            Mis solicitudes
+          </button>
 
-          <a href="#">
-            ✓ Historial
-          </a>
+          <button
+            type="button"
+            onClick={() =>
+              handlePendingSection(
+                'Favoritos'
+              )
+            }
+          >
+            <span>♡</span>
+            Favoritos
+          </button>
 
-          <a href="#">
-            ♙ Mi perfil
-          </a>
+          <button
+            type="button"
+            onClick={() =>
+              handlePendingSection(
+                'Historial'
+              )
+            }
+          >
+            <span>✓</span>
+            Historial
+          </button>
+
+          <button
+            type="button"
+            onClick={() =>
+              handlePendingSection(
+                'Mi perfil'
+              )
+            }
+          >
+            <span>♙</span>
+            Mi perfil
+          </button>
+
         </nav>
 
         <div className="client-sidebar-bottom">
-          <a href="/">← Volver a Feisin</a>
-  <button
-  type="button"
-  onClick={handleLogout}
->
-  Cerrar sesión
-</button>
+
+          <button
+            type="button"
+            className="client-back-home"
+            onClick={() =>
+              navigate('/')
+            }
+          >
+            ← Volver a FASYN
+          </button>
+
+          <button
+            type="button"
+            className="client-logout"
+            onClick={
+              handleLogout
+            }
+          >
+            Cerrar sesión
+          </button>
+
         </div>
 
       </aside>
 
+      {/* CONTENIDO */}
+
       <main className="client-main">
+
+        {/* HEADER */}
 
         <header className="client-header">
 
           <div>
-            <h1>Hola, Roberto 👋</h1>
+
+            <span className="client-eyebrow">
+              PANEL DEL CLIENTE
+            </span>
+
+            <h1>
+              Hola, {firstName}.
+            </h1>
+
             <p>
-              Encuentra profesionales y administra tus servicios.
+              Encuentra especialistas
+              y administra tus servicios
+              desde un solo lugar.
             </p>
+
           </div>
 
-          <a
-            href="/specialists"
+          <button
+            type="button"
             className="find-specialist-button"
+            onClick={() =>
+              navigate(
+                '/specialists'
+              )
+            }
           >
-            + Buscar especialista
-          </a>
+            <span>+</span>
+            Buscar especialista
+          </button>
 
         </header>
+
+        {/* MÉTRICAS */}
 
         <section className="client-stats">
 
           <article>
+
             <div className="client-stat-icon">
               ◉
             </div>
 
             <div>
-              <span>Solicitudes activas</span>
-              <strong>2</strong>
-              <small>Servicios en proceso</small>
+              <span>
+                Solicitudes activas
+              </span>
+
+              <strong>
+                {activeRequestCount}
+              </strong>
+
+              <small>
+                Servicios en proceso
+              </small>
             </div>
+
           </article>
 
           <article>
+
             <div className="client-stat-icon">
-              📅
+              ◷
             </div>
 
             <div>
-              <span>Próximos servicios</span>
-              <strong>1</strong>
-              <small>Esta semana</small>
+              <span>
+                Próximos servicios
+              </span>
+
+              <strong>
+                {upcomingRequest
+                  ? 1
+                  : 0}
+              </strong>
+
+              <small>
+                Servicios programados
+              </small>
             </div>
+
           </article>
 
           <article>
+
             <div className="client-stat-icon">
               ♡
             </div>
 
             <div>
-              <span>Favoritos</span>
-              <strong>6</strong>
-              <small>Especialistas guardados</small>
+              <span>
+                Favoritos
+              </span>
+
+              <strong>
+                {favorites.length}
+              </strong>
+
+              <small>
+                Especialistas guardados
+              </small>
             </div>
+
           </article>
 
           <article>
+
             <div className="client-stat-icon">
               ✓
             </div>
 
             <div>
-              <span>Servicios realizados</span>
-              <strong>12</strong>
-              <small>Historial completo</small>
+              <span>
+                Servicios realizados
+              </span>
+
+              <strong>
+                {completedRequestCount}
+              </strong>
+
+              <small>
+                Trabajos completados
+              </small>
             </div>
+
           </article>
 
         </section>
+
+        {/* SOLICITUDES + PRÓXIMO SERVICIO */}
 
         <div className="client-grid">
 
@@ -183,69 +420,172 @@ const ClientDashboard = () => {
             <div className="client-panel-header">
 
               <div>
-                <h2>Mis solicitudes</h2>
+
+                <span className="client-section-eyebrow">
+                  ACTIVIDAD
+                </span>
+
+                <h2>
+                  Mis solicitudes
+                </h2>
+
                 <p>
-                  Consulta el estado de tus servicios.
+                  Consulta el estado de
+                  los servicios que has
+                  solicitado.
                 </p>
+
               </div>
 
-              <button>
-                Ver todas
-              </button>
-
-            </div>
-
-            <div className="client-request-list">
-
-              {activeRequests.map((request) => (
-                <article
-                  className="client-request"
-                  key={request.id}
+              {activeRequests.length >
+                0 && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    handlePendingSection(
+                      'Mis solicitudes'
+                    )
+                  }
                 >
-
-                  <div className="request-specialist">
-
-                    <div className="request-avatar">
-                      {request.specialist
-                        .split(' ')
-                        .map((word) => word.charAt(0))
-                        .join('')
-                        .slice(0, 2)}
-                    </div>
-
-                    <div>
-                      <strong>
-                        {request.specialist}
-                      </strong>
-
-                      <span>
-                        {request.service}
-                      </span>
-                    </div>
-
-                  </div>
-
-                  <div className="client-request-date">
-                    <small>Fecha</small>
-                    <strong>{request.date}</strong>
-                  </div>
-
-                  <span
-                    className={`client-request-status ${request.status.toLowerCase()}`}
-                  >
-                    {request.status}
-                  </span>
-
-                  <button className="client-details-button">
-                    Ver detalle
-                  </button>
-
-                </article>
-              ))}
+                  Ver todas
+                  <span>→</span>
+                </button>
+              )}
 
             </div>
+
+            {activeRequests.length ===
+            0 ? (
+
+              <div className="client-empty-state">
+
+                <div className="client-empty-icon">
+                  +
+                </div>
+
+                <h3>
+                  Aún no tienes
+                  solicitudes
+                </h3>
+
+                <p>
+                  Encuentra un
+                  especialista y solicita
+                  el servicio que
+                  necesitas.
+                </p>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    navigate(
+                      '/specialists'
+                    )
+                  }
+                >
+                  Buscar especialistas
+                </button>
+
+              </div>
+
+            ) : (
+
+              <div className="client-request-list">
+
+                {activeRequests.map(
+                  (request) => (
+                    <article
+                      className="client-request"
+                      key={request.id}
+                    >
+
+                      <div className="request-specialist">
+
+                        <div className="request-avatar">
+
+                          {request.specialist
+                            .split(' ')
+                            .filter(Boolean)
+                            .map(
+                              (
+                                word
+                              ) =>
+                                word.charAt(
+                                  0
+                                )
+                            )
+                            .join('')
+                            .slice(
+                              0,
+                              2
+                            )
+                            .toUpperCase()}
+
+                        </div>
+
+                        <div>
+
+                          <strong>
+                            {
+                              request.specialist
+                            }
+                          </strong>
+
+                          <span>
+                            {
+                              request.service
+                            }
+                          </span>
+
+                        </div>
+
+                      </div>
+
+                      <div className="client-request-date">
+
+                        <small>
+                          Fecha
+                        </small>
+
+                        <strong>
+                          {
+                            request.date
+                          }
+                        </strong>
+
+                      </div>
+
+                      <span
+                        className={`client-request-status ${request.status.toLowerCase()}`}
+                      >
+                        {
+                          request.status
+                        }
+                      </span>
+
+                      <button
+                        type="button"
+                        className="client-details-button"
+                        onClick={() =>
+                          navigate(
+                            `/specialists/${request.specialistId}`
+                          )
+                        }
+                      >
+                        Ver detalle
+                      </button>
+
+                    </article>
+                  )
+                )}
+
+              </div>
+
+            )}
 
           </section>
+
+          {/* PRÓXIMO SERVICIO */}
 
           <aside className="client-next-service">
 
@@ -253,87 +593,228 @@ const ClientDashboard = () => {
               PRÓXIMO SERVICIO
             </span>
 
-            <div className="next-date">
-              <strong>15</strong>
-              <span>SEP</span>
-            </div>
+            {upcomingRequest ? (
+              <>
 
-            <h3>Reparación de muebles</h3>
+                <div className="next-date">
 
-            <p>
-              Con Juan Pérez
-            </p>
+                  <strong>
+                    {
+                      upcomingRequest.date
+                    }
+                  </strong>
 
-            <div className="next-service-info">
-              <span>🕐 10:00 AM</span>
-              <span>📍 Ciudad de México</span>
-            </div>
+                </div>
 
-            <button>
-              Ver servicio
-            </button>
+                <h3>
+                  {
+                    upcomingRequest.service
+                  }
+                </h3>
+
+                <p>
+                  Con{' '}
+                  {
+                    upcomingRequest.specialist
+                  }
+                </p>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    navigate(
+                      `/specialists/${upcomingRequest.specialistId}`
+                    )
+                  }
+                >
+                  Ver servicio
+                </button>
+
+              </>
+            ) : (
+              <div className="next-service-empty">
+
+                <div>
+                  ◷
+                </div>
+
+                <h3>
+                  Sin servicios
+                  programados
+                </h3>
+
+                <p>
+                  Cuando contrates un
+                  servicio aparecerá
+                  aquí.
+                </p>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    navigate(
+                      '/specialists'
+                    )
+                  }
+                >
+                  Buscar especialista
+                </button>
+
+              </div>
+            )}
 
           </aside>
 
         </div>
+
+        {/* FAVORITOS */}
 
         <section className="client-panel favorites-section">
 
           <div className="client-panel-header">
 
             <div>
-              <h2>Tus especialistas favoritos</h2>
+
+              <span className="client-section-eyebrow">
+                FAVORITOS
+              </span>
+
+              <h2>
+                Tus especialistas
+                favoritos
+              </h2>
+
               <p>
-                Profesionales que guardaste para contratar después.
+                Guarda profesionales
+                para encontrarlos más
+                rápido cuando los
+                necesites.
               </p>
+
             </div>
 
-            <button>
-              Ver favoritos
-            </button>
-
-          </div>
-
-          <div className="client-favorites">
-
-            {favorites.map((favorite) => (
-              <article
-                className="client-favorite-card"
-                key={favorite.id}
+            {favorites.length >
+              0 && (
+              <button
+                type="button"
+                onClick={() =>
+                  handlePendingSection(
+                    'Favoritos'
+                  )
+                }
               >
-
-                <div className="favorite-avatar">
-                  {favorite.initials}
-                </div>
-
-                <div className="favorite-info">
-
-                  <h3>{favorite.name}</h3>
-
-                  <span>{favorite.specialty}</span>
-
-                  <div>
-                    ★ {favorite.rating}
-                  </div>
-
-                </div>
-
-                <div className="favorite-price">
-                  <small>Desde</small>
-                  <strong>{favorite.price}</strong>
-                </div>
-
-                <a
-                  href={`/specialists/${favorite.id}`}
-                  className="favorite-profile-button"
-                >
-                  Ver perfil
-                </a>
-
-              </article>
-            ))}
+                Ver favoritos
+                <span>→</span>
+              </button>
+            )}
 
           </div>
+
+          {favorites.length === 0 ? (
+
+            <div className="client-empty-favorites">
+
+              <div className="client-empty-icon">
+                ♡
+              </div>
+
+              <div>
+
+                <h3>
+                  Aún no tienes
+                  favoritos
+                </h3>
+
+                <p>
+                  Explora especialistas
+                  y guarda los perfiles
+                  que más te interesen.
+                </p>
+
+              </div>
+
+              <button
+                type="button"
+                onClick={() =>
+                  navigate(
+                    '/specialists'
+                  )
+                }
+              >
+                Explorar especialistas
+              </button>
+
+            </div>
+
+          ) : (
+
+            <div className="client-favorites">
+
+              {favorites.map(
+                (favorite) => (
+                  <article
+                    className="client-favorite-card"
+                    key={favorite.id}
+                  >
+
+                    <div className="favorite-avatar">
+                      {
+                        favorite.initials
+                      }
+                    </div>
+
+                    <div className="favorite-info">
+
+                      <h3>
+                        {favorite.name}
+                      </h3>
+
+                      <span>
+                        {
+                          favorite.specialty
+                        }
+                      </span>
+
+                      <div>
+                        {favorite.rating
+                          ? `★ ${favorite.rating}`
+                          : 'Sin calificaciones'}
+                      </div>
+
+                    </div>
+
+                    <div className="favorite-price">
+
+                      <small>
+                        Desde
+                      </small>
+
+                      <strong>
+                        {favorite.price ||
+                          'Consultar'}
+                      </strong>
+
+                    </div>
+
+                    <button
+                      type="button"
+                      className="favorite-profile-button"
+                      onClick={() =>
+                        navigate(
+                          `/specialists/${favorite.id}`
+                        )
+                      }
+                    >
+                      Ver perfil
+                    </button>
+
+                  </article>
+                )
+              )}
+
+            </div>
+
+          )}
 
         </section>
 
