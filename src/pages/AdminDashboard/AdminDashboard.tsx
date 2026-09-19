@@ -465,20 +465,22 @@ const AdminDashboard = () => {
             Solicitudes
           </button>
 
-          <button
-            type="button"
-          >
-            <span>♙</span>
-            Especialistas
-          </button>
-
-          <button
-            type="button"
-          >
-            <span>♧</span>
-            Clientes
-          </button>
-
+ <button
+  type="button"
+  onClick={() => navigate('/admin/specialists')}
+>
+  <span>♙</span>
+  Especialistas
+</button>
+<button
+  type="button"
+  onClick={() =>
+    navigate('/admin/clients')
+  }
+>
+  <span>♧</span>
+  Clientes
+</button>
           <button
             type="button"
           >

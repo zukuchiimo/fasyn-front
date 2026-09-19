@@ -19,7 +19,8 @@ import MyProfile from '../pages/MyProfile/MyProfile';
 import ClientDashboard from '../pages/ClientDashboard/ClientDashboard';
 
 import AdminDashboard from '../pages/AdminDashboard/AdminDashboard';
-
+import AdminSpecialists from '../pages/admin/AdminSpecialists';
+import AdminClients from '../pages/admin/AdminClients';
 const AppRoutes = () => {
   return (
     <BrowserRouter>
@@ -86,6 +87,14 @@ const AppRoutes = () => {
           element={<AdminDashboard />}
         />
 
+        <Route
+          path="/admin/specialists"
+          element={<AdminSpecialists />}
+        />
+<Route
+  path="/admin/clients"
+  element={<AdminClients />}
+/>
       </Routes>
     </BrowserRouter>
   );
