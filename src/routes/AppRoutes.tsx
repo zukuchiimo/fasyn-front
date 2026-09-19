@@ -15,7 +15,7 @@ import SpecialistDashboard from '../pages/SpecialistDashboard/SpecialistDashboar
 import SpecialistSetup from '../pages/SpecialistSetup/SpecialistSetup';
 import CreateService from '../pages/CreateService/CreateService';
 import MyProfile from '../pages/MyProfile/MyProfile';
-
+import AdminCategories from '../pages/admin/AdminCategories';
 import ClientDashboard from '../pages/ClientDashboard/ClientDashboard';
 
 import AdminDashboard from '../pages/AdminDashboard/AdminDashboard';
@@ -94,6 +94,10 @@ const AppRoutes = () => {
 <Route
   path="/admin/clients"
   element={<AdminClients />}
+/>
+<Route
+  path="/admin/categories"
+  element={<AdminCategories />}
 />
       </Routes>
     </BrowserRouter>

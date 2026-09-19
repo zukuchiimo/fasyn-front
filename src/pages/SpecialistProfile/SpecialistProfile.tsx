@@ -5,6 +5,15 @@ import {
 } from 'react';
 
 import {
+  MapContainer,
+  Marker,
+  TileLayer,
+  useMapEvents,
+} from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+
+import {
   useNavigate,
   useParams,
 } from 'react-router-dom';
@@ -72,6 +81,123 @@ type ClientServiceRequest = {
   updatedAt?: string;
 };
 
+type ClientAddress = {
+  id: number;
+  userId: number;
+  label: string;
+  state: string;
+  municipality: string;
+  neighborhood: string;
+  postalCode: string;
+  street: string;
+  exteriorNumber: string;
+  interiorNumber?: string | null;
+  references?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  isDefault: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+type NewAddressForm = {
+  label: string;
+  state: string;
+  municipality: string;
+  neighborhood: string;
+  postalCode: string;
+  street: string;
+  exteriorNumber: string;
+  interiorNumber: string;
+  references: string;
+  latitude: number | null;
+  longitude: number | null;
+  isDefault: boolean;
+};
+
+const DEFAULT_MAP_POSITION: [number, number] = [
+  19.4326,
+  -99.1332,
+];
+
+const mapMarkerIcon = L.divIcon({
+  className: 'service-map-marker-wrapper',
+  html: '<div class="service-map-marker">📍</div>',
+  iconSize: [38, 38],
+  iconAnchor: [19, 38],
+});
+
+type AddressMapPickerProps = {
+  latitude: number | null;
+  longitude: number | null;
+  onChange: (
+    latitude: number,
+    longitude: number
+  ) => void;
+};
+
+const AddressMapPicker = ({
+  latitude,
+  longitude,
+  onChange,
+}: AddressMapPickerProps) => {
+  const position: [number, number] = [
+    latitude ?? DEFAULT_MAP_POSITION[0],
+    longitude ?? DEFAULT_MAP_POSITION[1],
+  ];
+
+  const MapClickHandler = () => {
+    useMapEvents({
+      click(event) {
+        onChange(
+          event.latlng.lat,
+          event.latlng.lng
+        );
+      },
+    });
+
+    return null;
+  };
+
+  return (
+    <MapContainer
+      center={position}
+      zoom={latitude !== null ? 16 : 11}
+      className="service-address-map"
+      scrollWheelZoom
+    >
+      <TileLayer
+        attribution='&copy; OpenStreetMap contributors'
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+      />
+
+      <MapClickHandler />
+
+      {latitude !== null &&
+        longitude !== null && (
+        <Marker
+          position={[latitude, longitude]}
+          icon={mapMarkerIcon}
+          draggable
+          eventHandlers={{
+            dragend(event) {
+              const marker =
+                event.target as L.Marker;
+              const location =
+                marker.getLatLng();
+
+              onChange(
+                location.lat,
+                location.lng
+              );
+            },
+          }}
+        />
+      )}
+    </MapContainer>
+  );
+};
+
 const SpecialistProfile = () => {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -126,6 +252,68 @@ const SpecialistProfile = () => {
     requestError,
     setRequestError,
   ] = useState('');
+
+
+  /*
+    DIRECCIONES Y MODAL DE SOLICITUD
+  */
+  const [
+    addresses,
+    setAddresses,
+  ] = useState<ClientAddress[]>([]);
+
+  const [
+    loadingAddresses,
+    setLoadingAddresses,
+  ] = useState(false);
+
+  const [
+    selectedAddressId,
+    setSelectedAddressId,
+  ] = useState<number | null>(null);
+
+  const [
+    requestModalOpen,
+    setRequestModalOpen,
+  ] = useState(false);
+
+  const [
+    selectedService,
+    setSelectedService,
+  ] = useState<Service | null>(null);
+
+  const [
+    serviceMessage,
+    setServiceMessage,
+  ] = useState('');
+
+  const [
+    showNewAddressForm,
+    setShowNewAddressForm,
+  ] = useState(false);
+
+  const [
+    savingAddress,
+    setSavingAddress,
+  ] = useState(false);
+
+  const [
+    newAddress,
+    setNewAddress,
+  ] = useState<NewAddressForm>({
+    label: '',
+    state: '',
+    municipality: '',
+    neighborhood: '',
+    postalCode: '',
+    street: '',
+    exteriorNumber: '',
+    interiorNumber: '',
+    references: '',
+    latitude: null,
+    longitude: null,
+    isDefault: false,
+  });
 
   /*
     CARGAR ESPECIALISTA
@@ -252,6 +440,342 @@ const SpecialistProfile = () => {
             ?.data ||
             requestError
         );
+      }
+    };
+
+  /*
+    CARGAR DIRECCIONES DEL CLIENTE
+  */
+  const loadAddresses =
+    async () => {
+      const token =
+        localStorage.getItem(
+          'token'
+        );
+
+      if (!token) {
+        setAddresses([]);
+        return [];
+      }
+
+      try {
+        setLoadingAddresses(true);
+
+        const response =
+          await api.get(
+            '/addresses',
+            {
+              headers: {
+                Authorization:
+                  `Bearer ${token}`,
+              },
+            }
+          );
+
+        const loadedAddresses:
+          ClientAddress[] =
+            response.data
+              ?.addresses ||
+            [];
+
+        setAddresses(
+          loadedAddresses
+        );
+
+        const defaultAddress =
+          loadedAddresses.find(
+            (address) =>
+              address.isDefault
+          );
+
+        if (defaultAddress) {
+          setSelectedAddressId(
+            defaultAddress.id
+          );
+        } else if (
+          loadedAddresses.length > 0
+        ) {
+          setSelectedAddressId(
+            loadedAddresses[0].id
+          );
+        } else {
+          setSelectedAddressId(
+            null
+          );
+        }
+
+        return loadedAddresses;
+      } catch (
+        addressError: any
+      ) {
+        console.error(
+          'ERROR CARGANDO DIRECCIONES:',
+          addressError.response
+            ?.data ||
+            addressError
+        );
+
+        if (
+          addressError.response
+            ?.status === 401
+        ) {
+          localStorage.removeItem(
+            'token'
+          );
+          localStorage.removeItem(
+            'user'
+          );
+          navigate('/login');
+          return [];
+        }
+
+        if (
+          addressError.response
+            ?.status === 403
+        ) {
+          setAddresses([]);
+          setRequestError(
+            'Debes ingresar con una cuenta de cliente para solicitar servicios.'
+          );
+          return [];
+        }
+
+        setRequestError(
+          addressError.response
+            ?.data?.message ||
+            'No fue posible cargar tus direcciones.'
+        );
+
+        return [];
+      } finally {
+        setLoadingAddresses(false);
+      }
+    };
+
+  const openRequestModal =
+    async (
+      service: Service
+    ) => {
+      const token =
+        localStorage.getItem(
+          'token'
+        );
+
+      if (!token) {
+        navigate('/login');
+        return;
+      }
+
+      setRequestMessage('');
+      setRequestError('');
+      setSelectedService(service);
+      setServiceMessage('');
+      setShowNewAddressForm(false);
+      setSelectedAddressId(null);
+      setNewAddress({
+        label: '',
+        state: '',
+        municipality: '',
+        neighborhood: '',
+        postalCode: '',
+        street: '',
+        exteriorNumber: '',
+        interiorNumber: '',
+        references: '',
+        latitude: null,
+        longitude: null,
+        isDefault: false,
+      });
+
+      setRequestModalOpen(true);
+      await loadAddresses();
+    };
+
+  const closeRequestModal =
+    () => {
+      if (
+        requestingServiceId !== null ||
+        savingAddress
+      ) {
+        return;
+      }
+
+      setRequestModalOpen(false);
+      setSelectedService(null);
+      setSelectedAddressId(null);
+      setServiceMessage('');
+      setShowNewAddressForm(false);
+      setRequestError('');
+    };
+
+  const handleNewAddressChange = (
+    field: keyof NewAddressForm,
+    value: string | boolean
+  ) => {
+    setNewAddress(
+      (previous) => ({
+        ...previous,
+        [field]: value,
+      })
+    );
+  };
+
+  const handleSaveAddress =
+    async () => {
+      const token =
+        localStorage.getItem(
+          'token'
+        );
+
+      if (!token) {
+        navigate('/login');
+        return;
+      }
+
+      if (
+        !newAddress.label.trim() ||
+        !newAddress.state.trim() ||
+        !newAddress.municipality.trim() ||
+        !newAddress.neighborhood.trim() ||
+        !newAddress.postalCode.trim() ||
+        !newAddress.street.trim() ||
+        !newAddress.exteriorNumber.trim()
+      ) {
+        setRequestError(
+          'Completa todos los campos obligatorios de la dirección.'
+        );
+        return;
+      }
+
+      if (
+        newAddress.latitude === null ||
+        newAddress.longitude === null
+      ) {
+        setRequestError(
+          'Selecciona la ubicación exacta en el mapa.'
+        );
+        return;
+      }
+
+      try {
+        setSavingAddress(true);
+        setRequestError('');
+
+        const response =
+          await api.post(
+            '/addresses',
+            {
+              label:
+                newAddress.label.trim(),
+              state:
+                newAddress.state.trim(),
+              municipality:
+                newAddress.municipality.trim(),
+              neighborhood:
+                newAddress.neighborhood.trim(),
+              postalCode:
+                newAddress.postalCode.trim(),
+              street:
+                newAddress.street.trim(),
+              exteriorNumber:
+                newAddress.exteriorNumber.trim(),
+              interiorNumber:
+                newAddress.interiorNumber.trim(),
+              references:
+                newAddress.references.trim(),
+              latitude:
+                newAddress.latitude,
+              longitude:
+                newAddress.longitude,
+              isDefault:
+                newAddress.isDefault,
+            },
+            {
+              headers: {
+                Authorization:
+                  `Bearer ${token}`,
+              },
+            }
+          );
+
+        const createdAddress:
+          ClientAddress | undefined =
+            response.data?.address;
+
+        if (!createdAddress) {
+          throw new Error(
+            'No se recibió la dirección creada.'
+          );
+        }
+
+        setAddresses(
+          (previous) => {
+            const normalized =
+              createdAddress.isDefault
+                ? previous.map(
+                    (address) => ({
+                      ...address,
+                      isDefault: false,
+                    })
+                  )
+                : previous;
+
+            return [
+              createdAddress,
+              ...normalized,
+            ];
+          }
+        );
+
+        setSelectedAddressId(
+          createdAddress.id
+        );
+        setShowNewAddressForm(false);
+        setNewAddress({
+          label: '',
+          state: '',
+          municipality: '',
+          neighborhood: '',
+          postalCode: '',
+          street: '',
+          exteriorNumber: '',
+          interiorNumber: '',
+          references: '',
+          latitude: null,
+          longitude: null,
+          isDefault: false,
+        });
+      } catch (
+        addressError: any
+      ) {
+        console.error(
+          'ERROR GUARDANDO DIRECCIÓN:',
+          addressError.response
+            ?.data ||
+            addressError
+        );
+
+        if (
+          addressError.response
+            ?.status === 401
+        ) {
+          localStorage.removeItem(
+            'token'
+          );
+          localStorage.removeItem(
+            'user'
+          );
+          navigate('/login');
+          return;
+        }
+
+        setRequestError(
+          addressError.response
+            ?.data?.message ||
+            'No fue posible guardar la dirección.'
+        );
+      } finally {
+        setSavingAddress(false);
       }
     };
 
@@ -427,9 +951,21 @@ const SpecialistProfile = () => {
     SOLICITAR SERVICIO
   */
   const handleRequestService =
-    async (
-      service: Service
-    ) => {
+    async () => {
+      if (!selectedService) {
+        setRequestError(
+          'Selecciona un servicio.'
+        );
+        return;
+      }
+
+      if (!selectedAddressId) {
+        setRequestError(
+          'Selecciona una dirección para realizar el servicio.'
+        );
+        return;
+      }
+
       try {
         const token =
           localStorage.getItem(
@@ -442,7 +978,7 @@ const SpecialistProfile = () => {
         }
 
         setRequestingServiceId(
-          service.id
+          selectedService.id
         );
 
         setRequestMessage('');
@@ -453,7 +989,11 @@ const SpecialistProfile = () => {
             '/requests',
             {
               serviceId:
-                service.id,
+                selectedService.id,
+              addressId:
+                selectedAddressId,
+              message:
+                serviceMessage.trim(),
             },
             {
               headers: {
@@ -468,18 +1008,18 @@ const SpecialistProfile = () => {
           response.data
         );
 
-        /*
-          MUY IMPORTANTE:
-          volvemos a consultar la BD
-          para que Solicitar cambie
-          inmediatamente a Cancelar.
-        */
         await loadMyRequests();
 
         setRequestMessage(
           response.data?.message ||
             'Tu solicitud fue enviada al administrador para revisión.'
         );
+
+        setRequestModalOpen(false);
+        setSelectedService(null);
+        setSelectedAddressId(null);
+        setServiceMessage('');
+        setShowNewAddressForm(false);
       } catch (
         requestError: any
       ) {
@@ -497,11 +1037,9 @@ const SpecialistProfile = () => {
           localStorage.removeItem(
             'token'
           );
-
           localStorage.removeItem(
             'user'
           );
-
           navigate('/login');
           return;
         }
@@ -512,9 +1050,7 @@ const SpecialistProfile = () => {
             'No fue posible enviar la solicitud.'
         );
       } finally {
-        setRequestingServiceId(
-          null
-        );
+        setRequestingServiceId(null);
       }
     };
 
@@ -616,7 +1152,7 @@ const SpecialistProfile = () => {
             service.id
           }
           onClick={() =>
-            handleRequestService(
+            openRequestModal(
               service
             )
           }
@@ -744,7 +1280,7 @@ const SpecialistProfile = () => {
           service.id
         }
         onClick={() =>
-          handleRequestService(
+          openRequestModal(
             service
           )
         }
@@ -1512,6 +2048,657 @@ const SpecialistProfile = () => {
         </div>
 
       </main>
+
+      {/* MODAL SOLICITAR SERVICIO */}
+
+      {requestModalOpen &&
+        selectedService && (
+
+        <div
+          className="service-request-modal-overlay"
+          onMouseDown={(event) => {
+            if (
+              event.target ===
+              event.currentTarget
+            ) {
+              closeRequestModal();
+            }
+          }}
+        >
+          <div className="service-request-modal">
+
+            <div className="service-request-modal-header">
+              <div>
+                <span className="service-request-modal-eyebrow">
+                  SOLICITAR SERVICIO
+                </span>
+
+                <h2>
+                  {selectedService.name}
+                </h2>
+
+                <p>
+                  Selecciona dónde necesitas
+                  que se realice el servicio.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                className="service-request-modal-close"
+                onClick={
+                  closeRequestModal
+                }
+                disabled={
+                  requestingServiceId !==
+                    null ||
+                  savingAddress
+                }
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="service-request-summary">
+              <div>
+                <small>
+                  SERVICIO
+                </small>
+
+                <strong>
+                  {selectedService.name}
+                </strong>
+
+                <span>
+                  {formatCategoryName(
+                    selectedService
+                      .category.name
+                  )}
+                </span>
+              </div>
+
+              <div className="service-request-summary-price">
+                <strong>
+                  {formatPrice(
+                    selectedService.price
+                  )}
+                </strong>
+
+                <span>
+                  por{' '}
+                  {getPriceType(
+                    selectedService.priceType
+                  )}
+                </span>
+              </div>
+            </div>
+
+            {requestError && (
+              <div className="service-request-modal-error">
+                <span>
+                  !
+                </span>
+
+                <p>
+                  {requestError}
+                </p>
+              </div>
+            )}
+
+            {!showNewAddressForm && (
+              <>
+                <div className="service-request-section-title">
+                  <div>
+                    <span>
+                      01
+                    </span>
+
+                    <div>
+                      <strong>
+                        Dirección del servicio
+                      </strong>
+
+                      <small>
+                        El especialista acudirá
+                        a esta dirección.
+                      </small>
+                    </div>
+                  </div>
+                </div>
+
+                {loadingAddresses ? (
+                  <div className="service-request-loading">
+                    <div className="public-profile-spinner" />
+
+                    <span>
+                      Cargando tus direcciones...
+                    </span>
+                  </div>
+                ) : (
+                  <>
+                    {addresses.length > 0 ? (
+                      <div className="service-address-list">
+                        {addresses.map(
+                          (address) => {
+                            const selected =
+                              selectedAddressId ===
+                              address.id;
+
+                            return (
+                              <button
+                                key={
+                                  address.id
+                                }
+                                type="button"
+                                className={
+                                  selected
+                                    ? 'service-address-card selected'
+                                    : 'service-address-card'
+                                }
+                                onClick={() => {
+                                  setSelectedAddressId(
+                                    address.id
+                                  );
+                                  setRequestError('');
+                                }}
+                              >
+                                <div className="service-address-radio">
+                                  <span>
+                                    {selected
+                                      ? '●'
+                                      : '○'}
+                                  </span>
+                                </div>
+
+                                <div className="service-address-content">
+                                  <div className="service-address-title">
+                                    <strong>
+                                      {address.label}
+                                    </strong>
+
+                                    {address.isDefault && (
+                                      <span>
+                                        Principal
+                                      </span>
+                                    )}
+                                  </div>
+
+                                  <p>
+                                    {address.street}{' '}
+                                    #{address.exteriorNumber}
+                                    {address.interiorNumber
+                                      ? ` Int. ${address.interiorNumber}`
+                                      : ''}
+                                  </p>
+
+                                  <small>
+                                    {address.neighborhood},{' '}
+                                    {address.municipality},{' '}
+                                    {address.state}
+                                  </small>
+
+                                  <small>
+                                    C.P.{' '}
+                                    {address.postalCode}
+                                  </small>
+
+                                  {address.references && (
+                                    <em>
+                                      Referencias:{' '}
+                                      {address.references}
+                                    </em>
+                                  )}
+                                </div>
+                              </button>
+                            );
+                          }
+                        )}
+                      </div>
+                    ) : (
+                      <div className="service-address-empty">
+                        <div>
+                          ⌂
+                        </div>
+
+                        <strong>
+                          Aún no tienes direcciones
+                        </strong>
+
+                        <p>
+                          Agrega la dirección donde
+                          necesitas el servicio.
+                        </p>
+                      </div>
+                    )}
+
+                    <button
+                      type="button"
+                      className="service-add-address-button"
+                      onClick={() => {
+                        setRequestError('');
+                        setShowNewAddressForm(
+                          true
+                        );
+                      }}
+                    >
+                      <span>
+                        +
+                      </span>
+
+                      Agregar nueva dirección
+                    </button>
+
+                    <div className="service-request-message-field">
+                      <label
+                        htmlFor="serviceMessage"
+                      >
+                        Indicaciones para el especialista
+                      </label>
+
+                      <textarea
+                        id="serviceMessage"
+                        value={
+                          serviceMessage
+                        }
+                        onChange={(
+                          event
+                        ) =>
+                          setServiceMessage(
+                            event.target
+                              .value
+                          )
+                        }
+                        placeholder="Ej. Tocar el timbre al llegar, preguntar por Juan..."
+                        maxLength={500}
+                      />
+
+                      <small>
+                        Opcional ·{' '}
+                        {serviceMessage.length}
+                        /500
+                      </small>
+                    </div>
+                  </>
+                )}
+              </>
+            )}
+
+            {showNewAddressForm && (
+              <div className="service-new-address">
+                <div className="service-request-section-title">
+                  <div>
+                    <span>
+                      01
+                    </span>
+
+                    <div>
+                      <strong>
+                        Nueva dirección
+                      </strong>
+
+                      <small>
+                        Guarda una nueva dirección
+                        para este y futuros servicios.
+                      </small>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="service-new-address-grid">
+                  <div className="service-form-field">
+                    <label>
+                      Nombre de la dirección *
+                    </label>
+
+                    <input
+                      type="text"
+                      value={
+                        newAddress.label
+                      }
+                      onChange={(
+                        event
+                      ) =>
+                        handleNewAddressChange(
+                          'label',
+                          event.target.value
+                        )
+                      }
+                      placeholder="Ej. Casa, Oficina"
+                    />
+                  </div>
+
+                  <div className="service-form-field">
+                    <label>
+                      Código postal *
+                    </label>
+
+                    <input
+                      type="text"
+                      value={
+                        newAddress.postalCode
+                      }
+                      onChange={(
+                        event
+                      ) =>
+                        handleNewAddressChange(
+                          'postalCode',
+                          event.target.value
+                        )
+                      }
+                      placeholder="53000"
+                    />
+                  </div>
+
+                  <div className="service-form-field">
+                    <label>
+                      Estado *
+                    </label>
+
+                    <input
+                      type="text"
+                      value={
+                        newAddress.state
+                      }
+                      onChange={(
+                        event
+                      ) =>
+                        handleNewAddressChange(
+                          'state',
+                          event.target.value
+                        )
+                      }
+                      placeholder="Estado de México"
+                    />
+                  </div>
+
+                  <div className="service-form-field">
+                    <label>
+                      Municipio / Alcaldía *
+                    </label>
+
+                    <input
+                      type="text"
+                      value={
+                        newAddress.municipality
+                      }
+                      onChange={(
+                        event
+                      ) =>
+                        handleNewAddressChange(
+                          'municipality',
+                          event.target.value
+                        )
+                      }
+                      placeholder="Naucalpan de Juárez"
+                    />
+                  </div>
+
+                  <div className="service-form-field full">
+                    <label>
+                      Colonia *
+                    </label>
+
+                    <input
+                      type="text"
+                      value={
+                        newAddress.neighborhood
+                      }
+                      onChange={(
+                        event
+                      ) =>
+                        handleNewAddressChange(
+                          'neighborhood',
+                          event.target.value
+                        )
+                      }
+                      placeholder="Colonia"
+                    />
+                  </div>
+
+                  <div className="service-form-field full">
+                    <label>
+                      Calle *
+                    </label>
+
+                    <input
+                      type="text"
+                      value={
+                        newAddress.street
+                      }
+                      onChange={(
+                        event
+                      ) =>
+                        handleNewAddressChange(
+                          'street',
+                          event.target.value
+                        )
+                      }
+                      placeholder="Nombre de la calle"
+                    />
+                  </div>
+
+                  <div className="service-form-field">
+                    <label>
+                      Número exterior *
+                    </label>
+
+                    <input
+                      type="text"
+                      value={
+                        newAddress.exteriorNumber
+                      }
+                      onChange={(
+                        event
+                      ) =>
+                        handleNewAddressChange(
+                          'exteriorNumber',
+                          event.target.value
+                        )
+                      }
+                      placeholder="123"
+                    />
+                  </div>
+
+                  <div className="service-form-field">
+                    <label>
+                      Número interior
+                    </label>
+
+                    <input
+                      type="text"
+                      value={
+                        newAddress.interiorNumber
+                      }
+                      onChange={(
+                        event
+                      ) =>
+                        handleNewAddressChange(
+                          'interiorNumber',
+                          event.target.value
+                        )
+                      }
+                      placeholder="Opcional"
+                    />
+                  </div>
+
+                  <div className="service-form-field full">
+                    <label>
+                      Referencias
+                    </label>
+
+                    <textarea
+                      value={
+                        newAddress.references
+                      }
+                      onChange={(
+                        event
+                      ) =>
+                        handleNewAddressChange(
+                          'references',
+                          event.target.value
+                        )
+                      }
+                      placeholder="Ej. Portón negro, casa de dos pisos..."
+                    />
+                  </div>
+
+                  <div className="service-form-field full service-map-field">
+                    <label>
+                      Ubicación exacta en el mapa *
+                    </label>
+
+                    <p className="service-map-help">
+                      Haz clic en el mapa para colocar el pin. También puedes arrastrarlo hasta la ubicación exacta donde se realizará el servicio.
+                    </p>
+
+                    <AddressMapPicker
+                      latitude={newAddress.latitude}
+                      longitude={newAddress.longitude}
+                      onChange={(
+                        latitude,
+                        longitude
+                      ) => {
+                        setNewAddress(
+                          (previous) => ({
+                            ...previous,
+                            latitude,
+                            longitude,
+                          })
+                        );
+                        setRequestError('');
+                      }}
+                    />
+
+                    <div className="service-map-coordinates">
+                      <span>
+                        Latitud:{' '}
+                        <strong>
+                          {newAddress.latitude !== null
+                            ? newAddress.latitude.toFixed(6)
+                            : 'Selecciona un punto'}
+                        </strong>
+                      </span>
+
+                      <span>
+                        Longitud:{' '}
+                        <strong>
+                          {newAddress.longitude !== null
+                            ? newAddress.longitude.toFixed(6)
+                            : 'Selecciona un punto'}
+                        </strong>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <label className="service-default-address">
+                  <input
+                    type="checkbox"
+                    checked={
+                      newAddress.isDefault
+                    }
+                    onChange={(
+                      event
+                    ) =>
+                      handleNewAddressChange(
+                        'isDefault',
+                        event.target.checked
+                      )
+                    }
+                  />
+
+                  <span>
+                    <strong>
+                      Usar como dirección principal
+                    </strong>
+
+                    <small>
+                      Se seleccionará automáticamente
+                      en futuras solicitudes.
+                    </small>
+                  </span>
+                </label>
+
+                <div className="service-new-address-actions">
+                  <button
+                    type="button"
+                    className="secondary"
+                    disabled={
+                      savingAddress
+                    }
+                    onClick={() => {
+                      setRequestError('');
+                      setShowNewAddressForm(
+                        false
+                      );
+                    }}
+                  >
+                    Volver
+                  </button>
+
+                  <button
+                    type="button"
+                    className="primary"
+                    disabled={
+                      savingAddress
+                    }
+                    onClick={
+                      handleSaveAddress
+                    }
+                  >
+                    {savingAddress
+                      ? 'Guardando...'
+                      : 'Guardar dirección'}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {!showNewAddressForm && (
+              <div className="service-request-modal-footer">
+                <button
+                  type="button"
+                  className="secondary"
+                  onClick={
+                    closeRequestModal
+                  }
+                  disabled={
+                    requestingServiceId !==
+                    null
+                  }
+                >
+                  Cancelar
+                </button>
+
+                <button
+                  type="button"
+                  className="primary"
+                  onClick={
+                    handleRequestService
+                  }
+                  disabled={
+                    loadingAddresses ||
+                    !selectedAddressId ||
+                    requestingServiceId !==
+                      null
+                  }
+                >
+                  {requestingServiceId !==
+                  null
+                    ? 'Enviando solicitud...'
+                    : 'Enviar solicitud'}
+
+                  <span>
+                    →
+                  </span>
+                </button>
+              </div>
+            )}
+
+          </div>
+        </div>
+
+      )}
 
     </div>
   );

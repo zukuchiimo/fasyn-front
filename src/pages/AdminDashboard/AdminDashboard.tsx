@@ -474,19 +474,23 @@ const AdminDashboard = () => {
 </button>
 <button
   type="button"
-  onClick={() =>
-    navigate('/admin/clients')
-  }
+  onClick={() => {
+    console.log('CLICK CLIENTES');
+    navigate('/admin/clients');
+  }}
 >
   <span>♧</span>
   Clientes
 </button>
-          <button
-            type="button"
-          >
-            <span>◇</span>
-            Categorías
-          </button>
+      <button
+  type="button"
+  onClick={() =>
+    navigate('/admin/categories')
+  }
+>
+  <span>◇</span>
+  Categorías
+</button>
 
         </nav>
 

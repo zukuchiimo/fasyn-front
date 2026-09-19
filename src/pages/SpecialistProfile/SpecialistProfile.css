@@ -1490,3 +1490,1117 @@
   opacity: 0.75;
 }
 }
+
+
+/* =================================== */
+/* MODAL SOLICITAR SERVICIO */
+/* =================================== */
+
+.service-request-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 24px;
+
+  background: rgba(15, 27, 56, 0.58);
+  backdrop-filter: blur(5px);
+}
+
+.service-request-modal {
+  width: 100%;
+  max-width: 720px;
+  max-height: calc(100vh - 48px);
+
+  overflow-y: auto;
+
+  background: #ffffff;
+
+  border:
+    1px solid #e4e8f0;
+
+  border-radius: 24px;
+
+  box-shadow:
+    0 30px 80px
+    rgba(
+      15,
+      27,
+      56,
+      0.24
+    );
+}
+
+.service-request-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+
+  padding: 28px 30px 20px;
+
+  border-bottom:
+    1px solid #e6eaf1;
+}
+
+.service-request-modal-eyebrow {
+  display: block;
+
+  margin-bottom: 6px;
+
+  color: #5c7cff;
+
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 1.3px;
+}
+
+.service-request-modal-header h2 {
+  margin: 0;
+
+  color: #17213d;
+
+  font-size: 25px;
+  line-height: 1.2;
+}
+
+.service-request-modal-header p {
+  margin: 8px 0 0;
+
+  color: #7c879a;
+
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.service-request-modal-close {
+  width: 40px;
+  height: 40px;
+
+  flex-shrink: 0;
+
+  border: 0;
+  border-radius: 12px;
+
+  background: #f3f5ff;
+
+  color: #5c7cff;
+
+  font-family: inherit;
+  font-size: 25px;
+  line-height: 1;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.service-request-modal-close:hover:not(:disabled) {
+  background: #eef1ff;
+  color: #101c3a;
+  transform: rotate(4deg);
+}
+
+.service-request-modal-close:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* RESUMEN */
+
+.service-request-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+
+  margin: 24px 30px 0;
+  padding: 18px 20px;
+
+  border:
+    1px solid #e4e8f0;
+
+  border-radius: 15px;
+
+  background: #fafbfc;
+}
+
+.service-request-summary
+  > div:first-child {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.service-request-summary small {
+  color: #8a94a7;
+
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 1px;
+}
+
+.service-request-summary strong {
+  color: #17213d;
+}
+
+.service-request-summary span {
+  color: #7c879a;
+
+  font-size: 10px;
+}
+
+.service-request-summary-price {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+
+  white-space: nowrap;
+}
+
+.service-request-summary-price strong {
+  color: #17213d;
+
+  font-size: 21px;
+}
+
+/* ERROR */
+
+.service-request-modal-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+
+  margin: 18px 30px 0;
+  padding: 13px 15px;
+
+  border:
+    1px solid #fecdd3;
+
+  border-radius: 12px;
+
+  background: #fff1f2;
+
+  color: #be123c;
+}
+
+.service-request-modal-error
+  > span {
+  width: 22px;
+  height: 22px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 7px;
+
+  background: #ffe4e6;
+
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.service-request-modal-error p {
+  margin: 2px 0 0;
+
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+/* TÍTULO SECCIÓN */
+
+.service-request-section-title {
+  padding: 24px 30px 14px;
+}
+
+.service-request-section-title
+  > div {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.service-request-section-title
+  > div
+  > span {
+  width: 35px;
+  height: 35px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #eef1ff;
+
+  border-radius: 10px;
+
+  color: #5c7cff;
+
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.service-request-section-title
+  > div
+  > div {
+  display: flex;
+  flex-direction: column;
+}
+
+.service-request-section-title strong {
+  color: #17213d;
+
+  font-size: 13px;
+}
+
+.service-request-section-title small {
+  margin-top: 3px;
+
+  color: #8a94a7;
+
+  font-size: 9px;
+}
+
+/* LOADING */
+
+.service-request-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+
+  padding: 34px;
+
+  color: #7c879a;
+
+  font-size: 10px;
+}
+
+.service-request-loading
+  .public-profile-spinner {
+  width: 25px;
+  height: 25px;
+
+  border-width: 2px;
+}
+
+/* DIRECCIONES */
+
+.service-address-list {
+  display: grid;
+  gap: 10px;
+
+  padding: 0 30px;
+}
+
+.service-address-card {
+  width: 100%;
+
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+
+  padding: 16px;
+
+  border:
+    1px solid #e4e8f0;
+
+  border-radius: 14px;
+
+  background: #ffffff;
+
+  color: inherit;
+
+  font-family: inherit;
+  text-align: left;
+
+  cursor: pointer;
+
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.service-address-card:hover {
+  border-color: #cbd3ff;
+
+  transform:
+    translateY(-1px);
+}
+
+.service-address-card.selected {
+  border-color: #5c7cff;
+
+  background: #f6f7ff;
+
+  box-shadow:
+    0 0 0 1px
+    rgba(
+      92,
+      124,
+      255,
+      0.18
+    );
+}
+
+.service-address-radio {
+  padding-top: 1px;
+
+  color: #5c7cff;
+
+  font-size: 17px;
+}
+
+.service-address-content {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.service-address-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+
+  margin-bottom: 2px;
+}
+
+.service-address-title strong {
+  color: #17213d;
+
+  font-size: 12px;
+}
+
+.service-address-title span {
+  padding: 4px 7px;
+
+  border-radius: 999px;
+
+  background: #ecfdf5;
+
+  color: #047857;
+
+  font-size: 8px;
+  font-weight: 800;
+}
+
+.service-address-content p {
+  margin: 0;
+
+  color: #46516a;
+
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.service-address-content small {
+  color: #7c879a;
+
+  font-size: 9px;
+  line-height: 1.45;
+}
+
+.service-address-content em {
+  margin-top: 4px;
+
+  color: #8a94a7;
+
+  font-size: 9px;
+  font-style: normal;
+}
+
+/* SIN DIRECCIONES */
+
+.service-address-empty {
+  margin: 0 30px;
+  padding: 30px;
+
+  text-align: center;
+
+  border:
+    1px dashed #cbd3df;
+
+  border-radius: 15px;
+
+  background: #fafbfc;
+}
+
+.service-address-empty
+  > div {
+  width: 45px;
+  height: 45px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin: 0 auto 10px;
+
+  border-radius: 12px;
+
+  background: #eef1ff;
+
+  color: #5c7cff;
+
+  font-size: 21px;
+}
+
+.service-address-empty strong {
+  display: block;
+
+  color: #17213d;
+
+  font-size: 12px;
+}
+
+.service-address-empty p {
+  margin: 6px 0 0;
+
+  color: #8993a5;
+
+  font-size: 10px;
+}
+
+/* AGREGAR DIRECCIÓN */
+
+.service-add-address-button {
+  width:
+    calc(100% - 60px);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  margin: 12px 30px 0;
+  padding: 13px 16px;
+
+  border:
+    1px dashed #aeb8ca;
+
+  border-radius: 12px;
+
+  background: #ffffff;
+
+  color: #59657d;
+
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 800;
+
+  cursor: pointer;
+
+  transition:
+    border-color 0.2s ease,
+    color 0.2s ease,
+    background 0.2s ease;
+}
+
+.service-add-address-button:hover {
+  border-color: #5c7cff;
+
+  background: #f8f9ff;
+
+  color: #5c7cff;
+}
+
+.service-add-address-button span {
+  font-size: 17px;
+}
+
+/* INDICACIONES */
+
+.service-request-message-field {
+  display: flex;
+  flex-direction: column;
+
+  padding: 24px 30px;
+}
+
+.service-request-message-field label {
+  margin-bottom: 8px;
+
+  color: #46516a;
+
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.service-request-message-field textarea {
+  min-height: 90px;
+
+  box-sizing: border-box;
+
+  padding: 12px 14px;
+
+  resize: vertical;
+
+  border:
+    1px solid #dbe0e8;
+
+  border-radius: 11px;
+
+  outline: none;
+
+  background: #ffffff;
+
+  color: #17213d;
+
+  font-family: inherit;
+  font-size: 11px;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.service-request-message-field
+  textarea:focus {
+  border-color: #5c7cff;
+
+  box-shadow:
+    0 0 0 3px
+    rgba(
+      92,
+      124,
+      255,
+      0.1
+    );
+}
+
+.service-request-message-field small {
+  margin-top: 5px;
+
+  color: #a0a8b7;
+
+  font-size: 8px;
+
+  text-align: right;
+}
+
+/* =================================== */
+/* NUEVA DIRECCIÓN */
+/* =================================== */
+
+.service-new-address {
+  padding-bottom: 24px;
+}
+
+.service-new-address-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      2,
+      minmax(0, 1fr)
+    );
+
+  gap: 14px;
+
+  padding: 0 30px;
+}
+
+.service-form-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.service-form-field.full {
+  grid-column: 1 / -1;
+}
+
+.service-form-field label {
+  margin-bottom: 6px;
+
+  color: #46516a;
+
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.service-form-field input,
+.service-form-field textarea {
+  width: 100%;
+
+  box-sizing: border-box;
+
+  padding: 11px 12px;
+
+  border:
+    1px solid #dbe0e8;
+
+  border-radius: 10px;
+
+  outline: none;
+
+  background: #ffffff;
+
+  color: #17213d;
+
+  font-family: inherit;
+  font-size: 10px;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.service-form-field textarea {
+  min-height: 80px;
+
+  resize: vertical;
+}
+
+.service-form-field input:focus,
+.service-form-field textarea:focus {
+  border-color: #5c7cff;
+
+  box-shadow:
+    0 0 0 3px
+    rgba(
+      92,
+      124,
+      255,
+      0.1
+    );
+}
+
+.service-default-address {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+
+  margin: 18px 30px 0;
+  padding: 14px;
+
+  border:
+    1px solid #e6eaf1;
+
+  border-radius: 12px;
+
+  background: #fafbfc;
+
+  cursor: pointer;
+}
+
+.service-default-address input {
+  margin-top: 3px;
+
+  accent-color: #5c7cff;
+}
+
+.service-default-address span {
+  display: flex;
+  flex-direction: column;
+}
+
+.service-default-address strong {
+  color: #46516a;
+
+  font-size: 10px;
+}
+
+.service-default-address small {
+  margin-top: 3px;
+
+  color: #8993a5;
+
+  font-size: 8px;
+}
+
+.service-new-address-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+
+  margin: 20px 30px 0;
+}
+
+/* FOOTER */
+
+.service-request-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+
+  padding: 18px 30px 24px;
+
+  border-top:
+    1px solid #e6eaf1;
+}
+
+.service-request-modal-footer button,
+.service-new-address-actions button {
+  min-height: 42px;
+
+  padding: 0 18px;
+
+  border-radius: 10px;
+
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 800;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease,
+    opacity 0.2s ease;
+}
+
+.service-request-modal-footer
+  button:disabled,
+.service-new-address-actions
+  button:disabled {
+  opacity: 0.5;
+
+  cursor: not-allowed;
+}
+
+.service-request-modal-footer
+  .secondary,
+.service-new-address-actions
+  .secondary {
+  border:
+    1px solid #dbe0e8;
+
+  background: #ffffff;
+
+  color: #59657d;
+}
+
+.service-request-modal-footer
+  .secondary:hover:not(:disabled),
+.service-new-address-actions
+  .secondary:hover:not(:disabled) {
+  border-color: #cbd3df;
+
+  background: #f7f8fb;
+}
+
+.service-request-modal-footer
+  .primary,
+.service-new-address-actions
+  .primary {
+  border:
+    1px solid #5c7cff;
+
+  background: #5c7cff;
+
+  color: #ffffff;
+
+  box-shadow:
+    0 8px 20px
+    rgba(
+      92,
+      124,
+      255,
+      0.18
+    );
+}
+
+.service-request-modal-footer
+  .primary {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.service-request-modal-footer
+  .primary:hover:not(:disabled),
+.service-new-address-actions
+  .primary:hover:not(:disabled) {
+  background: #6d88ff;
+
+  transform:
+    translateY(-1px);
+}
+
+/* =================================== */
+/* RESPONSIVE MODAL */
+/* =================================== */
+
+@media (max-width: 700px) {
+  .service-request-modal-overlay {
+    align-items: flex-end;
+
+    padding: 0;
+  }
+
+  .service-request-modal {
+    max-height: 92vh;
+
+    border-radius:
+      22px 22px 0 0;
+  }
+
+  .service-request-modal-header {
+    padding:
+      22px 20px 18px;
+  }
+
+  .service-request-modal-header h2 {
+    font-size: 21px;
+  }
+
+  .service-request-summary {
+    margin:
+      18px 20px 0;
+  }
+
+  .service-request-section-title {
+    padding:
+      22px 20px 12px;
+  }
+
+  .service-address-list {
+    padding:
+      0 20px;
+  }
+
+  .service-address-empty {
+    margin:
+      0 20px;
+  }
+
+  .service-add-address-button {
+    width:
+      calc(100% - 40px);
+
+    margin:
+      12px 20px 0;
+  }
+
+  .service-request-message-field {
+    padding:
+      22px 20px;
+  }
+
+  .service-new-address-grid {
+    grid-template-columns:
+      1fr;
+
+    padding:
+      0 20px;
+  }
+
+  .service-form-field.full {
+    grid-column: auto;
+  }
+
+  .service-default-address {
+    margin:
+      18px 20px 0;
+  }
+
+  .service-new-address-actions {
+    margin:
+      20px 20px 0;
+  }
+
+  .service-request-modal-footer {
+    padding:
+      16px 20px 20px;
+  }
+
+  .service-request-modal-footer
+    button {
+    flex: 1;
+  }
+  
+}
+/* =================================== */
+/* MAPA UBICACIÓN DEL SERVICIO */
+/* =================================== */
+
+.service-map-field {
+  grid-column: 1 / -1;
+  width: 100%;
+}
+
+.service-map-help {
+  margin: 0 0 10px;
+
+  color: #7c879a;
+
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+/*
+  IMPORTANTE:
+  Leaflet necesita que el contenedor
+  tenga una altura explícita.
+*/
+.service-address-map {
+  width: 100% !important;
+  height: 350px !important;
+  min-height: 350px !important;
+
+  position: relative;
+
+  display: block;
+
+  overflow: hidden;
+
+  border: 1px solid #dbe0e8;
+  border-radius: 14px;
+
+  background: #eef1f5;
+
+  z-index: 1;
+}
+
+.service-address-map.leaflet-container {
+  width: 100% !important;
+  height: 350px !important;
+  min-height: 350px !important;
+
+  position: relative;
+
+  z-index: 1;
+}
+
+/* =================================== */
+/* PIN DEL MAPA */
+/* =================================== */
+
+.service-map-marker-wrapper {
+  background: transparent !important;
+  border: 0 !important;
+}
+
+.service-map-marker {
+  width: 38px;
+  height: 38px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 34px;
+  line-height: 1;
+
+  cursor: grab;
+
+  filter:
+    drop-shadow(
+      0 4px 5px
+      rgba(0, 0, 0, 0.3)
+    );
+}
+
+.service-map-marker:active {
+  cursor: grabbing;
+}
+
+/* =================================== */
+/* COORDENADAS */
+/* =================================== */
+
+.service-map-coordinates {
+  display: grid;
+
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 10px;
+
+  margin-top: 10px;
+}
+
+.service-map-coordinates span {
+  display: flex;
+  flex-direction: column;
+
+  gap: 4px;
+
+  padding: 10px 12px;
+
+  border: 1px solid #e4e8f0;
+  border-radius: 10px;
+
+  background: #fafbfc;
+
+  color: #8a94a7;
+
+  font-size: 8px;
+  font-weight: 800;
+}
+
+.service-map-coordinates strong {
+  color: #17213d;
+
+  font-size: 10px;
+  font-weight: 800;
+}
+
+/* =================================== */
+/* CONTROLES LEAFLET */
+/* =================================== */
+
+.service-address-map
+.leaflet-control-zoom {
+  overflow: hidden;
+
+  border: 0 !important;
+
+  border-radius: 10px;
+
+  box-shadow:
+    0 5px 18px
+    rgba(15, 27, 56, 0.15);
+}
+
+.service-address-map
+.leaflet-control-zoom a {
+  color: #17213d;
+
+  font-family: inherit;
+}
+
+.service-address-map
+.leaflet-control-attribution {
+  font-size: 8px;
+}
+
+/* =================================== */
+/* RESPONSIVE MAPA */
+/* =================================== */
+
+@media (max-width: 700px) {
+
+  .service-map-field {
+    grid-column: auto;
+  }
+
+  .service-address-map,
+  .service-address-map.leaflet-container {
+    height: 280px !important;
+    min-height: 280px !important;
+  }
+
+  .service-map-coordinates {
+    grid-template-columns: 1fr;
+  }
+}
