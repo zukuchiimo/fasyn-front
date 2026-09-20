@@ -316,7 +316,7 @@ const MyProfile = () => {
     useMemo(() => {
       let completed = 0;
 
-      const total = 9;
+      const total = 8;
 
       if (form.phone.trim()) {
         completed++;
@@ -597,7 +597,7 @@ const MyProfile = () => {
 
             <div className="my-profile-progress-header">
               <span>
-                PERFIL COMPLETADO
+                PERFIL COMPLETADsO
               </span>
 
               <strong>

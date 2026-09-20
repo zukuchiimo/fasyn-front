@@ -1,5 +1,15 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import {
+  CircleMarker,
+  GeoJSON,
+  MapContainer,
+  Popup,
+  TileLayer,
+  useMap,
+} from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 
 import { api } from '../../api/api';
 import logo from '../../assets/logo.png';
@@ -11,6 +21,265 @@ interface Category {
   name: string;
 }
 
+interface Coordinates {
+  latitude: number;
+  longitude: number;
+}
+
+interface ServiceArea {
+  stateCode: string;
+  stateName: string;
+  municipalityCode: string;
+  municipalityName: string;
+}
+
+interface ReverseAddress {
+  state?: string;
+  municipality?: string;
+  city_district?: string;
+  borough?: string;
+  city?: string;
+  town?: string;
+  village?: string;
+  county?: string;
+  suburb?: string;
+  neighbourhood?: string;
+  quarter?: string;
+  postcode?: string;
+  road?: string;
+  house_number?: string;
+}
+
+const DEFAULT_MAP_CENTER: [number, number] = [23.6345, -102.5528];
+
+const MUNICIPALITIES_GEOJSON_BASE_URL =
+  'https://raw.githubusercontent.com/MacWilliXD/INEGI-geojson/main/geojson_descargas';
+
+const getMunicipalitiesGeoJsonUrl = (stateCode: string) =>
+  `${MUNICIPALITIES_GEOJSON_BASE_URL}/AGEM_${stateCode}.geojson`;
+
+const STATE_NAMES: Record<string, string> = {
+  '01': 'Aguascalientes',
+  '02': 'Baja California',
+  '03': 'Baja California Sur',
+  '04': 'Campeche',
+  '05': 'Coahuila',
+  '06': 'Colima',
+  '07': 'Chiapas',
+  '08': 'Chihuahua',
+  '09': 'Ciudad de México',
+  '10': 'Durango',
+  '11': 'Guanajuato',
+  '12': 'Guerrero',
+  '13': 'Hidalgo',
+  '14': 'Jalisco',
+  '15': 'Estado de México',
+  '16': 'Michoacán',
+  '17': 'Morelos',
+  '18': 'Nayarit',
+  '19': 'Nuevo León',
+  '20': 'Oaxaca',
+  '21': 'Puebla',
+  '22': 'Querétaro',
+  '23': 'Quintana Roo',
+  '24': 'San Luis Potosí',
+  '25': 'Sinaloa',
+  '26': 'Sonora',
+  '27': 'Tabasco',
+  '28': 'Tamaulipas',
+  '29': 'Tlaxcala',
+  '30': 'Veracruz',
+  '31': 'Yucatán',
+  '32': 'Zacatecas',
+};
+
+const normalizeStateName = (value: string) =>
+  value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
+
+const STATE_NAME_TO_CODE: Record<string, string> = Object.entries(
+  STATE_NAMES
+).reduce<Record<string, string>>((accumulator, [code, name]) => {
+  accumulator[normalizeStateName(name)] = code;
+  return accumulator;
+}, {});
+
+STATE_NAME_TO_CODE['mexico'] = '15';
+STATE_NAME_TO_CODE['estado de mexico'] = '15';
+STATE_NAME_TO_CODE['ciudad de mexico'] = '09';
+STATE_NAME_TO_CODE['distrito federal'] = '09';
+STATE_NAME_TO_CODE['coahuila de zaragoza'] = '05';
+STATE_NAME_TO_CODE['michoacan de ocampo'] = '16';
+STATE_NAME_TO_CODE['veracruz de ignacio de la llave'] = '30';
+
+const getStateCodeFromName = (stateName?: string) => {
+  if (!stateName) {
+    return '';
+  }
+
+  return STATE_NAME_TO_CODE[normalizeStateName(stateName)] || '';
+};
+
+const AVAILABLE_AREA_STYLE = {
+  color: '#3157d5',
+  weight: 1.35,
+  fillColor: '#5c7cff',
+  fillOpacity: 0.34,
+};
+
+const SELECTED_AREA_STYLE = {
+  color: '#15803d',
+  weight: 2.25,
+  fillColor: '#22c55e',
+  fillOpacity: 0.62,
+};
+
+const getFeatureServiceArea = (feature: any): ServiceArea | null => {
+  const properties = feature?.properties || {};
+
+  const fullCode = String(
+    properties.cvegeo ||
+      properties.CVEGEO ||
+      properties.CVE_GEO ||
+      ''
+  ).trim();
+
+  const stateCodeRaw = String(
+    properties.cve_agee ||
+      properties.CVE_ENT ||
+      properties.state_code ||
+      (fullCode.length >= 5 ? fullCode.slice(0, 2) : '')
+  ).trim();
+
+  const municipalityCodeRaw = String(
+    properties.cve_agem ||
+      properties.CVE_MUN ||
+      properties.mun_code ||
+      (fullCode.length >= 5 ? fullCode.slice(2, 5) : '')
+  ).trim();
+
+  const stateCode = stateCodeRaw
+    ? stateCodeRaw.padStart(2, '0')
+    : '';
+
+  const municipalityCode = municipalityCodeRaw
+    ? municipalityCodeRaw.padStart(3, '0')
+    : '';
+
+  const municipalityName = String(
+    properties.nom_agem ||
+      properties.NOM_MUN ||
+      properties.NOMGEO ||
+      properties.mun_name ||
+      properties.NAME_2 ||
+      properties.municipality ||
+      properties.name ||
+      ''
+  ).trim();
+
+  const stateName = String(
+    properties.nom_agee ||
+      properties.NOM_ENT ||
+      properties.state_name ||
+      STATE_NAMES[stateCode] ||
+      ''
+  ).trim();
+
+  if (
+    !stateCode ||
+    !municipalityCode ||
+    !municipalityName ||
+    !stateName
+  ) {
+    return null;
+  }
+
+  return {
+    stateCode,
+    stateName,
+    municipalityCode,
+    municipalityName,
+  };
+};
+
+const reverseGeocode = async (latitude: number, longitude: number) => {
+  const response = await fetch(
+    `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1&accept-language=es`
+  );
+
+  if (!response.ok) {
+    throw new Error('No fue posible identificar la ubicación seleccionada.');
+  }
+
+  return response.json();
+};
+
+const getMunicipalityName = (address: ReverseAddress) =>
+  address.municipality ||
+  address.city_district ||
+  address.borough ||
+  address.city ||
+  address.town ||
+  address.village ||
+  address.county ||
+  '';
+
+const FitCurrentStateMap = ({
+  position,
+  stateCode,
+  geoJson,
+}: {
+  position: Coordinates | null;
+  stateCode: string;
+  geoJson: any | null;
+}) => {
+  const map = useMap();
+  const fittedState = useRef<string>('');
+
+  useEffect(() => {
+    if (!stateCode || fittedState.current === stateCode) {
+      return;
+    }
+
+    const stateFeatures = (geoJson?.features || []).filter(
+      (feature: any) =>
+        getFeatureServiceArea(feature)?.stateCode === stateCode
+    );
+
+    if (stateFeatures.length > 0) {
+      const stateLayer = L.geoJSON({
+        type: 'FeatureCollection',
+        features: stateFeatures,
+      } as any);
+
+      const bounds = stateLayer.getBounds();
+
+      if (bounds.isValid()) {
+        map.fitBounds(bounds, {
+          padding: [22, 22],
+          maxZoom: stateCode === '09' ? 11 : 10,
+        });
+
+        fittedState.current = stateCode;
+        return;
+      }
+    }
+
+    if (position) {
+      map.setView(
+        [position.latitude, position.longitude],
+        stateCode === '09' ? 11 : 10
+      );
+      fittedState.current = stateCode;
+    }
+  }, [geoJson, map, position, stateCode]);
+
+  return null;
+};
+
 const TOTAL_STEPS = 6;
 
 const SpecialistSetup = () => {
@@ -20,6 +289,15 @@ const SpecialistSetup = () => {
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
+
+  const [serviceAreas, setServiceAreas] = useState<ServiceArea[]>([]);
+  const [currentLocation, setCurrentLocation] = useState<Coordinates | null>(null);
+  const [currentStateCode, setCurrentStateCode] = useState('');
+  const [locating, setLocating] = useState(false);
+  const [municipalitiesGeoJson, setMunicipalitiesGeoJson] = useState<any | null>(null);
+  const [loadingMunicipalities, setLoadingMunicipalities] = useState(false);
+  const [mapError, setMapError] = useState('');
+  const [locationError, setLocationError] = useState('');
 
   const [profilePhoto, setProfilePhoto] = useState<File | null>(null);
   const [idFront, setIdFront] = useState<File | null>(null);
@@ -85,6 +363,234 @@ const SpecialistSetup = () => {
     setError('');
   };
 
+  const getCurrentLocation = () => {
+    setLocationError('');
+
+    if (!navigator.geolocation) {
+      setLocationError(
+        'Tu navegador no permite obtener la ubicación actual.'
+      );
+      return;
+    }
+
+    setLocating(true);
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const coordinates = {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        };
+
+        setCurrentLocation(coordinates);
+
+        try {
+          const result = await reverseGeocode(
+            coordinates.latitude,
+            coordinates.longitude
+          );
+
+          const address: ReverseAddress = result.address || {};
+          const municipality = getMunicipalityName(address);
+          const detectedStateCode = getStateCodeFromName(address.state);
+
+          if (detectedStateCode) {
+            setCurrentStateCode(detectedStateCode);
+          }
+          const fullAddress = [
+            address.road,
+            address.house_number,
+          ]
+            .filter(Boolean)
+            .join(' ');
+
+          setForm((current) => ({
+            ...current,
+            state: address.state || current.state,
+            municipality: municipality || current.municipality,
+            neighborhood:
+              address.neighbourhood ||
+              address.suburb ||
+              address.quarter ||
+              current.neighborhood,
+            postalCode: address.postcode || current.postalCode,
+            address: fullAddress || result.display_name || current.address,
+          }));
+        } catch (locationLookupError) {
+          console.error(
+            'ERROR IDENTIFICANDO UBICACIÓN ACTUAL:',
+            locationLookupError
+          );
+
+          setLocationError(
+            'Obtuvimos tus coordenadas, pero no pudimos identificar la dirección exacta.'
+          );
+        } finally {
+          setLocating(false);
+        }
+      },
+      (geolocationError) => {
+        console.error('ERROR GEOLOCATION:', geolocationError);
+        setLocating(false);
+
+        if (geolocationError.code === geolocationError.PERMISSION_DENIED) {
+          setLocationError(
+            'Necesitamos permiso de ubicación para mostrar tu posición actual en el mapa.'
+          );
+          return;
+        }
+
+        setLocationError(
+          'No fue posible obtener tu ubicación actual. Inténtalo nuevamente.'
+        );
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 12000,
+        maximumAge: 30000,
+      }
+    );
+  };
+
+  useEffect(() => {
+    if (step === 2 && !currentLocation && !locating) {
+      getCurrentLocation();
+    }
+    // Solo queremos solicitarla al entrar al paso 2 si todavía no existe.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step]);
+
+  useEffect(() => {
+    if (step !== 2) {
+      return;
+    }
+
+    let cancelled = false;
+
+    const loadStateMunicipalities = async (stateCode: string) => {
+      const response = await fetch(
+        getMunicipalitiesGeoJsonUrl(stateCode)
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          `No fue posible cargar las zonas del estado ${stateCode}.`
+        );
+      }
+
+      const data = await response.json();
+      return Array.isArray(data?.features) ? data.features : [];
+    };
+
+    const loadMunicipalities = async () => {
+      try {
+        setLoadingMunicipalities(true);
+        setMapError('');
+
+        // Primero cargamos el estado actual para que el mapa sea utilizable
+        // rápidamente y pueda hacer zoom sobre esa entidad.
+        const initialStateCode = currentStateCode || '09';
+        const initialFeatures = await loadStateMunicipalities(
+          initialStateCode
+        );
+
+        if (cancelled) {
+          return;
+        }
+
+        let accumulatedFeatures = [...initialFeatures];
+
+        setMunicipalitiesGeoJson({
+          type: 'FeatureCollection',
+          features: [...accumulatedFeatures],
+        });
+
+        setLoadingMunicipalities(false);
+
+        // Después cargamos el resto de México por bloques para no bloquear
+        // la interacción del mapa mientras llega toda la información.
+        const remainingStateCodes = Object.keys(STATE_NAMES).filter(
+          (code) => code !== initialStateCode
+        );
+
+        const batchSize = 4;
+
+        for (
+          let index = 0;
+          index < remainingStateCodes.length;
+          index += batchSize
+        ) {
+          if (cancelled) {
+            return;
+          }
+
+          const batch = remainingStateCodes.slice(
+            index,
+            index + batchSize
+          );
+
+          const results = await Promise.all(
+            batch.map(async (stateCode) => {
+              try {
+                return await loadStateMunicipalities(stateCode);
+              } catch (stateLoadError) {
+                console.warn(
+                  `No se pudieron cargar los municipios del estado ${stateCode}:`,
+                  stateLoadError
+                );
+                return [];
+              }
+            })
+          );
+
+          accumulatedFeatures = [
+            ...accumulatedFeatures,
+            ...results.flat(),
+          ];
+
+          if (!cancelled) {
+            setMunicipalitiesGeoJson({
+              type: 'FeatureCollection',
+              features: [...accumulatedFeatures],
+            });
+          }
+        }
+      } catch (mapLoadError) {
+        console.error('ERROR CARGANDO MUNICIPIOS:', mapLoadError);
+
+        if (!cancelled) {
+          setLoadingMunicipalities(false);
+          setMapError(
+            'No fue posible cargar las zonas del mapa. Revisa tu conexión e inténtalo nuevamente.'
+          );
+        }
+      }
+    };
+
+    void loadMunicipalities();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [step, currentStateCode]);
+
+  const isAreaSelected = (area: ServiceArea) =>
+    serviceAreas.some(
+      (item) =>
+        item.stateCode === area.stateCode &&
+        item.municipalityCode === area.municipalityCode
+    );
+
+  const removeServiceArea = (index: number) => {
+    setServiceAreas((current) =>
+      current.filter(
+        (_, currentIndex) => currentIndex !== index
+      )
+    );
+
+    setError('');
+  };
+
   const validateStep = () => {
     setError('');
 
@@ -106,14 +612,16 @@ const SpecialistSetup = () => {
     }
 
     if (step === 2) {
-      if (
-        !form.state.trim() ||
-        !form.municipality.trim() ||
-        !form.neighborhood.trim() ||
-        !form.postalCode.trim()
-      ) {
+      if (!currentLocation) {
         setError(
-          'Completa tu zona de trabajo antes de continuar.'
+          'Obtén tu ubicación actual antes de continuar.'
+        );
+        return false;
+      }
+
+      if (serviceAreas.length === 0) {
+        setError(
+          'Selecciona en el mapa al menos una zona donde prestas servicio.'
         );
         return false;
       }
@@ -167,69 +675,92 @@ const SpecialistSetup = () => {
     });
   };
 
-const finishSetup = async () => {
-  try {
-    setSaving(true);
-    setError('');
+  const finishSetup = async () => {
+    try {
+      setSaving(true);
+      setError('');
 
-    const token = localStorage.getItem('token');
+      const token = localStorage.getItem('token');
 
-    if (!token) {
-      navigate('/login');
-      return;
+      if (!token) {
+        navigate('/login');
+        return;
+      }
+
+      // 1. Guardar datos del perfil profesional
+      const profileResponse = await api.post(
+        '/specialists/profile',
+        form,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      console.log(
+        'PERFIL GUARDADO:',
+        profileResponse.data
+      );
+
+      // 2. Guardar especialidades seleccionadas
+      const specialtiesResponse = await api.put(
+        '/specialists/specialties',
+        {
+          categoryIds: selectedCategories,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      console.log(
+        'ESPECIALIDADES GUARDADAS:',
+        specialtiesResponse.data
+      );
+
+      // 3. Guardar zonas donde presta servicio
+      for (const area of serviceAreas) {
+        await api.post(
+          '/specialists/me/service-areas',
+          {
+            stateCode: area.stateCode,
+            stateName: area.stateName,
+            municipalityCode: area.municipalityCode,
+            municipalityName: area.municipalityName,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+      }
+
+      console.log(
+        'ZONAS DE SERVICIO GUARDADAS:',
+        serviceAreas
+      );
+
+      // 4. Ir al panel del especialista
+      navigate('/specialist');
+    } catch (error: any) {
+      console.error(
+        'ERROR GUARDANDO PERFIL:',
+        error.response?.data || error
+      );
+
+      setError(
+        error.response?.data?.message ||
+          'No fue posible guardar tu perfil. Inténtalo nuevamente.'
+      );
+    } finally {
+      setSaving(false);
     }
+  };
 
-    // 1. Guardar datos del perfil profesional
-    const profileResponse = await api.post(
-      '/specialists/profile',
-      form,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-
-    console.log(
-      'PERFIL GUARDADO:',
-      profileResponse.data
-    );
-
-    // 2. Guardar especialidades seleccionadas
-    const specialtiesResponse = await api.put(
-      '/specialists/specialties',
-      {
-        categoryIds: selectedCategories,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-
-    console.log(
-      'ESPECIALIDADES GUARDADAS:',
-      specialtiesResponse.data
-    );
-
-    // 3. Ir al panel del especialista
-    navigate('/specialist');
-
-  } catch (error: any) {
-    console.error(
-      'ERROR GUARDANDO PERFIL:',
-      error.response?.data || error
-    );
-
-    setError(
-      error.response?.data?.message ||
-        'No fue posible guardar tu perfil. Inténtalo nuevamente.'
-    );
-  } finally {
-    setSaving(false);
-  }
-};
   const selectedCategoryNames = categories
     .filter((category) =>
       selectedCategories.includes(category.id)
@@ -422,78 +953,266 @@ const finishSetup = async () => {
               <section className="setup-card">
 
                 <div className="setup-title">
-                  <span>ZONA DE TRABAJO</span>
+                  <span>UBICACIÓN Y COBERTURA</span>
 
-                  <h1>¿Dónde ofreces tus servicios?</h1>
+                  <h1>Define dónde trabajas</h1>
 
                   <p>
-                    Esta información ayudará a conectar tu perfil
-                    con clientes cercanos.
+                    Primero obtenemos tu ubicación actual. Después,
+                    selecciona directamente en el mapa los municipios
+                    o alcaldías donde estás disponible para trabajar.
                   </p>
                 </div>
 
-                <div className="setup-form setup-form-grid">
+                <div className="current-location-card">
+                  <div className="current-location-copy">
+                    <span className="location-eyebrow">TU UBICACIÓN ACTUAL</span>
 
-                  <label>
-                    <span>Estado</span>
+                    {currentLocation ? (
+                      <>
+                        <strong>
+                          {form.municipality || 'Ubicación detectada'}
+                          {form.state && `, ${form.state}`}
+                        </strong>
 
-                    <input
-                      name="state"
-                      value={form.state}
-                      onChange={handleChange}
-                      placeholder="Ciudad de México"
-                    />
-                  </label>
+                        <p>
+                          {form.neighborhood && `${form.neighborhood} · `}
+                          {form.postalCode && `C.P. ${form.postalCode}`}
+                        </p>
 
-                  <label>
-                    <span>Alcaldía o municipio</span>
+                        {form.address && (
+                          <small>{form.address}</small>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        <strong>Aún no tenemos tu ubicación</strong>
+                        <p>
+                          Usa tu ubicación para centrar el mapa cerca de ti.
+                        </p>
+                      </>
+                    )}
+                  </div>
 
-                    <input
-                      name="municipality"
-                      value={form.municipality}
-                      onChange={handleChange}
-                      placeholder="Gustavo A. Madero"
-                    />
-                  </label>
-
-                  <label>
-                    <span>Colonia</span>
-
-                    <input
-                      name="neighborhood"
-                      value={form.neighborhood}
-                      onChange={handleChange}
-                      placeholder="Lindavista"
-                    />
-                  </label>
-
-                  <label>
-                    <span>Código postal</span>
-
-                    <input
-                      name="postalCode"
-                      value={form.postalCode}
-                      onChange={handleChange}
-                      placeholder="07300"
-                    />
-                  </label>
-
-                  <label className="setup-full-field">
-                    <span>Domicilio</span>
-
-                    <input
-                      name="address"
-                      value={form.address}
-                      onChange={handleChange}
-                      placeholder="Calle, número exterior e interior"
-                    />
-
-                    <small>
-                      Tu domicilio completo no se mostrará públicamente.
-                    </small>
-                  </label>
-
+                  <button
+                    type="button"
+                    className="location-button"
+                    onClick={getCurrentLocation}
+                    disabled={locating}
+                  >
+                    {locating
+                      ? 'Obteniendo ubicación...'
+                      : currentLocation
+                        ? 'Actualizar ubicación'
+                        : 'Usar mi ubicación actual'}
+                  </button>
                 </div>
+
+                {locationError && (
+                  <div className="location-warning">
+                    {locationError}
+                  </div>
+                )}
+
+                <div className="coverage-map-header">
+                  <div>
+                    <span>COBERTURA DE SERVICIO</span>
+                    <h2>Selecciona tus zonas en el mapa</h2>
+                    <p>
+                      Las alcaldías y municipios disponibles aparecen en azul.
+                      Toca una zona y cambiará inmediatamente a verde. El mapa
+                      se centra automáticamente en el estado donde te encuentras.
+                    </p>
+                  </div>
+
+                  {loadingMunicipalities && (
+                    <span className="map-resolving">
+                      Cargando zonas de México...
+                    </span>
+                  )}
+                </div>
+
+                {mapError && (
+                  <div className="location-warning">
+                    {mapError}
+                  </div>
+                )}
+
+                <div className="coverage-map-shell">
+                  <div className="coverage-map-instruction">
+                    Toca un municipio o alcaldía para seleccionarlo
+                  </div>
+
+                  <MapContainer
+                    center={
+                      currentLocation
+                        ? [currentLocation.latitude, currentLocation.longitude]
+                        : DEFAULT_MAP_CENTER
+                    }
+                    zoom={currentLocation ? 11 : 5}
+                    scrollWheelZoom
+                    className="coverage-map"
+                  >
+                    <TileLayer
+                      attribution='&copy; OpenStreetMap contributors'
+                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    />
+
+                    <FitCurrentStateMap
+                      position={currentLocation}
+                      stateCode={currentStateCode || '09'}
+                      geoJson={municipalitiesGeoJson}
+                    />
+
+                    {currentLocation && (
+                      <CircleMarker
+                        center={[
+                          currentLocation.latitude,
+                          currentLocation.longitude,
+                        ]}
+                        radius={9}
+                        pathOptions={{
+                          color: '#ffffff',
+                          weight: 3,
+                          fillColor: '#171821',
+                          fillOpacity: 1,
+                        }}
+                      >
+                        <Popup>Tu ubicación actual</Popup>
+                      </CircleMarker>
+                    )}
+
+                    {municipalitiesGeoJson && (
+                      <GeoJSON
+                        key={`municipalities-${serviceAreas
+                          .map(
+                            (area) =>
+                              `${area.stateCode}-${area.municipalityCode}`
+                          )
+                          .sort()
+                          .join('|')}`}
+                        data={municipalitiesGeoJson}
+                        style={(feature: any) => {
+                          const area = getFeatureServiceArea(feature);
+                          const selected = area ? isAreaSelected(area) : false;
+
+                          return selected
+                            ? SELECTED_AREA_STYLE
+                            : AVAILABLE_AREA_STYLE;
+                        }}
+                        onEachFeature={(feature: any, layer: any) => {
+                          const area = getFeatureServiceArea(feature);
+
+                          if (!area) {
+                            return;
+                          }
+
+                          layer.bindTooltip(
+                            `${area.municipalityName}, ${area.stateName}`,
+                            { sticky: true }
+                          );
+
+                          layer.on({
+                            click: () => {
+                              setServiceAreas((current) => {
+                                const exists = current.some(
+                                  (item) =>
+                                    item.stateCode === area.stateCode &&
+                                    item.municipalityCode ===
+                                      area.municipalityCode
+                                );
+
+                                // El cambio se aplica directamente al polígono
+                                // para que azul -> verde sea inmediato al tocar.
+                                layer.setStyle(
+                                  exists
+                                    ? AVAILABLE_AREA_STYLE
+                                    : SELECTED_AREA_STYLE
+                                );
+
+                                if (exists) {
+                                  return current.filter(
+                                    (item) =>
+                                      !(
+                                        item.stateCode === area.stateCode &&
+                                        item.municipalityCode ===
+                                          area.municipalityCode
+                                      )
+                                  );
+                                }
+
+                                return [...current, area];
+                              });
+
+                              setError('');
+                            },
+                            mouseover: () => {
+                              layer.setStyle({
+                                weight: 2.6,
+                              });
+                            },
+                            mouseout: () => {
+                              const isGreen =
+                                layer.options.fillColor ===
+                                SELECTED_AREA_STYLE.fillColor;
+
+                              layer.setStyle({
+                                weight: isGreen
+                                  ? SELECTED_AREA_STYLE.weight
+                                  : AVAILABLE_AREA_STYLE.weight,
+                              });
+                            },
+                          });
+                        }}
+                      />
+                    )}
+
+                  </MapContainer>
+                </div>
+
+                <div className="coverage-map-legend">
+                  <span className="coverage-map-legend-item">
+                    <span className="coverage-map-legend-swatch available" />
+                    <span>Disponible para seleccionar</span>
+                  </span>
+
+                  <span className="coverage-map-legend-item">
+                    <span className="coverage-map-legend-swatch selected" />
+                    <span>Zona seleccionada</span>
+                  </span>
+                </div>
+
+                <div className="coverage-map-help">
+                  Azul = disponible. Verde = seleccionado. Toca nuevamente una
+                  zona verde para quitarla de tu cobertura.
+                </div>
+
+                {serviceAreas.length > 0 ? (
+                  <div className="service-areas-list">
+                    {serviceAreas.map((area, index) => (
+                      <div
+                        className="service-area-item"
+                        key={`${area.stateCode}-${area.municipalityCode}`}
+                      >
+                        <div>
+                          <strong>{area.municipalityName}</strong>
+                          <span>{area.stateName}</span>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => removeServiceArea(index)}
+                        >
+                          Eliminar
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="coverage-empty">
+                    Todavía no has seleccionado zonas de servicio.
+                  </div>
+                )}
 
               </section>
             )}
@@ -727,6 +1446,21 @@ const finishSetup = async () => {
                     <strong>
                       {form.municipality || 'Sin especificar'}
                       {form.state && `, ${form.state}`}
+                    </strong>
+                  </div>
+
+                  <div className="review-row">
+                    <span>Zonas de servicio</span>
+
+                    <strong>
+                      {serviceAreas.length > 0
+                        ? serviceAreas
+                            .map(
+                              (area) =>
+                                `${area.municipalityName}, ${area.stateName}`
+                            )
+                            .join(' · ')
+                        : 'Sin zonas registradas'}
                     </strong>
                   </div>
 

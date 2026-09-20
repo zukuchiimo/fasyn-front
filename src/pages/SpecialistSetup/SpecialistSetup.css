@@ -824,3 +824,339 @@
     min-width: 0;
   }
 }
+
+/* Agrega estas reglas al final de SpecialistSetup.css */
+
+.service-areas-section {
+  margin-top: 32px;
+  padding-top: 28px;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.service-area-title {
+  margin-bottom: 20px;
+}
+
+.service-area-title h2 {
+  margin: 6px 0 8px;
+  font-size: 22px;
+}
+
+.service-area-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 18px;
+}
+
+.add-service-area {
+  width: auto;
+  min-width: 160px;
+}
+
+.service-areas-list {
+  display: grid;
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.service-area-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 18px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.service-area-item > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.service-area-item strong {
+  font-size: 15px;
+}
+
+.service-area-item span,
+.service-area-item small {
+  opacity: 0.72;
+}
+
+.service-area-item button {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+@media (max-width: 720px) {
+  .service-area-actions {
+    justify-content: stretch;
+  }
+
+  .add-service-area {
+    width: 100%;
+  }
+
+  .service-area-item {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+/* MAPA DE UBICACIÓN Y COBERTURA */
+.current-location-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 28px;
+  padding: 20px 22px;
+  border: 1px solid #e1e3e8;
+  border-radius: 12px;
+  background: #f8f9fc;
+}
+
+.current-location-copy {
+  min-width: 0;
+}
+
+.location-eyebrow {
+  display: block;
+  margin-bottom: 8px;
+  color: #5c7cff;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+}
+
+.current-location-copy strong {
+  display: block;
+  color: #252730;
+  font-size: 15px;
+  line-height: 1.35;
+}
+
+.current-location-copy p {
+  margin: 6px 0 0;
+  color: #747985;
+  font-size: 11px;
+}
+
+.current-location-copy small {
+  display: block;
+  margin-top: 7px;
+  color: #999da7;
+  font-size: 9px;
+  line-height: 1.45;
+}
+
+.location-button {
+  flex-shrink: 0;
+  min-width: 176px;
+  height: 44px;
+  padding: 0 18px;
+  border: none;
+  border-radius: 8px;
+  background: #5c7cff;
+  color: #fff;
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.location-button:hover:not(:disabled) {
+  background: #4d6dec;
+}
+
+.location-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.location-warning {
+  margin: -12px 0 26px;
+  padding: 12px 14px;
+  border: 1px solid #eadcae;
+  border-radius: 8px;
+  background: #fffaf0;
+  color: #836b25;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.coverage-map-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 16px;
+  padding-top: 28px;
+  border-top: 1px solid #eceef2;
+}
+
+.coverage-map-header > div > span {
+  display: block;
+  margin-bottom: 8px;
+  color: #5c7cff;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+}
+
+.coverage-map-header h2 {
+  margin: 0 0 8px;
+  color: #22242c;
+  font-size: 20px;
+  letter-spacing: -0.4px;
+}
+
+.coverage-map-header p {
+  max-width: 540px;
+  margin: 0;
+  color: #7e828c;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.map-resolving {
+  flex-shrink: 0;
+  padding: 8px 10px;
+  border-radius: 20px;
+  background: #eef1ff;
+  color: #4f69d8;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.coverage-map-shell {
+  overflow: hidden;
+  border: 1px solid #dfe2e9;
+  border-radius: 13px;
+  background: #eef0f4;
+}
+
+.coverage-map {
+  width: 100%;
+  height: 390px;
+  z-index: 0;
+}
+
+.coverage-map-help {
+  margin-top: 10px;
+  color: #9296a0;
+  font-size: 9px;
+  line-height: 1.5;
+}
+
+.coverage-empty {
+  margin-top: 18px;
+  padding: 16px 18px;
+  border: 1px dashed #d9dce3;
+  border-radius: 9px;
+  background: #fafbfc;
+  color: #898d97;
+  font-size: 10px;
+  text-align: center;
+}
+
+/* Los estilos originales de .service-areas-list y .service-area-item se conservan. */
+
+@media (max-width: 600px) {
+  .current-location-card,
+  .coverage-map-header {
+    flex-direction: column;
+  }
+
+  .location-button {
+    width: 100%;
+  }
+
+  .coverage-map {
+    height: 330px;
+  }
+}
+
+/* SELECCIÓN VISUAL DE ZONAS EN EL MAPA */
+.coverage-map-shell {
+  position: relative;
+}
+
+.coverage-map-instruction {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  z-index: 500;
+  transform: translateX(-50%);
+  max-width: calc(100% - 28px);
+  padding: 9px 14px;
+  border: 1px solid rgba(23, 24, 33, 0.08);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.94);
+  color: #32353e;
+  box-shadow: 0 7px 24px rgba(18, 19, 29, 0.12);
+  font-size: 10px;
+  font-weight: 700;
+  text-align: center;
+  pointer-events: none;
+}
+
+.coverage-map-legend {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 11px;
+  color: #777c87;
+  font-size: 9px;
+  font-weight: 650;
+}
+
+.coverage-map-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.coverage-map-legend-swatch {
+  width: 18px;
+  height: 12px;
+  border-radius: 3px;
+}
+
+.coverage-map-legend-swatch.available {
+  border: 2px solid #3157d5;
+  background: rgba(92, 124, 255, 0.34);
+}
+
+.coverage-map-legend-swatch.selected {
+  border: 2px solid #15803d;
+  background: rgba(34, 197, 94, 0.58);
+}
+
+.coverage-map .leaflet-interactive {
+  cursor: pointer;
+}
+
+@media (max-width: 600px) {
+  .coverage-map-instruction {
+    top: 10px;
+    font-size: 9px;
+  }
+}
+
+/* MAPA: respuesta visual inmediata al seleccionar municipios/alcaldías */
+.coverage-map .leaflet-overlay-pane svg path.leaflet-interactive {
+  transition: fill 0.16s ease, fill-opacity 0.16s ease, stroke 0.16s ease, stroke-width 0.16s ease;
+  cursor: pointer;
+}
+
+.coverage-map .leaflet-overlay-pane svg path.leaflet-interactive:focus {
+  outline: none;
+}

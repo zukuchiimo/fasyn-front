@@ -322,7 +322,7 @@ const Register = () => {
               </span>
 
               <h2>
-                Comienza en FASYN
+                Comienza en FASYNff
               </h2>
 
               <p>

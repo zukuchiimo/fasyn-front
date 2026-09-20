@@ -648,53 +648,58 @@ const AdminSpecialists = () => {
             </div>
           </div>
 
-          <nav className="admin-menu">
-            <button
-              type="button"
-              onClick={() =>
-                navigate(
-                  '/admin'
-                )
-              }
-            >
-              <span>⌂</span>
-              Resumen
-            </button>
+  <nav className="admin-menu">
+  <button
+    type="button"
+    onClick={() =>
+      navigate('/admin')
+    }
+  >
+    <span>⌂</span>
+    Resumen
+  </button>
 
-            <button
-              type="button"
-              onClick={() =>
-                navigate(
-                  '/admin'
-                )
-              }
-            >
-              <span>▤</span>
-              Solicitudes
-            </button>
+  <button
+    type="button"
+    onClick={() =>
+      navigate('/admin')
+    }
+  >
+    <span>▤</span>
+    Solicitudes
+  </button>
 
-            <button
-              type="button"
-              className="active"
-            >
-              <span>♙</span>
-              Especialistas
-            </button>
+  <button
+    type="button"
+    className="active"
+    onClick={() =>
+      navigate('/admin/specialists')
+    }
+  >
+    <span>♙</span>
+    Especialistas
+  </button>
 
-            <button
-              type="button"
-            >
-              <span>♧</span>
-              Clientes
-            </button>
+  <button
+    type="button"
+    onClick={() =>
+      navigate('/admin/clients')
+    }
+  >
+    <span>♧</span>
+    Clientes
+  </button>
 
-            <button
-              type="button"
-            >
-              <span>▦</span>
-              Categorías
-            </button>
-          </nav>
+  <button
+    type="button"
+    onClick={() =>
+      navigate('/admin/categories')
+    }
+  >
+    <span>▦</span>
+    Categorías
+  </button>
+</nav>
         </div>
 
         <div className="admin-sidebar-bottom">
