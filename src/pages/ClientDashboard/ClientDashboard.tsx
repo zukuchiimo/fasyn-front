@@ -1,7 +1,12 @@
-import { useMemo } from 'react';
+import {
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import logo from '../../assets/logo.png';
+import { api } from '../../api/api';
 
 import './ClientDashboard.css';
 
@@ -23,8 +28,24 @@ type Favorite = {
   price?: string | null;
 };
 
+
+type ClientProfile = {
+  id: number;
+  name: string;
+  email: string;
+  phone?: string | null;
+  profilePhotoUrl?: string | null;
+  active: boolean;
+  createdAt: string;
+};
+
 const ClientDashboard = () => {
   const navigate = useNavigate();
+
+  const [clientProfile, setClientProfile] =
+    useState<ClientProfile | null>(
+      null
+    );
 
   /*
     Por ahora estos datos quedan vacíos.
@@ -57,15 +78,85 @@ const ClientDashboard = () => {
     }
   }
 
+  const token =
+    localStorage.getItem('token');
+
+  const resolveStoredFileUrl = (
+    fileUrl?: string | null
+  ) => {
+    if (!fileUrl) {
+      return '';
+    }
+
+    if (/^https?:\/\//i.test(fileUrl)) {
+      return fileUrl;
+    }
+
+    const apiBaseUrl =
+      api.defaults.baseURL ||
+      'http://localhost:3000/api';
+
+    const apiOrigin = apiBaseUrl
+      .replace(/\/api\/?$/, '')
+      .replace(/\/$/, '');
+
+    const normalizedPath =
+      fileUrl.startsWith('/')
+        ? fileUrl
+        : `/${fileUrl}`;
+
+    return `${apiOrigin}${normalizedPath}`;
+  };
+
+  useEffect(() => {
+    const loadClientProfile =
+      async () => {
+        if (!token) {
+          return;
+        }
+
+        try {
+          const response =
+            await api.get(
+              '/clients/profile',
+              {
+                headers: {
+                  Authorization:
+                    `Bearer ${token}`,
+                },
+              }
+            );
+
+          setClientProfile(
+            response.data?.profile ??
+              null
+          );
+        } catch (error: any) {
+          console.error(
+            'ERROR CARGANDO PERFIL CLIENTE:',
+            error.response?.data ||
+              error
+          );
+        }
+      };
+
+    loadClientProfile();
+  }, [token]);
+
+  const displayName =
+    clientProfile?.name ||
+    user.name ||
+    'Cliente';
+
   const firstName =
-    user.name
+    displayName
       ?.trim()
       .split(' ')[0] ||
     'Cliente';
 
   const initials = useMemo(() => {
     return (
-      user.name
+      displayName
         ?.trim()
         .split(' ')
         .filter(Boolean)
@@ -76,7 +167,7 @@ const ClientDashboard = () => {
         .substring(0, 2)
         .toUpperCase() || 'CL'
     );
-  }, [user.name]);
+  }, [displayName]);
 
   /*
     ESTADÍSTICAS
@@ -155,14 +246,34 @@ const ClientDashboard = () => {
 
         <div className="client-user">
 
-          <div className="client-avatar">
-            {initials}
+          <div
+            className="client-avatar"
+            style={{
+              overflow: 'hidden',
+            }}
+          >
+            {clientProfile?.profilePhotoUrl ? (
+              <img
+                src={resolveStoredFileUrl(
+                  clientProfile.profilePhotoUrl
+                )}
+                alt={displayName}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  display: 'block',
+                }}
+              />
+            ) : (
+              initials
+            )}
           </div>
 
           <div className="client-user-info">
 
             <strong>
-              {user.name}
+              {displayName}
             </strong>
 
             <span>
@@ -237,8 +348,8 @@ const ClientDashboard = () => {
           <button
             type="button"
             onClick={() =>
-              handlePendingSection(
-                'Mi perfil'
+              navigate(
+                '/client/profile'
               )
             }
           >

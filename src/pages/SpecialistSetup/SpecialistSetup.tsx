@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   CircleMarker,
@@ -27,10 +27,36 @@ interface Coordinates {
 }
 
 interface ServiceArea {
+  id?: number;
   stateCode: string;
   stateName: string;
   municipalityCode: string;
   municipalityName: string;
+}
+
+interface SpecialtyRelation {
+  category?: {
+    id: number;
+    name: string;
+  };
+}
+
+interface SpecialistProfileData {
+  id: number;
+  userId: number;
+  phone?: string | null;
+  description?: string | null;
+  experience?: number | null;
+  state?: string | null;
+  municipality?: string | null;
+  neighborhood?: string | null;
+  postalCode?: string | null;
+  address?: string | null;
+  profilePhotoUrl?: string | null;
+  idFrontUrl?: string | null;
+  idBackUrl?: string | null;
+  profileCompleted?: boolean;
+  specialties?: SpecialtyRelation[];
 }
 
 interface ReverseAddress {
@@ -282,6 +308,30 @@ const FitCurrentStateMap = ({
 
 const TOTAL_STEPS = 6;
 
+const resolveStoredFileUrl = (fileUrl?: string | null) => {
+  if (!fileUrl) {
+    return '';
+  }
+
+  if (/^https?:\/\//i.test(fileUrl)) {
+    return fileUrl;
+  }
+
+  const apiBaseUrl =
+    api.defaults.baseURL ||
+    'http://localhost:3000/api';
+
+  const apiOrigin = apiBaseUrl
+    .replace(/\/api\/?$/, '')
+    .replace(/\/$/, '');
+
+  const normalizedPath = fileUrl.startsWith('/')
+    ? fileUrl
+    : `/${fileUrl}`;
+
+  return `${apiOrigin}${normalizedPath}`;
+};
+
 const SpecialistSetup = () => {
   const navigate = useNavigate();
 
@@ -303,6 +353,11 @@ const SpecialistSetup = () => {
   const [idFront, setIdFront] = useState<File | null>(null);
   const [idBack, setIdBack] = useState<File | null>(null);
 
+  const [existingProfilePhotoUrl, setExistingProfilePhotoUrl] = useState('');
+  const [existingIdFrontUrl, setExistingIdFrontUrl] = useState('');
+  const [existingIdBackUrl, setExistingIdBackUrl] = useState('');
+  const [loadingExistingData, setLoadingExistingData] = useState(true);
+
   const [loadingCategories, setLoadingCategories] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -317,6 +372,174 @@ const SpecialistSetup = () => {
     postalCode: '',
     address: '',
   });
+
+  const newProfilePhotoPreview = useMemo(() => {
+    if (!profilePhoto) {
+      return '';
+    }
+
+    return URL.createObjectURL(profilePhoto);
+  }, [profilePhoto]);
+
+  useEffect(() => {
+    return () => {
+      if (newProfilePhotoPreview) {
+        URL.revokeObjectURL(newProfilePhotoPreview);
+      }
+    };
+  }, [newProfilePhotoPreview]);
+
+  const profilePhotoPreview =
+    newProfilePhotoPreview || existingProfilePhotoUrl;
+
+  useEffect(() => {
+    const loadExistingData = async () => {
+      const token = localStorage.getItem('token');
+
+      if (!token) {
+        navigate('/login');
+        return;
+      }
+
+      try {
+        setLoadingExistingData(true);
+
+        const [profileResult, areasResult] = await Promise.allSettled([
+          api.get('/specialists/profile', {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }),
+          api.get('/specialists/me/service-areas', {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }),
+        ]);
+
+        if (profileResult.status === 'fulfilled') {
+          const profile: SpecialistProfileData =
+            profileResult.value.data?.profile ??
+            profileResult.value.data;
+
+          if (profile?.profileCompleted === true) {
+            navigate('/specialist', { replace: true });
+            return;
+          }
+
+          if (profile) {
+            setForm({
+              phone: profile.phone || '',
+              description: profile.description || '',
+              experience:
+                profile.experience !== null &&
+                profile.experience !== undefined
+                  ? String(profile.experience)
+                  : '',
+              state: profile.state || '',
+              municipality: profile.municipality || '',
+              neighborhood: profile.neighborhood || '',
+              postalCode: profile.postalCode || '',
+              address: profile.address || '',
+            });
+
+            const savedCategoryIds =
+              (profile.specialties || [])
+                .map((item) => item.category?.id)
+                .filter((id): id is number => Number.isInteger(id));
+
+            setSelectedCategories(savedCategoryIds);
+
+            setExistingProfilePhotoUrl(
+              resolveStoredFileUrl(profile.profilePhotoUrl)
+            );
+            setExistingIdFrontUrl(
+              resolveStoredFileUrl(profile.idFrontUrl)
+            );
+            setExistingIdBackUrl(
+              resolveStoredFileUrl(profile.idBackUrl)
+            );
+
+            const savedStateCode =
+              getStateCodeFromName(profile.state || '');
+
+            if (savedStateCode) {
+              setCurrentStateCode(savedStateCode);
+            }
+          }
+        } else {
+          const status =
+            (profileResult.reason as any)?.response?.status;
+
+          if (status !== 404) {
+            console.error(
+              'ERROR CARGANDO PERFIL EXISTENTE:',
+              profileResult.reason
+            );
+          }
+        }
+
+        if (areasResult.status === 'fulfilled') {
+          const responseData = areasResult.value.data;
+          const savedAreas =
+            responseData?.serviceAreas ??
+            responseData?.areas ??
+            responseData?.data ??
+            responseData ??
+            [];
+
+          if (Array.isArray(savedAreas)) {
+            const normalizedAreas: ServiceArea[] = savedAreas
+              .map((area: any) => ({
+                id: area.id,
+                stateCode: String(area.stateCode || '').padStart(2, '0'),
+                stateName: String(area.stateName || ''),
+                municipalityCode: String(
+                  area.municipalityCode || ''
+                ).padStart(3, '0'),
+                municipalityName: String(
+                  area.municipalityName || ''
+                ),
+              }))
+              .filter(
+                (area: ServiceArea) =>
+                  area.stateCode &&
+                  area.stateName &&
+                  area.municipalityCode &&
+                  area.municipalityName
+              );
+
+            setServiceAreas(normalizedAreas);
+
+            if (normalizedAreas.length > 0) {
+              setCurrentStateCode((current) =>
+                current || normalizedAreas[0].stateCode
+              );
+            }
+          }
+        } else {
+          const status =
+            (areasResult.reason as any)?.response?.status;
+
+          if (status !== 404) {
+            console.error(
+              'ERROR CARGANDO ZONAS EXISTENTES:',
+              areasResult.reason
+            );
+          }
+        }
+      } catch (loadError) {
+        console.error(
+          'ERROR CARGANDO CONFIGURACIÓN EXISTENTE:',
+          loadError
+        );
+      } finally {
+        setLoadingExistingData(false);
+      }
+    };
+
+    void loadExistingData();
+  }, [navigate]);
 
   useEffect(() => {
     const loadCategories = async () => {
@@ -350,6 +573,14 @@ const SpecialistSetup = () => {
 
     setError('');
   };
+
+  useEffect(() => {
+    const stateCode = getStateCodeFromName(form.state);
+
+    if (stateCode) {
+      setCurrentStateCode(stateCode);
+    }
+  }, [form.state]);
 
   const toggleCategory = (categoryId: number) => {
     setSelectedCategories((current) => {
@@ -453,12 +684,17 @@ const SpecialistSetup = () => {
   };
 
   useEffect(() => {
-    if (step === 2 && !currentLocation && !locating) {
+    if (
+      step === 2 &&
+      serviceAreas.length === 0 &&
+      !currentLocation &&
+      !locating
+    ) {
       getCurrentLocation();
     }
-    // Solo queremos solicitarla al entrar al paso 2 si todavía no existe.
+    // Si ya existen zonas guardadas, no volvemos a exigir geolocalización.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [step]);
+  }, [step, serviceAreas.length]);
 
   useEffect(() => {
     if (step !== 2) {
@@ -612,10 +848,23 @@ const SpecialistSetup = () => {
     }
 
     if (step === 2) {
-      if (!currentLocation) {
-        setError(
-          'Obtén tu ubicación actual antes de continuar.'
-        );
+      if (!form.state.trim()) {
+        setError('Indica el estado donde vives.');
+        return false;
+      }
+
+      if (!form.municipality.trim()) {
+        setError('Indica el municipio o alcaldía donde vives.');
+        return false;
+      }
+
+      if (!form.neighborhood.trim()) {
+        setError('Indica la colonia donde vives.');
+        return false;
+      }
+
+      if (!/^\d{5}$/.test(form.postalCode.trim())) {
+        setError('Ingresa un código postal válido de 5 dígitos.');
         return false;
       }
 
@@ -627,12 +876,20 @@ const SpecialistSetup = () => {
       }
     }
 
-    if (step === 3 && !profilePhoto) {
+    if (
+      step === 3 &&
+      !profilePhoto &&
+      !existingProfilePhotoUrl
+    ) {
       setError('Selecciona una fotografía de perfil.');
       return false;
     }
 
-    if (step === 4 && (!idFront || !idBack)) {
+    if (
+      step === 4 &&
+      ((!idFront && !existingIdFrontUrl) ||
+        (!idBack && !existingIdBackUrl))
+    ) {
       setError(
         'Selecciona el frente y reverso de tu identificación.'
       );
@@ -687,7 +944,39 @@ const SpecialistSetup = () => {
         return;
       }
 
-      // 1. Guardar datos del perfil profesional
+      // Validación final antes de persistir todo el registro.
+      if (!profilePhoto && !existingProfilePhotoUrl) {
+        setError('Selecciona una fotografía de perfil.');
+        setStep(3);
+        return;
+      }
+
+      if (
+        (!idFront && !existingIdFrontUrl) ||
+        (!idBack && !existingIdBackUrl)
+      ) {
+        setError(
+          'Selecciona el frente y reverso de tu identificación.'
+        );
+        setStep(4);
+        return;
+      }
+
+      if (selectedCategories.length === 0) {
+        setError('Selecciona al menos una especialidad.');
+        setStep(5);
+        return;
+      }
+
+      if (serviceAreas.length === 0) {
+        setError(
+          'Selecciona al menos una zona donde prestas servicio.'
+        );
+        setStep(2);
+        return;
+      }
+
+      // 1. Guardar datos del perfil profesional.
       const profileResponse = await api.post(
         '/specialists/profile',
         form,
@@ -703,7 +992,7 @@ const SpecialistSetup = () => {
         profileResponse.data
       );
 
-      // 2. Guardar especialidades seleccionadas
+      // 2. Guardar especialidades seleccionadas.
       const specialtiesResponse = await api.put(
         '/specialists/specialties',
         {
@@ -721,7 +1010,7 @@ const SpecialistSetup = () => {
         specialtiesResponse.data
       );
 
-      // 3. Guardar zonas donde presta servicio
+      // 3. Guardar zonas donde presta servicio.
       for (const area of serviceAreas) {
         await api.post(
           '/specialists/me/service-areas',
@@ -744,13 +1033,112 @@ const SpecialistSetup = () => {
         serviceAreas
       );
 
-      // 4. Ir al panel del especialista
+      // 4. Subir únicamente los archivos nuevos.
+      // Si ya existen en backend, no obligamos al usuario a volverlos a elegir.
+      if (profilePhoto || idFront || idBack) {
+        const filesFormData = new FormData();
+
+        if (profilePhoto) {
+          filesFormData.append(
+            'profilePhoto',
+            profilePhoto
+          );
+        }
+
+        if (idFront) {
+          filesFormData.append(
+            'idFront',
+            idFront
+          );
+        }
+
+        if (idBack) {
+          filesFormData.append(
+            'idBack',
+            idBack
+          );
+        }
+
+        const filesResponse = await api.post(
+          '/specialists/profile/files',
+          filesFormData,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        console.log(
+          'ARCHIVOS DEL ESPECIALISTA GUARDADOS:',
+          filesResponse.data
+        );
+      } else {
+        console.log(
+          'ARCHIVOS YA EXISTENTES: no se vuelven a subir'
+        );
+      }
+
+      // 5. Marcar el perfil como completo únicamente después
+      // de guardar datos, especialidades, zonas y archivos.
+      const completeResponse = await api.put(
+        '/specialists/profile/complete',
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      console.log(
+        'PERFIL COMPLETADO:',
+        completeResponse.data
+      );
+
+      // Mantener sincronizada la sesión local. La fuente real
+      // de verdad sigue siendo PostgreSQL.
+      const storedUser = localStorage.getItem('user');
+
+      if (storedUser) {
+        try {
+          const currentUser = JSON.parse(storedUser);
+
+          localStorage.setItem(
+            'user',
+            JSON.stringify({
+              ...currentUser,
+              profileCompleted: true,
+            })
+          );
+        } catch (storageError) {
+          console.warn(
+            'NO SE PUDO ACTUALIZAR EL USUARIO LOCAL:',
+            storageError
+          );
+        }
+      }
+
+      // 6. Entrar al panel del especialista.
       navigate('/specialist');
     } catch (error: any) {
       console.error(
         'ERROR GUARDANDO PERFIL:',
         error.response?.data || error
       );
+
+      const missingFields =
+        error.response?.data?.missingFields;
+
+      if (
+        Array.isArray(missingFields) &&
+        missingFields.length > 0
+      ) {
+        setError(
+          `Falta completar: ${missingFields.join(', ')}.`
+        );
+        return;
+      }
 
       setError(
         error.response?.data?.message ||
@@ -955,18 +1343,18 @@ const SpecialistSetup = () => {
                 <div className="setup-title">
                   <span>UBICACIÓN Y COBERTURA</span>
 
-                  <h1>Define dónde trabajas</h1>
+                  <h1>Indica dónde vives y dónde trabajas</h1>
 
                   <p>
-                    Primero obtenemos tu ubicación actual. Después,
-                    selecciona directamente en el mapa los municipios
-                    o alcaldías donde estás disponible para trabajar.
+                    Usa tu ubicación actual para llenar automáticamente los
+                    datos de tu domicilio. Después selecciona en el mapa las
+                    zonas donde estás disponible para prestar servicio.
                   </p>
                 </div>
 
                 <div className="current-location-card">
                   <div className="current-location-copy">
-                    <span className="location-eyebrow">TU UBICACIÓN ACTUAL</span>
+                    <span className="location-eyebrow">DOMICILIO DEL ESPECIALISTA</span>
 
                     {currentLocation ? (
                       <>
@@ -988,7 +1376,8 @@ const SpecialistSetup = () => {
                       <>
                         <strong>Aún no tenemos tu ubicación</strong>
                         <p>
-                          Usa tu ubicación para centrar el mapa cerca de ti.
+                          Usa tu ubicación para llenar automáticamente tu
+                          estado, municipio, colonia, código postal y dirección.
                         </p>
                       </>
                     )}
@@ -1014,10 +1403,78 @@ const SpecialistSetup = () => {
                   </div>
                 )}
 
+                <div className="setup-title" style={{ marginTop: '28px' }}>
+                  <span>DOMICILIO DEL ESPECIALISTA</span>
+                  <h2>¿Dónde vives?</h2>
+                  <p>
+                    Estos datos corresponden a tu domicilio. Son independientes
+                    de las zonas donde decides prestar servicio.
+                  </p>
+                </div>
+
+                <div className="setup-form">
+                  <label>
+                    <span>Estado</span>
+                    <input
+                      type="text"
+                      name="state"
+                      value={form.state}
+                      onChange={handleChange}
+                      placeholder="Ej. Estado de México"
+                    />
+                  </label>
+
+                  <label>
+                    <span>Municipio / Alcaldía</span>
+                    <input
+                      type="text"
+                      name="municipality"
+                      value={form.municipality}
+                      onChange={handleChange}
+                      placeholder="Ej. Naucalpan de Juárez"
+                    />
+                  </label>
+
+                  <label>
+                    <span>Colonia</span>
+                    <input
+                      type="text"
+                      name="neighborhood"
+                      value={form.neighborhood}
+                      onChange={handleChange}
+                      placeholder="Ej. Ciudad Satélite"
+                    />
+                  </label>
+
+                  <label>
+                    <span>Código postal</span>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      name="postalCode"
+                      value={form.postalCode}
+                      maxLength={5}
+                      onChange={handleChange}
+                      placeholder="Ej. 53100"
+                    />
+                  </label>
+
+                  <label>
+                    <span>Dirección</span>
+                    <input
+                      type="text"
+                      name="address"
+                      value={form.address}
+                      onChange={handleChange}
+                      placeholder="Calle y número"
+                    />
+                  </label>
+                </div>
+
                 <div className="coverage-map-header">
                   <div>
-                    <span>COBERTURA DE SERVICIO</span>
-                    <h2>Selecciona tus zonas en el mapa</h2>
+                    <span>ZONAS DE ATENCIÓN</span>
+                    <h2>Selecciona dónde prestas servicio</h2>
                     <p>
                       Las alcaldías y municipios disponibles aparecen en azul.
                       Toca una zona y cambiará inmediatamente a verde. El mapa
@@ -1252,11 +1709,29 @@ const SpecialistSetup = () => {
                     JPG, PNG o WEBP
                   </span>
 
-                  {profilePhoto && (
-                    <strong className="selected-file">
-                      {profilePhoto.name}
-                    </strong>
+                  {profilePhotoPreview && (
+                    <img
+                      src={profilePhotoPreview}
+                      alt="Foto de perfil del especialista"
+                      style={{
+                        width: '120px',
+                        height: '120px',
+                        marginTop: '14px',
+                        borderRadius: '50%',
+                        objectFit: 'cover',
+                      }}
+                    />
                   )}
+
+                  {profilePhoto ? (
+                    <strong className="selected-file">
+                      Nueva foto: {profilePhoto.name}
+                    </strong>
+                  ) : existingProfilePhotoUrl ? (
+                    <strong className="selected-file">
+                      ✓ Foto de perfil ya guardada. Puedes seleccionarla de nuevo para reemplazarla.
+                    </strong>
+                  ) : null}
 
                 </label>
 
@@ -1304,11 +1779,15 @@ const SpecialistSetup = () => {
                       Selecciona una imagen legible
                     </span>
 
-                    {idFront && (
+                    {idFront ? (
                       <strong className="selected-file">
-                        {idFront.name}
+                        Nuevo frente: {idFront.name}
                       </strong>
-                    )}
+                    ) : existingIdFrontUrl ? (
+                      <strong className="selected-file">
+                        ✓ Frente de identificación ya guardado
+                      </strong>
+                    ) : null}
 
                   </label>
 
@@ -1337,11 +1816,15 @@ const SpecialistSetup = () => {
                       Selecciona una imagen legible
                     </span>
 
-                    {idBack && (
+                    {idBack ? (
                       <strong className="selected-file">
-                        {idBack.name}
+                        Nuevo reverso: {idBack.name}
                       </strong>
-                    )}
+                    ) : existingIdBackUrl ? (
+                      <strong className="selected-file">
+                        ✓ Reverso de identificación ya guardado
+                      </strong>
+                    ) : null}
 
                   </label>
 
@@ -1530,8 +2013,11 @@ const SpecialistSetup = () => {
                   type="button"
                   className="setup-next"
                   onClick={nextStep}
+                  disabled={loadingExistingData}
                 >
-                  Continuar
+                  {loadingExistingData
+                    ? 'Cargando información...'
+                    : 'Continuar'}
                 </button>
               ) : (
                 <button

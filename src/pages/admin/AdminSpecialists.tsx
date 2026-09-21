@@ -55,6 +55,10 @@ interface SpecialistProfile {
   postalCode?: string | null;
   address?: string | null;
 
+  profilePhotoUrl?: string | null;
+  idFrontUrl?: string | null;
+  idBackUrl?: string | null;
+
   available: boolean;
   profileCompleted: boolean;
 
@@ -69,6 +73,7 @@ interface Specialist {
   id: number;
   name: string;
   email: string;
+  active: boolean;
   createdAt: string;
 
   specialistProfile:
@@ -103,6 +108,33 @@ const EMPTY_FORM: EditForm = {
   neighborhood: '',
   postalCode: '',
   address: '',
+};
+
+const resolveStoredFileUrl = (
+  fileUrl?: string | null
+) => {
+  if (!fileUrl) {
+    return '';
+  }
+
+  if (/^https?:\/\//i.test(fileUrl)) {
+    return fileUrl;
+  }
+
+  const apiBaseUrl =
+    api.defaults.baseURL ||
+    'http://localhost:3000/api';
+
+  const apiOrigin = apiBaseUrl
+    .replace(/\/api\/?$/, '')
+    .replace(/\/$/, '');
+
+  const normalizedPath =
+    fileUrl.startsWith('/')
+      ? fileUrl
+      : `/${fileUrl}`;
+
+  return `${apiOrigin}${normalizedPath}`;
 };
 
 const AdminSpecialists = () => {
@@ -260,19 +292,19 @@ const AdminSpecialists = () => {
           const profile =
             specialist.specialistProfile;
 
-          const available =
-            profile?.available ?? false;
+          const accountActive =
+            specialist.active;
 
           if (
             filter === 'ACTIVE' &&
-            !available
+            !accountActive
           ) {
             return false;
           }
 
           if (
             filter === 'INACTIVE' &&
-            available
+            accountActive
           ) {
             return false;
           }
@@ -331,8 +363,7 @@ const AdminSpecialists = () => {
     const active =
       specialists.filter(
         (specialist) =>
-          specialist.specialistProfile
-            ?.available
+          specialist.active
       ).length;
 
     const inactive =
@@ -488,9 +519,7 @@ const AdminSpecialists = () => {
       }
 
       const currentStatus =
-        statusSpecialist
-          .specialistProfile
-          ?.available ?? false;
+        statusSpecialist.active;
 
       try {
         setActionLoading(true);
@@ -499,7 +528,7 @@ const AdminSpecialists = () => {
         await api.patch(
           `/admin/specialists/${statusSpecialist.id}/status`,
           {
-            available:
+            active:
               !currentStatus,
           },
           {
@@ -962,9 +991,8 @@ const AdminSpecialists = () => {
                   const profile =
                     specialist.specialistProfile;
 
-                  const available =
-                    profile?.available ??
-                    false;
+                  const accountActive =
+                    specialist.active;
 
                   const specialties =
                     profile?.specialties ??
@@ -988,11 +1016,31 @@ const AdminSpecialists = () => {
                       }
                     >
                       <div className="specialist-card-main">
-                        <div className="specialist-avatar">
-                          {specialist.name
-                            ?.charAt(0)
-                            ?.toUpperCase() ||
-                            'E'}
+                        <div
+                          className="specialist-avatar"
+                          style={{
+                            overflow: 'hidden',
+                          }}
+                        >
+                          {profile?.profilePhotoUrl ? (
+                            <img
+                              src={resolveStoredFileUrl(
+                                profile.profilePhotoUrl
+                              )}
+                              alt={specialist.name}
+                              style={{
+                                width: '100%',
+                                height: '100%',
+                                objectFit: 'cover',
+                                display: 'block',
+                              }}
+                            />
+                          ) : (
+                            specialist.name
+                              ?.charAt(0)
+                              ?.toUpperCase() ||
+                            'E'
+                          )}
                         </div>
 
                         <div className="specialist-info">
@@ -1013,14 +1061,14 @@ const AdminSpecialists = () => {
 
                             <span
                               className={
-                                available
+                                accountActive
                                   ? 'specialist-status active'
                                   : 'specialist-status inactive'
                               }
                             >
                               <i />
 
-                              {available
+                              {accountActive
                                 ? 'Activo'
                                 : 'Inactivo'}
                             </span>
@@ -1144,7 +1192,7 @@ const AdminSpecialists = () => {
                           <button
                             type="button"
                             className={
-                              available
+                              accountActive
                                 ? 'specialist-action disable'
                                 : 'specialist-action enable'
                             }
@@ -1154,7 +1202,7 @@ const AdminSpecialists = () => {
                               )
                             }
                           >
-                            {available
+                            {accountActive
                               ? 'Dar de baja'
                               : 'Reactivar'}
                           </button>
@@ -1234,20 +1282,16 @@ const AdminSpecialists = () => {
               <div className="detail-status-row">
                 <span
                   className={
-                    selectedSpecialist
-                      .specialistProfile
-                      ?.available
+                    selectedSpecialist.active
                       ? 'specialist-status active'
                       : 'specialist-status inactive'
                   }
                 >
                   <i />
 
-                  {selectedSpecialist
-                    .specialistProfile
-                    ?.available
+                  {selectedSpecialist.active
                     ? 'Activo'
-                    : 'Inactivo'}
+                    : 'Dado de baja'}
                 </span>
 
                 <span className="detail-profile-state">
@@ -1365,6 +1409,126 @@ const AdminSpecialists = () => {
                     ?.description ||
                     'El especialista no agregó una descripción.'}
                 </p>
+              </div>
+
+              <div className="detail-section">
+                <span className="detail-section-label">
+                  DOCUMENTOS DE VERIFICACIÓN
+                </span>
+
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns:
+                      'repeat(auto-fit, minmax(220px, 1fr))',
+                    gap: '18px',
+                    marginTop: '14px',
+                  }}
+                >
+                  <div>
+                    <strong
+                      style={{
+                        display: 'block',
+                        marginBottom: '8px',
+                      }}
+                    >
+                      Foto de perfil
+                    </strong>
+
+                    {selectedSpecialist
+                      .specialistProfile
+                      ?.profilePhotoUrl ? (
+                      <img
+                        src={resolveStoredFileUrl(
+                          selectedSpecialist
+                            .specialistProfile
+                            .profilePhotoUrl
+                        )}
+                        alt="Foto de perfil"
+                        style={{
+                          width: '100%',
+                          maxWidth: '260px',
+                          height: '180px',
+                          objectFit: 'cover',
+                          borderRadius: '14px',
+                          display: 'block',
+                        }}
+                      />
+                    ) : (
+                      <p>No registrada.</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <strong
+                      style={{
+                        display: 'block',
+                        marginBottom: '8px',
+                      }}
+                    >
+                      INE frente
+                    </strong>
+
+                    {selectedSpecialist
+                      .specialistProfile
+                      ?.idFrontUrl ? (
+                      <img
+                        src={resolveStoredFileUrl(
+                          selectedSpecialist
+                            .specialistProfile
+                            .idFrontUrl
+                        )}
+                        alt="INE frente"
+                        style={{
+                          width: '100%',
+                          maxWidth: '360px',
+                          height: '220px',
+                          objectFit: 'contain',
+                          borderRadius: '14px',
+                          background: '#f5f5f7',
+                          display: 'block',
+                        }}
+                      />
+                    ) : (
+                      <p>No registrada.</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <strong
+                      style={{
+                        display: 'block',
+                        marginBottom: '8px',
+                      }}
+                    >
+                      INE reverso
+                    </strong>
+
+                    {selectedSpecialist
+                      .specialistProfile
+                      ?.idBackUrl ? (
+                      <img
+                        src={resolveStoredFileUrl(
+                          selectedSpecialist
+                            .specialistProfile
+                            .idBackUrl
+                        )}
+                        alt="INE reverso"
+                        style={{
+                          width: '100%',
+                          maxWidth: '360px',
+                          height: '220px',
+                          objectFit: 'contain',
+                          borderRadius: '14px',
+                          background: '#f5f5f7',
+                          display: 'block',
+                        }}
+                      />
+                    ) : (
+                      <p>No registrada.</p>
+                    )}
+                  </div>
+                </div>
               </div>
 
               <div className="detail-section">
@@ -1729,27 +1893,21 @@ const AdminSpecialists = () => {
         <div className="admin-modal-backdrop">
           <div className="admin-modal admin-confirm-modal">
             <div className="confirm-icon">
-              {statusSpecialist
-                .specialistProfile
-                ?.available
+              {statusSpecialist.active
                 ? '!'
                 : '✓'}
             </div>
 
             <h2>
-              {statusSpecialist
-                .specialistProfile
-                ?.available
+              {statusSpecialist.active
                 ? 'Dar de baja al especialista'
                 : 'Reactivar especialista'}
             </h2>
 
             <p>
-              {statusSpecialist
-                .specialistProfile
-                ?.available
-                ? `${statusSpecialist.name} dejará de aparecer como especialista disponible para los clientes. Su información no será eliminada.`
-                : `${statusSpecialist.name} volverá a aparecer como especialista disponible para los clientes.`}
+              {statusSpecialist.active
+                ? `${statusSpecialist.name} no podrá iniciar sesión ni usar la aplicación como especialista. Su perfil, documentos, servicios e información permanecerán guardados.`
+                : `${statusSpecialist.name} podrá volver a iniciar sesión y usar la aplicación. Su información seguirá siendo la misma.`}
             </p>
 
             <div className="confirm-actions">
@@ -1771,9 +1929,7 @@ const AdminSpecialists = () => {
               <button
                 type="button"
                 className={
-                  statusSpecialist
-                    .specialistProfile
-                    ?.available
+                  statusSpecialist.active
                     ? 'modal-warning-button'
                     : 'modal-primary-button'
                 }
@@ -1786,9 +1942,7 @@ const AdminSpecialists = () => {
               >
                 {actionLoading
                   ? 'Procesando...'
-                  : statusSpecialist
-                        .specialistProfile
-                        ?.available
+                  : statusSpecialist.active
                     ? 'Sí, dar de baja'
                     : 'Sí, reactivar'}
               </button>

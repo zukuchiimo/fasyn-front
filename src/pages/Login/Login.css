@@ -535,4 +535,187 @@
     flex-direction: column;
     align-items: center;
   }
+
+}
+
+/* =========================================================
+   MODAL - ESPECIALISTA DADO DE BAJA
+   ========================================================= */
+
+.specialist-disabled-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(15, 16, 22, 0.7);
+  backdrop-filter: blur(6px);
+}
+
+.specialist-disabled-modal {
+  width: min(100%, 470px);
+  padding: 38px;
+  border: 1px solid rgba(21, 24, 36, 0.1);
+  border-radius: 24px;
+  background: #ffffff;
+  box-shadow: 0 30px 80px rgba(15, 16, 22, 0.24);
+  text-align: center;
+  animation: specialistDisabledModalIn 180ms ease-out;
+}
+
+.specialist-disabled-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 68px;
+  height: 68px;
+  margin: 0 auto 22px;
+  border-radius: 50%;
+  background: #fff1f1;
+  color: #b42318;
+  font-size: 30px;
+  font-weight: 800;
+}
+
+.specialist-disabled-label {
+  display: block;
+  margin-bottom: 9px;
+  color: #7a7e8c;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+}
+
+.specialist-disabled-modal h2 {
+  margin: 0;
+  color: #171821;
+  font-size: 28px;
+  line-height: 1.15;
+}
+
+.specialist-disabled-modal > p {
+  margin: 16px auto 0;
+  max-width: 360px;
+  color: #6d7180;
+  font-size: 15px;
+  line-height: 1.65;
+}
+
+.specialist-disabled-notice {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-top: 24px;
+  padding: 18px;
+  border: 1px solid #eceef3;
+  border-radius: 16px;
+  background: #f8f9fb;
+  text-align: left;
+}
+
+.specialist-disabled-notice strong {
+  color: #171821;
+  font-size: 14px;
+}
+
+.specialist-disabled-notice span {
+  color: #747887;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.specialist-disabled-button {
+  width: 100%;
+  margin-top: 24px;
+  padding: 15px 20px;
+  border: 0;
+  border-radius: 14px;
+  background: #171821;
+  color: #ffffff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    transform 160ms ease,
+    opacity 160ms ease;
+}
+
+.specialist-disabled-button:hover {
+  transform: translateY(-1px);
+}
+
+.specialist-disabled-button:active {
+  transform: translateY(0);
+}
+
+@keyframes specialistDisabledModalIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 560px) {
+  .specialist-disabled-modal {
+    padding: 30px 22px;
+    border-radius: 20px;
+  }
+
+  .specialist-disabled-modal h2 {
+    font-size: 24px;
+  }
+}
+
+.specialist-disabled-email {
+  display: inline-flex;
+  width: fit-content;
+  margin-top: 4px;
+  color: #5879ff;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.specialist-disabled-email:hover {
+  text-decoration: underline;
+}
+
+.specialist-disabled-actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.specialist-disabled-contact-button {
+  width: 100%;
+  padding: 15px 20px;
+  border: 0;
+  border-radius: 14px;
+  background: #5879ff;
+  color: #ffffff;
+  font: inherit;
+  font-weight: 700;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    transform 160ms ease,
+    background 160ms ease;
+}
+
+.specialist-disabled-contact-button:hover {
+  background: #4969ed;
+  transform: translateY(-1px);
+}
+
+.specialist-disabled-actions .specialist-disabled-button {
+  margin-top: 0;
 }

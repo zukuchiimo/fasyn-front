@@ -1,6 +1,8 @@
 import {
+  type ChangeEvent,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 
@@ -31,6 +33,9 @@ type SpecialistProfileData = {
   neighborhood?: string | null;
   postalCode?: string | null;
   address?: string | null;
+  profilePhotoUrl?: string | null;
+  idFrontUrl?: string | null;
+  idBackUrl?: string | null;
   available?: boolean;
   profileCompleted?: boolean;
   specialties?: SpecialtyRelation[];
@@ -45,6 +50,32 @@ type ProfileForm = {
   neighborhood: string;
   postalCode: string;
   address: string;
+};
+
+const resolveUploadUrl = (
+  value?: string | null
+) => {
+  if (!value) {
+    return '';
+  }
+
+  if (
+    value.startsWith('http://') ||
+    value.startsWith('https://')
+  ) {
+    return value;
+  }
+
+  const apiBaseUrl =
+    api.defaults.baseURL ||
+    'http://localhost:3000/api';
+
+  const apiOrigin =
+    apiBaseUrl.replace(/\/api\/?$/, '');
+
+  return `${apiOrigin}${
+    value.startsWith('/') ? '' : '/'
+  }${value}`;
 };
 
 const MyProfile = () => {
@@ -105,6 +136,19 @@ const MyProfile = () => {
 
   const [success, setSuccess] =
     useState('');
+
+  const [
+    profilePhotoPreview,
+    setProfilePhotoPreview,
+  ] = useState('');
+
+  const [
+    uploadingPhoto,
+    setUploadingPhoto,
+  ] = useState(false);
+
+  const profilePhotoInputRef =
+    useRef<HTMLInputElement | null>(null);
 
   const initials =
     user.name
@@ -187,6 +231,12 @@ const MyProfile = () => {
           profileResponse.data.profile;
 
       setProfile(profileData);
+
+      setProfilePhotoPreview(
+        resolveUploadUrl(
+          profileData?.profilePhotoUrl
+        )
+      );
 
       setForm({
         phone:
@@ -312,6 +362,142 @@ const MyProfile = () => {
     setSuccess('');
   };
 
+  const handleProfilePhotoChange = async (
+    event: ChangeEvent<HTMLInputElement>
+  ) => {
+    const file =
+      event.target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    const allowedTypes = [
+      'image/jpeg',
+      'image/png',
+      'image/webp',
+    ];
+
+    if (
+      !allowedTypes.includes(file.type)
+    ) {
+      setError(
+        'La foto debe ser JPG, PNG o WEBP.'
+      );
+
+      event.target.value = '';
+      return;
+    }
+
+    const maxSize =
+      5 * 1024 * 1024;
+
+    if (file.size > maxSize) {
+      setError(
+        'La foto no puede pesar más de 5 MB.'
+      );
+
+      event.target.value = '';
+      return;
+    }
+
+    const token =
+      localStorage.getItem('token');
+
+    if (!token) {
+      navigate('/login');
+      return;
+    }
+
+    const previousPhoto =
+      resolveUploadUrl(
+        profile?.profilePhotoUrl
+      );
+
+    const localPreview =
+      URL.createObjectURL(file);
+
+    try {
+      setUploadingPhoto(true);
+      setError('');
+      setSuccess('');
+      setProfilePhotoPreview(
+        localPreview
+      );
+
+      const formData =
+        new FormData();
+
+      formData.append(
+        'profilePhoto',
+        file
+      );
+
+      const response =
+        await api.post(
+          '/specialists/profile/files',
+          formData,
+          {
+            headers: {
+              Authorization:
+                `Bearer ${token}`,
+            },
+          }
+        );
+
+      const savedPhotoUrl =
+        response.data?.files
+          ?.profilePhotoUrl;
+
+      if (savedPhotoUrl) {
+        setProfile((current) =>
+          current
+            ? {
+                ...current,
+                profilePhotoUrl:
+                  savedPhotoUrl,
+              }
+            : current
+        );
+
+        setProfilePhotoPreview(
+          resolveUploadUrl(
+            savedPhotoUrl
+          )
+        );
+      } else {
+        await loadProfile();
+      }
+
+      setSuccess(
+        'Tu foto de perfil se actualizó correctamente.'
+      );
+    } catch (requestError: any) {
+      console.error(
+        'ERROR ACTUALIZANDO FOTO:',
+        requestError.response?.data ||
+          requestError
+      );
+
+      setProfilePhotoPreview(
+        previousPhoto
+      );
+
+      setError(
+        requestError.response?.data
+          ?.message ||
+          'No fue posible actualizar tu foto de perfil.'
+      );
+    } finally {
+      URL.revokeObjectURL(
+        localPreview
+      );
+
+      setUploadingPhoto(false);
+      event.target.value = '';
+    }
+  };
+
   const completionPercentage =
     useMemo(() => {
       let completed = 0;
@@ -353,10 +539,6 @@ const MyProfile = () => {
       if (
         form.postalCode.trim()
       ) {
-        completed++;
-      }
-
-      if (form.address.trim()) {
         completed++;
       }
 
@@ -539,8 +721,25 @@ const MyProfile = () => {
           <div className="my-profile-header-actions">
 
             <div className="my-profile-header-user">
-              <span>
-                {initials}
+              <span
+                style={{
+                  overflow: 'hidden',
+                }}
+              >
+                {profilePhotoPreview ? (
+                  <img
+                    src={profilePhotoPreview}
+                    alt={`Foto de ${user.name}`}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      display: 'block',
+                      objectFit: 'cover',
+                    }}
+                  />
+                ) : (
+                  initials
+                )}
               </span>
 
               <div>
@@ -597,7 +796,7 @@ const MyProfile = () => {
 
             <div className="my-profile-progress-header">
               <span>
-                PERFIL COMPLETADsO
+                PERFIL COMPLETADO
               </span>
 
               <strong>
@@ -656,8 +855,26 @@ const MyProfile = () => {
 
           <aside className="my-profile-sidebar">
 
-            <div className="my-profile-avatar">
-              {initials}
+            <div
+              className="my-profile-avatar"
+              style={{
+                overflow: 'hidden',
+              }}
+            >
+              {profilePhotoPreview ? (
+                <img
+                  src={profilePhotoPreview}
+                  alt={`Foto de ${user.name}`}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    display: 'block',
+                    objectFit: 'cover',
+                  }}
+                />
+              ) : (
+                initials
+              )}
             </div>
 
             <h2>
@@ -718,8 +935,26 @@ const MyProfile = () => {
 
             <div className="my-profile-photo-card">
 
-              <div className="my-profile-photo-icon">
-                +
+              <div
+                className="my-profile-photo-icon"
+                style={{
+                  overflow: 'hidden',
+                }}
+              >
+                {profilePhotoPreview ? (
+                  <img
+                    src={profilePhotoPreview}
+                    alt="Foto profesional"
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      display: 'block',
+                      objectFit: 'cover',
+                    }}
+                  />
+                ) : (
+                  '+'
+                )}
               </div>
 
               <div>
@@ -728,10 +963,54 @@ const MyProfile = () => {
                 </strong>
 
                 <p>
-                  Próximamente podrás
-                  agregar una fotografía
-                  a tu perfil.
+                  {uploadingPhoto
+                    ? 'Subiendo tu nueva foto...'
+                    : profilePhotoPreview
+                      ? 'Tu foto está guardada. Puedes cambiarla cuando quieras.'
+                      : 'Agrega una fotografía profesional a tu perfil.'}
                 </p>
+
+                <input
+                  ref={
+                    profilePhotoInputRef
+                  }
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  style={{
+                    display: 'none',
+                  }}
+                  onChange={
+                    handleProfilePhotoChange
+                  }
+                />
+
+                <button
+                  type="button"
+                  disabled={
+                    uploadingPhoto
+                  }
+                  onClick={() =>
+                    profilePhotoInputRef.current?.click()
+                  }
+                  style={{
+                    marginTop: '10px',
+                    border: 'none',
+                    borderRadius: '8px',
+                    padding:
+                      '9px 14px',
+                    cursor:
+                      uploadingPhoto
+                        ? 'not-allowed'
+                        : 'pointer',
+                    fontWeight: 700,
+                  }}
+                >
+                  {uploadingPhoto
+                    ? 'Subiendo...'
+                    : profilePhotoPreview
+                      ? 'Cambiar foto'
+                      : 'Agregar foto'}
+                </button>
               </div>
 
             </div>

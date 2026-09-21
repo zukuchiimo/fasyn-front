@@ -71,6 +71,7 @@ interface Client {
   id: number;
   name: string;
   email: string;
+  profilePhotoUrl?: string | null;
 
   active: boolean;
 
@@ -93,6 +94,33 @@ interface EditForm {
 const EMPTY_FORM: EditForm = {
   name: '',
   email: '',
+};
+
+const getPhotoUrl = (
+  photoUrl?: string | null
+) => {
+  if (!photoUrl) {
+    return null;
+  }
+
+  if (/^https?:\/\//i.test(photoUrl)) {
+    return photoUrl;
+  }
+
+  const apiBaseUrl =
+    api.defaults.baseURL ||
+    'http://localhost:3000/api';
+
+  const apiOrigin = apiBaseUrl
+    .replace(/\/api\/?$/, '')
+    .replace(/\/$/, '');
+
+  const normalizedPath =
+    photoUrl.startsWith('/')
+      ? photoUrl
+      : `/${photoUrl}`;
+
+  return `${apiOrigin}${normalizedPath}`;
 };
 
 const AdminClients = () => {
@@ -856,11 +884,36 @@ const AdminClients = () => {
 
           <div className="admin-user">
 
-            <div className="admin-user-avatar">
-              {currentUser?.name
-                ?.charAt(0)
-                ?.toUpperCase() ||
-                'A'}
+            <div
+              className="admin-user-avatar"
+              style={{ overflow: 'hidden' }}
+            >
+              {getPhotoUrl(
+                currentUser?.profilePhotoUrl
+              ) ? (
+                <img
+                  src={
+                    getPhotoUrl(
+                      currentUser?.profilePhotoUrl
+                    )!
+                  }
+                  alt={
+                    currentUser?.name ||
+                    'Administrador'
+                  }
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    display: 'block',
+                    objectFit: 'cover',
+                  }}
+                />
+              ) : (
+                currentUser?.name
+                  ?.charAt(0)
+                  ?.toUpperCase() ||
+                'A'
+              )}
             </div>
 
             <div>
@@ -1149,11 +1202,33 @@ const AdminClients = () => {
 
                       <div className="client-card-main">
 
-                        <div className="client-avatar">
-                          {client.name
-                            ?.charAt(0)
-                            ?.toUpperCase() ||
-                            'C'}
+                        <div
+                          className="client-avatar"
+                          style={{ overflow: 'hidden' }}
+                        >
+                          {getPhotoUrl(
+                            client.profilePhotoUrl
+                          ) ? (
+                            <img
+                              src={
+                                getPhotoUrl(
+                                  client.profilePhotoUrl
+                                )!
+                              }
+                              alt={client.name}
+                              style={{
+                                width: '100%',
+                                height: '100%',
+                                display: 'block',
+                                objectFit: 'cover',
+                              }}
+                            />
+                          ) : (
+                            client.name
+                              ?.charAt(0)
+                              ?.toUpperCase() ||
+                            'C'
+                          )}
                         </div>
 
                         <div className="client-info">
@@ -1389,10 +1464,33 @@ const AdminClients = () => {
 
               <div className="client-detail-top">
 
-                <div className="client-detail-avatar">
-                  {selectedClient.name
-                    ?.charAt(0)
-                    ?.toUpperCase()}
+                <div
+                  className="client-detail-avatar"
+                  style={{ overflow: 'hidden' }}
+                >
+                  {getPhotoUrl(
+                    selectedClient.profilePhotoUrl
+                  ) ? (
+                    <img
+                      src={
+                        getPhotoUrl(
+                          selectedClient.profilePhotoUrl
+                        )!
+                      }
+                      alt={selectedClient.name}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        display: 'block',
+                        objectFit: 'cover',
+                      }}
+                    />
+                  ) : (
+                    selectedClient.name
+                      ?.charAt(0)
+                      ?.toUpperCase() ||
+                    'C'
+                  )}
                 </div>
 
                 <div>

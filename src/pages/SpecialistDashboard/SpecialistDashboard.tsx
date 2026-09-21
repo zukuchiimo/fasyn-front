@@ -1,5 +1,6 @@
 import {
   useEffect,
+  useMemo,
   useState,
 } from 'react';
 
@@ -27,6 +28,36 @@ type Service = {
     id: number;
     name: string;
   };
+};
+
+
+type SpecialtyRelation = {
+  category: {
+    id: number;
+    name: string;
+  };
+};
+
+type SpecialistProfileData = {
+  id: number;
+  userId: number;
+  phone?: string | null;
+  description?: string | null;
+  experience?: number | null;
+  state?: string | null;
+  municipality?: string | null;
+  neighborhood?: string | null;
+  postalCode?: string | null;
+  address?: string | null;
+
+  // ARCHIVOS DEL ESPECIALISTA
+  profilePhotoUrl?: string | null;
+  idFrontUrl?: string | null;
+  idBackUrl?: string | null;
+
+  available?: boolean;
+  profileCompleted?: boolean;
+  specialties?: SpecialtyRelation[];
 };
 
 type SpecialistRequest = {
@@ -103,8 +134,53 @@ const SpecialistDashboard = () => {
       .substring(0, 2)
       .toUpperCase() || 'ES';
 
+  const getUploadedFileUrl = (
+    fileUrl?: string | null
+  ) => {
+    if (!fileUrl) {
+      return null;
+    }
+
+    if (/^https?:\/\//i.test(fileUrl)) {
+      return fileUrl;
+    }
+
+    const apiBaseUrl =
+      api.defaults.baseURL ||
+      'http://localhost:3000/api';
+
+    try {
+      const apiUrl = new URL(
+        apiBaseUrl,
+        window.location.origin
+      );
+
+      const normalizedFileUrl =
+        fileUrl.startsWith('/')
+          ? fileUrl
+          : `/${fileUrl}`;
+
+      return `${apiUrl.origin}${normalizedFileUrl}`;
+    } catch (error) {
+      console.error(
+        'ERROR CONSTRUYENDO URL DE ARCHIVO:',
+        error
+      );
+
+      return fileUrl;
+    }
+  };
+
   const [services, setServices] =
     useState<Service[]>([]);
+
+  const [profile, setProfile] =
+    useState<SpecialistProfileData | null>(
+      null
+    );
+
+  const [profilePhotoError, setProfilePhotoError] =
+    useState(false);
 
   const [requests, setRequests] =
     useState<SpecialistRequest[]>([]);
@@ -154,11 +230,63 @@ const SpecialistDashboard = () => {
     priceType: 'ACTIVITY',
   });
 
+  const profilePhotoSrc =
+    getUploadedFileUrl(
+      profile?.profilePhotoUrl
+    );
+
+  useEffect(() => {
+    setProfilePhotoError(false);
+  }, [profile?.profilePhotoUrl]);
+
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
 
     navigate('/login');
+  };
+
+  const loadProfile = async () => {
+    try {
+      const token =
+        localStorage.getItem('token');
+
+      if (!token) {
+        navigate('/login');
+        return;
+      }
+
+      const response = await api.get(
+        '/specialists/profile',
+        {
+          headers: {
+            Authorization:
+              `Bearer ${token}`,
+          },
+        }
+      );
+
+      const profileData =
+        response.data?.profile || null;
+
+      console.log(
+        'PERFIL ESPECIALISTA:',
+        profileData
+      );
+
+      console.log(
+        'FOTO DE PERFIL:',
+        profileData?.profilePhotoUrl
+      );
+
+      setProfile(profileData);
+
+    } catch (error: any) {
+      console.error(
+        'ERROR CARGANDO PERFIL:',
+        error.response?.data || error
+      );
+    }
   };
 
   const loadServices = async () => {
@@ -253,9 +381,62 @@ const SpecialistDashboard = () => {
   };
 
   useEffect(() => {
+    loadProfile();
     loadServices();
     loadRequests();
   }, []);
+
+  const completionPercentage =
+    useMemo(() => {
+      if (!profile) {
+        return 0;
+      }
+
+      let completed = 0;
+      const total = 8;
+
+      if (profile.phone?.trim()) {
+        completed++;
+      }
+
+      if (profile.description?.trim()) {
+        completed++;
+      }
+
+      if (
+        profile.experience !== null &&
+        profile.experience !== undefined
+      ) {
+        completed++;
+      }
+
+      if (profile.state?.trim()) {
+        completed++;
+      }
+
+      if (profile.municipality?.trim()) {
+        completed++;
+      }
+
+      if (profile.neighborhood?.trim()) {
+        completed++;
+      }
+
+      if (profile.postalCode?.trim()) {
+        completed++;
+      }
+
+      if (
+        (profile.specialties?.length || 0) >
+        0
+      ) {
+        completed++;
+      }
+
+      return Math.round(
+        (completed / total) * 100
+      );
+    }, [profile]);
 
   const getPriceTypeLabel = (
     priceType: PriceType
@@ -594,8 +775,35 @@ const SpecialistDashboard = () => {
               type="button"
               className="pro-user-button"
             >
-              <span>
-                {initials}
+              <span
+                style={{
+                  overflow: 'hidden',
+                }}
+              >
+                {profilePhotoSrc &&
+                !profilePhotoError ? (
+                  <img
+                    src={profilePhotoSrc}
+                    alt={`Foto de ${user.name}`}
+                    onError={() => {
+                      console.error(
+                        'NO SE PUDO CARGAR FOTO DE PERFIL:',
+                        profilePhotoSrc
+                      );
+
+                      setProfilePhotoError(true);
+                    }}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      display: 'block',
+                      objectFit: 'cover',
+                      borderRadius: 'inherit',
+                    }}
+                  />
+                ) : (
+                  initials
+                )}
               </span>
 
               <div>
@@ -683,8 +891,36 @@ const SpecialistDashboard = () => {
 
             <div className="profile-main">
 
-              <div className="profile-avatar">
-                {initials}
+              <div
+                className="profile-avatar"
+                style={{
+                  overflow: 'hidden',
+                }}
+              >
+                {profilePhotoSrc &&
+                !profilePhotoError ? (
+                  <img
+                    src={profilePhotoSrc}
+                    alt={`Foto de ${user.name}`}
+                    onError={() => {
+                      console.error(
+                        'NO SE PUDO CARGAR FOTO DE PERFIL:',
+                        profilePhotoSrc
+                      );
+
+                      setProfilePhotoError(true);
+                    }}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      display: 'block',
+                      objectFit: 'cover',
+                      borderRadius: 'inherit',
+                    }}
+                  />
+                ) : (
+                  initials
+                )}
               </div>
 
               <div className="profile-identity">
@@ -749,23 +985,33 @@ const SpecialistDashboard = () => {
                 <div>
 
                   <strong>
-                    Completa tu perfil
+                    {completionPercentage === 100
+                      ? 'Perfil completo'
+                      : 'Completa tu perfil'}
                   </strong>
 
                   <span>
-                    Agrega la información pendiente
+                    {completionPercentage === 100
+                      ? 'Tu información principal está completa'
+                      : 'Agrega la información pendiente'}
                   </span>
 
                 </div>
 
                 <strong>
-                  80%
+                  {completionPercentage}%
                 </strong>
 
               </div>
 
               <div className="profile-progress-track">
-                <div className="profile-progress-bar" />
+                <div
+                  className="profile-progress-bar"
+                  style={{
+                    width:
+                      `${completionPercentage}%`,
+                  }}
+                />
               </div>
 
             </div>

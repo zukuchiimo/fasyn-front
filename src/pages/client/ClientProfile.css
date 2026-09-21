@@ -1,0 +1,344 @@
+/*
+  IMPORTANTE:
+  Reutilizamos el CSS REAL del ClientDashboard.
+  No modificamos el diseño, sidebar, header,
+  navegación ni contenedor principal.
+*/
+@import '../ClientDashboard/ClientDashboard.css';
+
+/* =========================================================
+   PERFIL DEL CLIENTE
+   Solo estilos específicos de esta pantalla.
+   ========================================================= */
+
+.client-profile-loading {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #f5f7fb;
+  color: #132140;
+}
+
+.client-profile-spinner {
+  width: 38px;
+  height: 38px;
+  margin-bottom: 16px;
+  border: 3px solid #e6ebf5;
+  border-top-color: #5d7cff;
+  border-radius: 50%;
+  animation: clientProfileSpin 0.8s linear infinite;
+}
+
+.client-profile-loading strong {
+  font-size: 14px;
+}
+
+.client-profile-loading span {
+  margin-top: 7px;
+  color: #8d98ac;
+  font-size: 11px;
+}
+
+@keyframes clientProfileSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.client-profile-message {
+  width: 100%;
+  margin-bottom: 18px;
+  padding: 14px 18px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.client-profile-message.error {
+  border: 1px solid #efd1d1;
+  background: #fff5f5;
+  color: #9b4141;
+}
+
+.client-profile-message.success {
+  border: 1px solid #cce7d7;
+  background: #f3fbf6;
+  color: #347052;
+}
+
+/*
+  Dos tarjetas siguiendo el mismo estilo
+  de client-panel del dashboard.
+*/
+.client-profile-grid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 360px minmax(0, 1fr);
+  gap: 26px;
+  align-items: start;
+}
+
+.client-profile-photo-card,
+.client-profile-data-card {
+  overflow: hidden;
+}
+
+.client-profile-photo-body {
+  min-height: 500px;
+  padding: 42px 32px 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.client-profile-photo {
+  width: 155px;
+  height: 155px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 6px solid #eef2ff;
+  border-radius: 50%;
+  background: #132140;
+  color: #6b86ff;
+  font-size: 38px;
+  font-weight: 800;
+  box-shadow:
+    0 0 0 1px #dde4f2,
+    0 12px 30px rgba(20, 34, 65, 0.08);
+}
+
+.client-profile-photo img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.client-profile-photo-body h3 {
+  margin: 21px 0 3px;
+  color: #14213d;
+  font-size: 19px;
+  font-weight: 800;
+}
+
+.client-profile-role {
+  color: #8e99ad;
+  font-size: 10px;
+}
+
+.client-profile-photo-button {
+  width: 100%;
+  max-width: 210px;
+  min-height: 44px;
+  margin-top: 24px;
+  border: 0;
+  border-radius: 10px;
+  background: #5d7cff;
+  color: #ffffff;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 800;
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    background 0.15s ease;
+}
+
+.client-profile-photo-button:hover {
+  background: #4f70f3;
+  transform: translateY(-1px);
+  box-shadow: 0 9px 20px rgba(93, 124, 255, 0.2);
+}
+
+.client-profile-photo-body > small {
+  margin-top: 9px;
+  color: #a0a8b7;
+  font-size: 8px;
+}
+
+.client-profile-status {
+  width: 100%;
+  margin-top: auto;
+  padding-top: 24px;
+  border-top: 1px solid #edf0f5;
+  text-align: left;
+}
+
+.client-profile-status > span {
+  display: block;
+  margin-bottom: 8px;
+  color: #8995aa;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 1.3px;
+}
+
+.client-profile-status strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #173f31;
+  font-size: 11px;
+}
+
+.client-profile-status i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #2f8d65;
+  box-shadow: 0 0 0 4px rgba(47, 141, 101, 0.1);
+}
+
+/* FORMULARIO */
+
+.client-profile-form {
+  padding: 32px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px;
+}
+
+.client-profile-form label > span {
+  display: block;
+  margin-bottom: 9px;
+  color: #52617c;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.client-profile-form input {
+  width: 100%;
+  height: 50px;
+  padding: 0 14px;
+  border: 1px solid #dfe4ee;
+  border-radius: 10px;
+  outline: none;
+  background: #ffffff;
+  color: #132140;
+  font: inherit;
+  font-size: 11px;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.client-profile-form input::placeholder {
+  color: #a9b0bd;
+}
+
+.client-profile-form input:focus {
+  border-color: #5d7cff;
+  box-shadow: 0 0 0 3px rgba(93, 124, 255, 0.09);
+}
+
+.client-profile-form input:disabled {
+  background: #f7f8fb;
+  color: #8d97a9;
+}
+
+.client-profile-info-row {
+  margin: 0 32px;
+  padding: 22px 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  border-top: 1px solid #edf0f5;
+}
+
+.client-profile-info-row span,
+.client-profile-info-row strong {
+  display: block;
+}
+
+.client-profile-info-row span {
+  margin-bottom: 6px;
+  color: #8995aa;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+}
+
+.client-profile-info-row strong {
+  color: #253450;
+  font-size: 10px;
+}
+
+.client-profile-actions {
+  padding: 22px 32px 28px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  border-top: 1px solid #edf0f5;
+}
+
+.client-profile-actions button {
+  min-width: 140px;
+  min-height: 44px;
+  border-radius: 10px;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.client-profile-cancel {
+  border: 1px solid #dfe4ee;
+  background: #ffffff;
+  color: #52617c;
+}
+
+.client-profile-save {
+  border: 0;
+  background: #5d7cff;
+  color: #ffffff;
+}
+
+.client-profile-save:hover {
+  background: #4f70f3;
+}
+
+.client-profile-actions button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+@media (max-width: 1050px) {
+  .client-profile-grid {
+    grid-template-columns: 300px minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 850px) {
+  .client-profile-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .client-profile-photo-body {
+    min-height: auto;
+  }
+
+  .client-profile-status {
+    margin-top: 28px;
+  }
+}
+
+@media (max-width: 620px) {
+  .client-profile-form,
+  .client-profile-info-row {
+    grid-template-columns: 1fr;
+  }
+
+  .client-profile-actions {
+    flex-direction: column-reverse;
+  }
+
+  .client-profile-actions button {
+    width: 100%;
+  }
+}

@@ -44,6 +44,8 @@ type Specialist = {
   municipality?: string | null;
   neighborhood?: string | null;
 
+  profilePhotoUrl?: string | null;
+
   available: boolean;
   profileCompleted: boolean;
 
@@ -149,6 +151,33 @@ const Specialists = () => {
     }
   };
 
+  const resolveStoredFileUrl = (
+    fileUrl?: string | null
+  ) => {
+    if (!fileUrl) {
+      return '';
+    }
+
+    if (/^https?:\/\//i.test(fileUrl)) {
+      return fileUrl;
+    }
+
+    const apiBaseUrl =
+      api.defaults.baseURL ||
+      'http://localhost:3000/api';
+
+    const apiOrigin = apiBaseUrl
+      .replace(/\/api\/?$/, '')
+      .replace(/\/$/, '');
+
+    const normalizedPath =
+      fileUrl.startsWith('/')
+        ? fileUrl
+        : `/${fileUrl}`;
+
+    return `${apiOrigin}${normalizedPath}`;
+  };
+
   const loadData = async () => {
     try {
       setLoading(true);
@@ -204,6 +233,18 @@ const Specialists = () => {
       let result =
         specialists.filter(
           (specialist) => {
+            /*
+              El directorio público solo debe
+              mostrar perfiles completos y
+              disponibles para los clientes.
+            */
+            if (
+              !specialist.available ||
+              !specialist.profileCompleted
+            ) {
+              return false;
+            }
+
             const specialtyNames =
               specialist.specialties
                 .map(
@@ -331,12 +372,29 @@ const Specialists = () => {
       sort,
     ]);
 
+  const availableSpecialists =
+    useMemo(
+      () =>
+        specialists.filter(
+          (specialist) =>
+            specialist.available &&
+            specialist.profileCompleted
+        ).length,
+      [specialists]
+    );
+
   const clearFilters = () => {
     setSearch('');
     setCategoryId('ALL');
     setPriceType('ALL');
     setSort('DEFAULT');
   };
+
+  const hasActiveFilters =
+    Boolean(search.trim()) ||
+    categoryId !== 'ALL' ||
+    priceType !== 'ALL' ||
+    sort !== 'DEFAULT';
 
   return (
     <div className="specialists-page">
@@ -407,45 +465,171 @@ const Specialists = () => {
 
         <div className="specialists-hero-inner">
 
-          <span className="specialists-eyebrow">
-            ENCUENTRA PROFESIONALES
-          </span>
+          <div className="specialists-hero-copy">
 
-          <h1>
-            Encuentra al especialista
-            <strong>
-              {' '}
-              ideal para tu proyecto.
-            </strong>
-          </h1>
+            <span className="specialists-eyebrow">
+              PROFESIONALES EN FASYN
+            </span>
 
-          <p>
-            Explora profesionales
-            registrados en FASYN y
-            encuentra el servicio que
-            necesitas.
-          </p>
+            <h1>
+              Encuentra al especialista
+              <strong>
+                {' '}
+                ideal para tu proyecto.
+              </strong>
+            </h1>
 
-          <div className="specialists-search">
+            <p>
+              Compara experiencia,
+              especialidades y precios.
+              Encuentra profesionales
+              disponibles cerca de ti.
+            </p>
 
-            <span>⌕</span>
+            <div className="specialists-search-card">
 
-            <input
-              type="text"
-              placeholder="Ej. carpintería, plomería, aire acondicionado..."
-              value={search}
-              onChange={(event) =>
-                setSearch(
-                  event.target.value
-                )
-              }
-            />
+              <div className="specialists-search-field">
 
-            <button
-              type="button"
-            >
-              Buscar
-            </button>
+                <span className="specialists-search-icon">
+                  ⌕
+                </span>
+
+                <div className="specialists-search-copy">
+                  <label htmlFor="specialists-search-input">
+                    ¿Qué servicio necesitas?
+                  </label>
+
+                  <input
+                    id="specialists-search-input"
+                    type="text"
+                    placeholder="Ej. carpintería, plomería o pintura"
+                    value={search}
+                    onChange={(event) =>
+                      setSearch(
+                        event.target.value
+                      )
+                    }
+                  />
+                </div>
+
+                {search && (
+                  <button
+                    type="button"
+                    className="specialists-search-clear"
+                    onClick={() =>
+                      setSearch('')
+                    }
+                    aria-label="Limpiar búsqueda"
+                  >
+                    ×
+                  </button>
+                )}
+
+              </div>
+
+              <button
+                type="button"
+                className="specialists-search-button"
+                onClick={() => {
+                  const results =
+                    document.querySelector(
+                      '.results'
+                    );
+
+                  results?.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start',
+                  });
+                }}
+              >
+                Buscar especialistas
+                <span>→</span>
+              </button>
+
+            </div>
+
+            <div className="hero-trust-row">
+
+              <div className="hero-stat">
+                <span className="hero-stat-value">
+                  {availableSpecialists}
+                </span>
+
+                <span className="hero-stat-label">
+                  Profesionales disponibles
+                </span>
+              </div>
+
+              <div className="hero-stat">
+                <span className="hero-stat-value">
+                  {categories.length}
+                </span>
+
+                <span className="hero-stat-label">
+                  Especialidades
+                </span>
+              </div>
+
+              <div className="hero-stat hero-stat-text">
+                <span className="hero-stat-value">
+                  ✓
+                </span>
+
+                <span className="hero-stat-label">
+                  Perfiles completos
+                </span>
+              </div>
+
+            </div>
+
+          </div>
+
+          <div className="specialists-hero-panel">
+
+            <span>
+              CÓMO FUNCIONA
+            </span>
+
+            <ol>
+              <li>
+                <b>01</b>
+                <div>
+                  <strong>
+                    Busca
+                  </strong>
+                  <p>
+                    Encuentra el servicio que
+                    necesitas.
+                  </p>
+                </div>
+              </li>
+
+              <li>
+                <b>02</b>
+                <div>
+                  <strong>
+                    Compara
+                  </strong>
+                  <p>
+                    Revisa experiencia,
+                    especialidades y precios.
+                  </p>
+                </div>
+              </li>
+
+              <li>
+                <b>03</b>
+                <div>
+                  <strong>
+                    Elige
+                  </strong>
+                  <p>
+                    Consulta el perfil completo
+                    antes de solicitar el servicio.
+                  </p>
+                </div>
+              </li>
+            </ol>
 
           </div>
 
@@ -457,170 +641,182 @@ const Specialists = () => {
 
         <aside className="filters">
 
-          <div className="filters-header">
+          <div className="filters-sticky">
 
-            <h3>
-              Filtros
-            </h3>
+            <div className="filters-header">
 
-            <button
-              type="button"
-              onClick={
-                clearFilters
-              }
-            >
-              Limpiar
-            </button>
+              <div>
+                <span>
+                  FILTRAR RESULTADOS
+                </span>
 
-          </div>
+                <h3>
+                  Filtros
+                </h3>
+              </div>
 
-          <div className="filter-section">
-
-            <h4>
-              Especialidad
-            </h4>
-
-            <label>
-              <input
-                type="radio"
-                name="category"
-                checked={
-                  categoryId ===
-                  'ALL'
-                }
-                onChange={() =>
-                  setCategoryId(
-                    'ALL'
-                  )
-                }
-              />
-
-              <span>
-                Todos
-              </span>
-            </label>
-
-            {categories.map(
-              (category) => (
-                <label
-                  key={
-                    category.id
+              {hasActiveFilters && (
+                <button
+                  type="button"
+                  onClick={
+                    clearFilters
                   }
                 >
-                  <input
-                    type="radio"
-                    name="category"
-                    checked={
-                      categoryId ===
-                      String(
-                        category.id
-                      )
+                  Limpiar
+                </button>
+              )}
+
+            </div>
+
+            <div className="filter-section">
+
+              <h4>
+                Especialidad
+              </h4>
+
+              <label>
+                <input
+                  type="radio"
+                  name="category"
+                  checked={
+                    categoryId ===
+                    'ALL'
+                  }
+                  onChange={() =>
+                    setCategoryId(
+                      'ALL'
+                    )
+                  }
+                />
+
+                <span>
+                  Todas las especialidades
+                </span>
+              </label>
+
+              {categories.map(
+                (category) => (
+                  <label
+                    key={
+                      category.id
                     }
-                    onChange={() =>
-                      setCategoryId(
+                  >
+                    <input
+                      type="radio"
+                      name="category"
+                      checked={
+                        categoryId ===
                         String(
                           category.id
                         )
-                      )
-                    }
-                  />
+                      }
+                      onChange={() =>
+                        setCategoryId(
+                          String(
+                            category.id
+                          )
+                        )
+                      }
+                    />
 
-                  <span>
-                    {formatCategoryName(
-                      category.name
-                    )}
-                  </span>
-                </label>
-              )
-            )}
+                    <span>
+                      {formatCategoryName(
+                        category.name
+                      )}
+                    </span>
+                  </label>
+                )
+              )}
 
-          </div>
+            </div>
 
-          <div className="filter-section">
+            <div className="filter-section">
 
-            <h4>
-              Tipo de cobro
-            </h4>
+              <h4>
+                Tipo de cobro
+              </h4>
 
-            <label>
-              <input
-                type="radio"
-                name="price-type"
-                checked={
-                  priceType ===
-                  'ALL'
-                }
-                onChange={() =>
-                  setPriceType(
+              <label>
+                <input
+                  type="radio"
+                  name="price-type"
+                  checked={
+                    priceType ===
                     'ALL'
-                  )
-                }
-              />
+                  }
+                  onChange={() =>
+                    setPriceType(
+                      'ALL'
+                    )
+                  }
+                />
 
-              <span>
-                Cualquier tipo
-              </span>
-            </label>
+                <span>
+                  Cualquier tipo
+                </span>
+              </label>
 
-            <label>
-              <input
-                type="radio"
-                name="price-type"
-                checked={
-                  priceType ===
-                  'HOUR'
-                }
-                onChange={() =>
-                  setPriceType(
+              <label>
+                <input
+                  type="radio"
+                  name="price-type"
+                  checked={
+                    priceType ===
                     'HOUR'
-                  )
-                }
-              />
+                  }
+                  onChange={() =>
+                    setPriceType(
+                      'HOUR'
+                    )
+                  }
+                />
 
-              <span>
-                Por hora
-              </span>
-            </label>
+                <span>
+                  Por hora
+                </span>
+              </label>
 
-            <label>
-              <input
-                type="radio"
-                name="price-type"
-                checked={
-                  priceType ===
-                  'DAY'
-                }
-                onChange={() =>
-                  setPriceType(
+              <label>
+                <input
+                  type="radio"
+                  name="price-type"
+                  checked={
+                    priceType ===
                     'DAY'
-                  )
-                }
-              />
+                  }
+                  onChange={() =>
+                    setPriceType(
+                      'DAY'
+                    )
+                  }
+                />
 
-              <span>
-                Por día
-              </span>
-            </label>
+                <span>
+                  Por día
+                </span>
+              </label>
 
-            <label>
-              <input
-                type="radio"
-                name="price-type"
-                checked={
-                  priceType ===
-                  'ACTIVITY'
-                }
-                onChange={() =>
-                  setPriceType(
+              <label>
+                <input
+                  type="radio"
+                  name="price-type"
+                  checked={
+                    priceType ===
                     'ACTIVITY'
-                  )
-                }
-              />
+                  }
+                  onChange={() =>
+                    setPriceType(
+                      'ACTIVITY'
+                    )
+                  }
+                />
 
-              <span>
-                Por servicio
-              </span>
-            </label>
+                <span>
+                  Por servicio
+                </span>
+              </label>
+
+            </div>
 
           </div>
 
@@ -633,11 +829,11 @@ const Specialists = () => {
             <div>
 
               <span className="results-eyebrow">
-                PROFESIONALES
+                DIRECTORIO
               </span>
 
               <h2>
-                Especialistas
+                Especialistas disponibles
               </h2>
 
               <p>
@@ -653,37 +849,64 @@ const Specialists = () => {
 
             </div>
 
-            <select
-              value={sort}
-              onChange={(event) =>
-                setSort(
-                  event.target
-                    .value as SortOption
-                )
-              }
-            >
-              <option value="DEFAULT">
-                Más recientes
-              </option>
+            <div className="results-sort">
 
-              <option value="PRICE_ASC">
-                Menor precio
-              </option>
+              <span>
+                Ordenar por
+              </span>
 
-              <option value="EXPERIENCE_DESC">
-                Mayor experiencia
-              </option>
+              <select
+                value={sort}
+                onChange={(event) =>
+                  setSort(
+                    event.target
+                      .value as SortOption
+                  )
+                }
+              >
+                <option value="DEFAULT">
+                  Más recientes
+                </option>
 
-              <option value="NAME_ASC">
-                Nombre A-Z
-              </option>
-            </select>
+                <option value="PRICE_ASC">
+                  Menor precio
+                </option>
+
+                <option value="EXPERIENCE_DESC">
+                  Mayor experiencia
+                </option>
+
+                <option value="NAME_ASC">
+                  Nombre A-Z
+                </option>
+              </select>
+
+            </div>
 
           </div>
 
           {error && (
             <div className="specialists-error">
-              {error}
+              <span>!</span>
+
+              <div>
+                <strong>
+                  No pudimos cargar el directorio
+                </strong>
+
+                <p>
+                  {error}
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={
+                  loadData
+                }
+              >
+                Reintentar
+              </button>
             </div>
           )}
 
@@ -715,6 +938,13 @@ const Specialists = () => {
                       0
                     ];
 
+                  const location = [
+                    specialist.municipality,
+                    specialist.state,
+                  ]
+                    .filter(Boolean)
+                    .join(', ');
+
                   return (
                     <article
                       className="result-card"
@@ -723,10 +953,34 @@ const Specialists = () => {
                       }
                     >
 
-                      <div className="result-avatar">
-                        {getInitials(
-                          specialist.name
-                        )}
+                      <div className="result-avatar-column">
+
+                        <div className="result-avatar">
+
+                          {specialist.profilePhotoUrl ? (
+                            <img
+                              src={resolveStoredFileUrl(
+                                specialist.profilePhotoUrl
+                              )}
+                              alt={
+                                specialist.name
+                              }
+                            />
+                          ) : (
+                            <span>
+                              {getInitials(
+                                specialist.name
+                              )}
+                            </span>
+                          )}
+
+                        </div>
+
+                        <div className="availability-badge">
+                          <i />
+                          Disponible
+                        </div>
+
                       </div>
 
                       <div className="result-information">
@@ -735,10 +989,13 @@ const Specialists = () => {
 
                           <div>
 
-                            <h3>
-                              {
-                                specialist.name
-                              }
+                            <div className="result-name-line">
+
+                              <h3>
+                                {
+                                  specialist.name
+                                }
+                              </h3>
 
                               {specialist.profileCompleted && (
                                 <span
@@ -748,7 +1005,8 @@ const Specialists = () => {
                                   ✓
                                 </span>
                               )}
-                            </h3>
+
+                            </div>
 
                             <div className="specialist-specialties">
 
@@ -773,9 +1031,22 @@ const Specialists = () => {
                                   )
                                 )}
 
+                              {specialist.specialties.length >
+                                3 && (
+                                <span>
+                                  +
+                                  {specialist.specialties.length -
+                                    3}
+                                </span>
+                              )}
+
                             </div>
 
                           </div>
+
+                          <span className="profile-state">
+                            PERFIL COMPLETO
+                          </span>
 
                         </div>
 
@@ -786,47 +1057,66 @@ const Specialists = () => {
 
                         <div className="specialist-meta">
 
-                          {specialist.experience ? (
-                            <span>
-                              <b>◷</b>
-                              {
-                                specialist.experience
-                              }{' '}
-                              {specialist.experience ===
-                              1
-                                ? 'año de experiencia'
-                                : 'años de experiencia'}
-                            </span>
-                          ) : (
-                            <span>
-                              Experiencia no especificada
-                            </span>
-                          )}
+                          <span>
+                            <b>◷</b>
 
-                          {(specialist.municipality ||
-                            specialist.state) && (
+                            {specialist.experience
+                              ? `${
+                                  specialist.experience
+                                } ${
+                                  specialist.experience ===
+                                  1
+                                    ? 'año de experiencia'
+                                    : 'años de experiencia'
+                                }`
+                              : 'Experiencia no especificada'}
+                          </span>
+
+                          {location && (
                             <span>
                               <b>⌖</b>
-
-                              {[
-                                specialist.municipality,
-                                specialist.state,
-                              ]
-                                .filter(
-                                  Boolean
-                                )
-                                .join(
-                                  ', '
-                                )}
+                              {location}
                             </span>
                           )}
 
                           <span>
-                            <b>●</b>
-                            Disponible
+                            <b>▤</b>
+                            {
+                              specialist.services
+                                .length
+                            }{' '}
+                            {specialist.services.length ===
+                            1
+                              ? 'servicio'
+                              : 'servicios'}
                           </span>
 
                         </div>
+
+                        {firstService && (
+                          <div className="service-preview">
+
+                            <div>
+                              <span>
+                                SERVICIO DESTACADO
+                              </span>
+
+                              <strong>
+                                {
+                                  firstService.name
+                                }
+                              </strong>
+                            </div>
+
+                            <small>
+                              {formatCategoryName(
+                                firstService.category
+                                  .name
+                              )}
+                            </small>
+
+                          </div>
+                        )}
 
                         <div className="result-bottom">
 
@@ -834,15 +1124,15 @@ const Specialists = () => {
 
                             <small>
                               {firstService
-                                ? 'Desde'
+                                ? 'Precio desde'
                                 : 'Servicios'}
                             </small>
 
                             {specialist.startingPrice !==
-                            null &&
+                              null &&
                             specialist.startingPrice !==
                               undefined ? (
-                              <>
+                              <div>
                                 <strong>
                                   {Number(
                                     specialist.startingPrice
@@ -861,14 +1151,13 @@ const Specialists = () => {
 
                                 {firstService && (
                                   <span>
-                                    {' '}
                                     /{' '}
                                     {getPriceTypeLabel(
                                       firstService.priceType
                                     )}
                                   </span>
                                 )}
-                              </>
+                              </div>
                             ) : (
                               <strong>
                                 Consultar
@@ -905,9 +1194,13 @@ const Specialists = () => {
                 0 && (
                 <div className="no-results">
 
-                  <div>
+                  <div className="no-results-icon">
                     ⌕
                   </div>
+
+                  <span>
+                    SIN RESULTADOS
+                  </span>
 
                   <h3>
                     No encontramos especialistas

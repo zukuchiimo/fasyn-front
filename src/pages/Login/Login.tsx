@@ -21,6 +21,36 @@ const Login = () => {
   const [error, setError] =
     useState('');
 
+  const [
+    specialistDisabled,
+    setSpecialistDisabled,
+  ] = useState(false);
+
+  const handleCloseDisabledModal = () => {
+    setSpecialistDisabled(false);
+    setPassword('');
+  };
+
+  const supportEmail =
+    'rbenito@fasyn.com';
+
+  const supportMailSubject =
+    'Solicitud de revisión de cuenta de especialista';
+
+  const supportMailBody =
+    `Hola equipo de FASYN,%0D%0A%0D%0A` +
+    `Mi cuenta de especialista aparece como dada de baja y no puedo ingresar al panel profesional.%0D%0A%0D%0A` +
+    `Correo asociado a mi cuenta: ${encodeURIComponent(email)}%0D%0A%0D%0A` +
+    `Solicito por favor la revisión del estado de mi cuenta.%0D%0A%0D%0A` +
+    `Gracias.`;
+
+  const supportMailUrl =
+    `mailto:${supportEmail}` +
+    `?subject=${encodeURIComponent(
+      supportMailSubject
+    )}` +
+    `&body=${supportMailBody}`;
+
   const handleLogin = async (
     e: React.FormEvent
   ) => {
@@ -29,6 +59,7 @@ const Login = () => {
     try {
       setLoading(true);
       setError('');
+      setSpecialistDisabled(false);
 
       /*
         1. LOGIN
@@ -49,6 +80,9 @@ const Login = () => {
 
       /*
         2. GUARDAR SESIÓN
+        Se guarda de manera temporal porque,
+        si es especialista, primero validamos
+        su estado real en PostgreSQL.
       */
       localStorage.setItem(
         'token',
@@ -96,7 +130,8 @@ const Login = () => {
       ) {
         try {
           /*
-            CONSULTAMOS SU PERFIL
+            CONSULTAMOS SU PERFIL REAL
+            EN POSTGRESQL
           */
           const profileResponse =
             await api.get(
@@ -114,21 +149,6 @@ const Login = () => {
             profileResponse.data
           );
 
-          /*
-            Soportamos cualquiera
-            de estas respuestas:
-
-            {
-              profile: {...}
-            }
-
-            o directamente:
-
-            {
-              id: ...
-              profileCompleted: ...
-            }
-          */
           const profile =
             profileResponse.data
               ?.profile ??
@@ -140,6 +160,43 @@ const Login = () => {
               ?.profileCompleted
           );
 
+          console.log(
+            'SPECIALIST AVAILABLE:',
+            profile?.available,
+            typeof profile?.available
+          );
+
+          /*
+            ESPECIALISTA DADO DE BAJA
+
+            available = false significa que
+            el administrador lo dio de baja.
+
+            Eliminamos la sesión para impedir
+            que continúe navegando con este login
+            y mostramos el modal.
+          */
+          if (
+            profile?.available ===
+            false
+          ) {
+            localStorage.removeItem(
+              'token'
+            );
+
+            localStorage.removeItem(
+              'user'
+            );
+
+            setSpecialistDisabled(
+              true
+            );
+
+            setLoading(false);
+
+            return;
+          }
+
           /*
             PERFIL COMPLETO
           */
@@ -149,7 +206,10 @@ const Login = () => {
             true
           ) {
             navigate(
-              '/specialist'
+              '/specialist',
+              {
+                replace: true,
+              }
             );
 
             return;
@@ -159,7 +219,10 @@ const Login = () => {
             PERFIL INCOMPLETO
           */
           navigate(
-            '/specialist/setup'
+            '/specialist/setup',
+            {
+              replace: true,
+            }
           );
 
           return;
@@ -494,6 +557,79 @@ const Login = () => {
         </div>
 
       </section>
+
+      {specialistDisabled && (
+        <div
+          className="specialist-disabled-backdrop"
+          role="presentation"
+        >
+          <div
+            className="specialist-disabled-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="specialist-disabled-title"
+          >
+            <div className="specialist-disabled-icon">
+              !
+            </div>
+
+            <span className="specialist-disabled-label">
+              CUENTA DE ESPECIALISTA
+            </span>
+
+            <h2
+              id="specialist-disabled-title"
+            >
+              Tu perfil fue dado de baja
+            </h2>
+
+            <p>
+              Tu cuenta de especialista se
+              encuentra deshabilitada y por
+              el momento no puedes ingresar
+              al panel profesional.
+            </p>
+
+            <div className="specialist-disabled-notice">
+              <strong>
+                ¿Consideras que se trata de un error?
+              </strong>
+
+              <span>
+                Puedes enviar un correo al equipo
+                de FASYN explicando tu caso para
+                solicitar la revisión de tu cuenta.
+              </span>
+
+              <a
+                className="specialist-disabled-email"
+                href={supportMailUrl}
+              >
+                rbenito@fasyn.com
+              </a>
+            </div>
+
+            <div className="specialist-disabled-actions">
+              <a
+                className="specialist-disabled-contact-button"
+                href={supportMailUrl}
+              >
+                Enviar correo a soporte
+              </a>
+
+              <button
+                type="button"
+                className="specialist-disabled-button"
+                onClick={
+                  handleCloseDisabledModal
+                }
+              >
+                Entendido
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );
