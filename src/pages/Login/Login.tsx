@@ -78,11 +78,52 @@ const Login = () => {
         user,
       } = response.data;
 
+      console.log(
+        'USUARIO LOGIN:',
+        user
+      );
+
       /*
-        2. GUARDAR SESIÓN
-        Se guarda de manera temporal porque,
-        si es especialista, primero validamos
-        su estado real en PostgreSQL.
+        VALIDAMOS EL ESTADO REAL DE LA CUENTA.
+
+        active = false significa que el
+        administrador dio de baja la cuenta.
+
+        NO usamos specialistProfile.available
+        para controlar el acceso.
+      */
+      if (
+        user?.active === false
+      ) {
+        localStorage.removeItem(
+          'token'
+        );
+
+        localStorage.removeItem(
+          'user'
+        );
+
+        if (
+          user.role ===
+          'SPECIALIST'
+        ) {
+          setSpecialistDisabled(
+            true
+          );
+        } else {
+          setError(
+            'Tu cuenta se encuentra deshabilitada. Contacta al equipo de FASYN para revisar su estado.'
+          );
+        }
+
+        setLoading(false);
+
+        return;
+      }
+
+      /*
+        GUARDAMOS LA SESIÓN SOLO SI
+        LA CUENTA ESTÁ ACTIVA.
       */
       localStorage.setItem(
         'token',
@@ -94,11 +135,6 @@ const Login = () => {
         JSON.stringify(user)
       );
 
-      console.log(
-        'USUARIO LOGIN:',
-        user
-      );
-
       /*
         3. CLIENTE
       */
@@ -106,7 +142,13 @@ const Login = () => {
         user.role ===
         'CLIENT'
       ) {
-        navigate('/client');
+        navigate(
+          '/client',
+          {
+            replace: true,
+          }
+        );
+
         return;
       }
 
@@ -117,7 +159,13 @@ const Login = () => {
         user.role ===
         'ADMIN'
       ) {
-        navigate('/admin');
+        navigate(
+          '/admin',
+          {
+            replace: true,
+          }
+        );
+
         return;
       }
 
@@ -130,8 +178,10 @@ const Login = () => {
       ) {
         try {
           /*
-            CONSULTAMOS SU PERFIL REAL
-            EN POSTGRESQL
+            AQUÍ SOLO CONSULTAMOS EL PERFIL
+            PARA SABER SI YA ESTÁ COMPLETO.
+
+            available NO controla el login.
           */
           const profileResponse =
             await api.get(
@@ -159,43 +209,6 @@ const Login = () => {
             profile
               ?.profileCompleted
           );
-
-          console.log(
-            'SPECIALIST AVAILABLE:',
-            profile?.available,
-            typeof profile?.available
-          );
-
-          /*
-            ESPECIALISTA DADO DE BAJA
-
-            available = false significa que
-            el administrador lo dio de baja.
-
-            Eliminamos la sesión para impedir
-            que continúe navegando con este login
-            y mostramos el modal.
-          */
-          if (
-            profile?.available ===
-            false
-          ) {
-            localStorage.removeItem(
-              'token'
-            );
-
-            localStorage.removeItem(
-              'user'
-            );
-
-            setSpecialistDisabled(
-              true
-            );
-
-            setLoading(false);
-
-            return;
-          }
 
           /*
             PERFIL COMPLETO

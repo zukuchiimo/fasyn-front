@@ -552,45 +552,59 @@ const SpecialistProfile = () => {
       }
     };
 
-  const openRequestModal =
-    async (
-      service: Service
-    ) => {
-      const token =
-        localStorage.getItem(
-          'token'
-        );
+const openRequestModal = async (service: Service) => {
+  const token = localStorage.getItem('token');
+  const storedUser = localStorage.getItem('user');
 
-      if (!token) {
-        navigate('/login');
-        return;
-      }
+  // No hay sesión
+  if (!token || !storedUser) {
+    navigate('/login');
+    return;
+  }
 
-      setRequestMessage('');
-      setRequestError('');
-      setSelectedService(service);
-      setServiceMessage('');
-      setShowNewAddressForm(false);
-      setSelectedAddressId(null);
-      setNewAddress({
-        label: '',
-        state: '',
-        municipality: '',
-        neighborhood: '',
-        postalCode: '',
-        street: '',
-        exteriorNumber: '',
-        interiorNumber: '',
-        references: '',
-        latitude: null,
-        longitude: null,
-        isDefault: false,
-      });
+  try {
+    const user = JSON.parse(storedUser);
 
-      setRequestModalOpen(true);
-      await loadAddresses();
-    };
+    // Hay sesión, pero no es CLIENT
+    if (user.role !== 'CLIENT') {
+      setRequestError(
+        'Debes iniciar sesión con una cuenta de cliente para solicitar un servicio.'
+      );
+      return;
+    }
+  } catch (error) {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    navigate('/login');
+    return;
+  }
 
+  setRequestMessage('');
+  setRequestError('');
+  setSelectedService(service);
+  setServiceMessage('');
+  setShowNewAddressForm(false);
+  setSelectedAddressId(null);
+
+  setNewAddress({
+    label: '',
+    state: '',
+    municipality: '',
+    neighborhood: '',
+    postalCode: '',
+    street: '',
+    exteriorNumber: '',
+    interiorNumber: '',
+    references: '',
+    latitude: null,
+    longitude: null,
+    isDefault: false,
+  });
+
+  setRequestModalOpen(true);
+
+  await loadAddresses();
+};
   const closeRequestModal =
     () => {
       if (

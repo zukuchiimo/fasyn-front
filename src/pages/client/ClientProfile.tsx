@@ -106,14 +106,21 @@ const ClientProfile = () => {
 
   useEffect(() => {
     if (!token) {
+      setLoading(false);
       navigate('/login');
       return;
     }
+
+    let mounted = true;
 
     const loadProfile = async () => {
       try {
         setLoading(true);
         setError('');
+
+        console.log(
+          'CARGANDO PERFIL CLIENTE...'
+        );
 
         const response =
           await api.get(
@@ -123,25 +130,54 @@ const ClientProfile = () => {
                 Authorization:
                   `Bearer ${token}`,
               },
+
+              /*
+                Evita que la pantalla se quede
+                cargando indefinidamente si el
+                backend no responde.
+              */
+              timeout: 8000,
             }
           );
+
+        if (!mounted) {
+          return;
+        }
+
+        console.log(
+          'PERFIL CLIENTE RESPONSE:',
+          response.data
+        );
 
         const data =
           response.data?.profile;
 
-        setProfile(data);
-        setName(data?.name || '');
-        setEmail(data?.email || '');
-        setPhone(data?.phone || '');
+        if (!data) {
+          throw new Error(
+            'La API no devolvió el perfil del cliente'
+          );
+        }
 
-        if (data?.profilePhotoUrl) {
+        setProfile(data);
+        setName(data.name || '');
+        setEmail(data.email || '');
+        setPhone(data.phone || '');
+console.log('DATA PROFILE PHOTO -------:', data
+);
+        if (data.profilePhotoUrl) {
           setPreviewPhoto(
             resolveStoredFileUrl(
               data.profilePhotoUrl
             )
           );
+        } else {
+          setPreviewPhoto('');
         }
       } catch (requestError: any) {
+        if (!mounted) {
+          return;
+        }
+
         console.error(
           'ERROR CARGANDO PERFIL CLIENTE:',
           requestError.response?.data ||
@@ -160,21 +196,74 @@ const ClientProfile = () => {
             'user'
           );
 
+          setLoading(false);
           navigate('/login');
           return;
         }
 
-        setError(
-          requestError.response?.data
-            ?.message ||
-            'No fue posible cargar tu perfil.'
-        );
+        /*
+          Como respaldo visual cargamos los datos
+          que ya tenemos de la sesión para que la
+          pantalla NO se quede atorada.
+        */
+        const storedUser =
+          localStorage.getItem(
+            'user'
+          );
+
+        if (storedUser) {
+          try {
+            const sessionUser =
+              JSON.parse(
+                storedUser
+              );
+
+            setName(
+              sessionUser?.name ||
+                'Cliente'
+            );
+
+            setEmail(
+              sessionUser?.email ||
+                ''
+            );
+          } catch (
+            storageError
+          ) {
+            console.error(
+              'ERROR LEYENDO USUARIO LOCAL:',
+              storageError
+            );
+          }
+        }
+
+        if (
+          requestError.code ===
+          'ECONNABORTED'
+        ) {
+          setError(
+            'El servidor tardó demasiado en responder. Revisa que el backend esté ejecutándose en el puerto 3000.'
+          );
+        } else {
+          setError(
+            requestError.response?.data
+              ?.message ||
+              requestError.message ||
+              'No fue posible cargar tu perfil.'
+          );
+        }
       } finally {
-        setLoading(false);
+        if (mounted) {
+          setLoading(false);
+        }
       }
     };
 
     loadProfile();
+
+    return () => {
+      mounted = false;
+    };
   }, [navigate, token]);
 
   useEffect(() => {
