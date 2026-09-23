@@ -18,6 +18,7 @@ import MyProfile from '../pages/MyProfile/MyProfile';
 
 import ClientDashboard from '../pages/ClientDashboard/ClientDashboard';
 import ClientProfile from '../pages/client/ClientProfile';
+import MyRequests from '../pages/client/MyRequests/MyRequests';
 
 import AdminDashboard from '../pages/AdminDashboard/AdminDashboard';
 import AdminSpecialists from '../pages/admin/AdminSpecialists';
@@ -27,15 +28,18 @@ import AdminCategories from '../pages/admin/AdminCategories';
 const AppRoutes = () => {
   return (
     <BrowserRouter>
+
       <Routes>
 
-        {/* HOME */}
+        {/* =====================================
+            PÚBLICO
+        ====================================== */}
+
         <Route
           path="/"
           element={<Home />}
         />
 
-        {/* AUTH */}
         <Route
           path="/login"
           element={<Login />}
@@ -46,7 +50,16 @@ const AppRoutes = () => {
           element={<Register />}
         />
 
-        {/* ESPECIALISTAS PÚBLICOS */}
+        {/* =====================================
+            ESPECIALISTAS PÚBLICOS
+
+            Cualquier persona puede:
+            - buscar
+            - filtrar
+            - ver especialistas
+            - ver perfiles
+        ====================================== */}
+
         <Route
           path="/specialists"
           element={<Specialists />}
@@ -57,60 +70,97 @@ const AppRoutes = () => {
           element={<SpecialistProfile />}
         />
 
-        {/* PANEL ESPECIALISTA */}
+        {/* =====================================
+            PANEL ESPECIALISTA
+        ====================================== */}
+
         <Route
           path="/specialist"
-          element={<SpecialistDashboard />}
+          element={
+            <SpecialistDashboard />
+          }
         />
 
         <Route
           path="/specialist/profile"
-          element={<MyProfile />}
+          element={
+            <MyProfile />
+          }
         />
 
         <Route
           path="/specialist/setup"
-          element={<SpecialistSetup />}
+          element={
+            <SpecialistSetup />
+          }
         />
 
         <Route
           path="/specialist/services/new"
-          element={<CreateService />}
+          element={
+            <CreateService />
+          }
         />
 
-        {/* PANEL CLIENTE */}
+        {/* =====================================
+            PANEL CLIENTE
+        ====================================== */}
+
         <Route
           path="/client"
-          element={<ClientDashboard />}
+          element={
+            <ClientDashboard />
+          }
         />
 
         <Route
           path="/client/profile"
-          element={<ClientProfile />}
+          element={
+            <ClientProfile />
+          }
         />
 
-        {/* PANEL ADMINISTRADOR */}
+        <Route
+          path="/client/requests"
+          element={
+            <MyRequests />
+          }
+        />
+
+        {/* =====================================
+            PANEL ADMINISTRADOR
+        ====================================== */}
+
         <Route
           path="/admin"
-          element={<AdminDashboard />}
+          element={
+            <AdminDashboard />
+          }
         />
 
         <Route
           path="/admin/specialists"
-          element={<AdminSpecialists />}
+          element={
+            <AdminSpecialists />
+          }
         />
 
         <Route
           path="/admin/clients"
-          element={<AdminClients />}
+          element={
+            <AdminClients />
+          }
         />
 
         <Route
           path="/admin/categories"
-          element={<AdminCategories />}
+          element={
+            <AdminCategories />
+          }
         />
 
       </Routes>
+
     </BrowserRouter>
   );
 };

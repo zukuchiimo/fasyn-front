@@ -614,17 +614,15 @@ console.log('DATA PROFILE PHOTO -------:', data
             Buscar especialistas
           </button>
 
-          <button
-            type="button"
-            onClick={() =>
-              handlePendingSection(
-                'Mis solicitudes'
-              )
-            }
-          >
-            <span>◉</span>
-            Mis solicitudes
-          </button>
+    <button
+  type="button"
+  onClick={() =>
+    navigate('/client/requests')
+  }
+>
+  <span>◉</span>
+  Mis solicitudes
+</button>
 
           <button
             type="button"

@@ -36,6 +36,24 @@ type RequestStatus =
   | 'COMPLETED'
   | 'CANCELLED';
 
+type UserRole =
+  | 'CLIENT'
+  | 'SPECIALIST'
+  | 'ADMIN';
+
+type SessionUser = {
+  id?: number;
+  userId?: number;
+  name?: string;
+  email?: string;
+  role?: UserRole;
+};
+
+type JwtPayload = {
+  userId?: number;
+  role?: UserRole;
+};
+
 type Category = {
   id: number;
   name: string;
@@ -61,6 +79,7 @@ type Specialist = {
   state?: string | null;
   municipality?: string | null;
   neighborhood?: string | null;
+  profilePhotoUrl?: string | null;
 
   available: boolean;
   profileCompleted: boolean;
@@ -113,6 +132,44 @@ type NewAddressForm = {
   latitude: number | null;
   longitude: number | null;
   isDefault: boolean;
+};
+
+const decodeJwtPayload = (
+  token: string
+): JwtPayload | null => {
+  try {
+    const payloadPart =
+      token.split('.')[1];
+
+    if (!payloadPart) {
+      return null;
+    }
+
+    const normalized =
+      payloadPart
+        .replace(/-/g, '+')
+        .replace(/_/g, '/');
+
+    const padded =
+      normalized.padEnd(
+        normalized.length +
+          ((4 -
+            (normalized.length % 4)) %
+            4),
+        '='
+      );
+
+    return JSON.parse(
+      atob(padded)
+    ) as JwtPayload;
+  } catch (error) {
+    console.error(
+      'ERROR LEYENDO TOKEN:',
+      error
+    );
+
+    return null;
+  }
 };
 
 const DEFAULT_MAP_POSITION: [number, number] = [
@@ -201,6 +258,119 @@ const AddressMapPicker = ({
 const SpecialistProfile = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+
+  /*
+    =====================================
+    SESIÓN
+
+    Esta página sigue siendo pública.
+    El token solamente se usa para saber
+    si el visitante ya inició sesión.
+    =====================================
+  */
+
+  const token =
+    localStorage.getItem(
+      'token'
+    );
+
+  const storedUser =
+    localStorage.getItem(
+      'user'
+    );
+
+  const currentUser =
+    useMemo<SessionUser | null>(
+      () => {
+        if (storedUser) {
+          try {
+            const parsedUser =
+              JSON.parse(
+                storedUser
+              ) as SessionUser;
+
+            if (parsedUser) {
+              return parsedUser;
+            }
+          } catch (storageError) {
+            console.error(
+              'ERROR LEYENDO USUARIO LOCAL:',
+              storageError
+            );
+          }
+        }
+
+        /*
+          Si existe token pero por alguna razón
+          no existe localStorage.user, recuperamos
+          el role desde el JWT solamente para UI.
+          El backend sigue validando la autorización.
+        */
+        if (token) {
+          const payload =
+            decodeJwtPayload(
+              token
+            );
+
+          if (payload) {
+            return {
+              userId:
+                payload.userId,
+              role:
+                payload.role,
+            };
+          }
+        }
+
+        return null;
+      },
+      [
+        storedUser,
+        token,
+      ]
+    );
+
+  const isLoggedIn =
+    Boolean(token);
+
+  const currentRole =
+    currentUser?.role;
+
+  const goToPanel = () => {
+    switch (currentRole) {
+      case 'CLIENT':
+        navigate('/client');
+        return;
+
+      case 'SPECIALIST':
+        navigate('/specialist');
+        return;
+
+      case 'ADMIN':
+        navigate('/admin');
+        return;
+
+      default:
+        /*
+          Hay token pero no pudimos leer el rol.
+          No obligamos al usuario a iniciar sesión
+          nuevamente; lo dejamos en la página pública.
+        */
+        navigate('/');
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem(
+      'token'
+    );
+
+    localStorage.removeItem(
+      'user'
+    );
+
+    navigate('/');
+  };
 
   const [
     specialist,
@@ -552,59 +722,85 @@ const SpecialistProfile = () => {
       }
     };
 
-const openRequestModal = async (service: Service) => {
-  const token = localStorage.getItem('token');
-  const storedUser = localStorage.getItem('user');
-
-  // No hay sesión
-  if (!token || !storedUser) {
-    navigate('/login');
-    return;
-  }
-
-  try {
-    const user = JSON.parse(storedUser);
-
-    // Hay sesión, pero no es CLIENT
-    if (user.role !== 'CLIENT') {
-      setRequestError(
-        'Debes iniciar sesión con una cuenta de cliente para solicitar un servicio.'
+  const openRequestModal = async (
+    service: Service
+  ) => {
+    const currentToken =
+      localStorage.getItem(
+        'token'
       );
+
+    /*
+      Sin sesión sí mandamos a login.
+      Guardamos de dónde venía para poder
+      regresar al perfil después.
+    */
+    if (!currentToken) {
+      navigate(
+        '/login',
+        {
+          state: {
+            returnTo:
+              `/specialists/${id}`,
+          },
+        }
+      );
+
       return;
     }
-  } catch (error) {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    navigate('/login');
-    return;
-  }
 
-  setRequestMessage('');
-  setRequestError('');
-  setSelectedService(service);
-  setServiceMessage('');
-  setShowNewAddressForm(false);
-  setSelectedAddressId(null);
+    /*
+      Si conocemos el rol y no es CLIENT,
+      no mandamos a login porque YA existe
+      una sesión. Solamente informamos que
+      una cuenta de especialista/admin no
+      puede contratar servicios.
+    */
+    if (
+      currentRole &&
+      currentRole !== 'CLIENT'
+    ) {
+      setRequestError(
+        'Para solicitar un servicio debes ingresar con una cuenta de cliente.'
+      );
 
-  setNewAddress({
-    label: '',
-    state: '',
-    municipality: '',
-    neighborhood: '',
-    postalCode: '',
-    street: '',
-    exteriorNumber: '',
-    interiorNumber: '',
-    references: '',
-    latitude: null,
-    longitude: null,
-    isDefault: false,
-  });
+      return;
+    }
 
-  setRequestModalOpen(true);
+    setRequestMessage('');
+    setRequestError('');
+    setSelectedService(service);
+    setServiceMessage('');
+    setShowNewAddressForm(false);
+    setSelectedAddressId(null);
 
-  await loadAddresses();
-};
+    setNewAddress({
+      label: '',
+      state: '',
+      municipality: '',
+      neighborhood: '',
+      postalCode: '',
+      street: '',
+      exteriorNumber: '',
+      interiorNumber: '',
+      references: '',
+      latitude: null,
+      longitude: null,
+      isDefault: false,
+    });
+
+    setRequestModalOpen(true);
+
+    /*
+      Si por alguna razón no pudimos leer el rol
+      desde localStorage/JWT, el backend decidirá.
+      - CLIENT válido: devuelve direcciones.
+      - Otro rol: devuelve 403.
+      - Token vencido: devuelve 401.
+    */
+    await loadAddresses();
+  };
+
   const closeRequestModal =
     () => {
       if (
@@ -1417,28 +1613,59 @@ const openRequestModal = async (service: Service) => {
               Especialistas
             </button>
 
-            <button
-              type="button"
-              onClick={() =>
-                navigate(
-                  '/login'
-                )
-              }
-            >
-              Iniciar sesión
-            </button>
+            {isLoggedIn ? (
+              <>
+                <button
+                  type="button"
+                  onClick={
+                    goToPanel
+                  }
+                >
+                  Mi panel
+                </button>
 
-            <button
-              type="button"
-              className="public-profile-register"
-              onClick={() =>
-                navigate(
-                  '/register'
-                )
-              }
-            >
-              Crear cuenta
-            </button>
+                <button
+                  type="button"
+                  className="public-profile-register"
+                  onClick={
+                    handleLogout
+                  }
+                >
+                  Cerrar sesión
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={() =>
+                    navigate(
+                      '/login',
+                      {
+                        state: {
+                          returnTo:
+                            `/specialists/${id}`,
+                        },
+                      }
+                    )
+                  }
+                >
+                  Iniciar sesión
+                </button>
+
+                <button
+                  type="button"
+                  className="public-profile-register"
+                  onClick={() =>
+                    navigate(
+                      '/register'
+                    )
+                  }
+                >
+                  Crear cuenta
+                </button>
+              </>
+            )}
 
           </nav>
 
