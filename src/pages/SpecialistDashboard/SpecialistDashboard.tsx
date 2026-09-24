@@ -751,7 +751,17 @@ const SpecialistDashboard = () => {
             >
               Servicios
             </button>
-
+  <button
+    type="button"
+    className="pro-nav-item"
+    onClick={() =>
+      navigate(
+        '/specialist/earnings'
+      )
+    }
+  >
+    Mis ganancias
+  </button>
   <button
   type="button"
   className="pro-nav-item"
@@ -1192,83 +1202,159 @@ const SpecialistDashboard = () => {
 
               <div className="service-management-grid">
 
-                {requests.map(
-                  (request) => (
+       {requests.map(
+  (request) => (
 
-                    <article
-                      key={request.id}
-                      className="management-service-card"
-                    >
+    <article
+      key={request.id}
+      className="management-service-card request-clickable"
+      role="button"
+      tabIndex={0}
+      onClick={() =>
+        navigate(
+          `/specialist/requests/${request.id}`
+        )
+      }
+      onKeyDown={(event) => {
+        if (
+          event.key === 'Enter' ||
+          event.key === ' '
+        ) {
+          navigate(
+            `/specialist/requests/${request.id}`
+          );
+        }
+      }}
+    >
 
-                      <div className="management-service-top">
+      <div className="management-service-top">
 
-                        <span className="management-category">
-                          {request.service.category.name}
-                        </span>
+        <span className="management-category">
+          {
+            request
+              .service
+              .category
+              .name
+          }
+        </span>
 
-                        <span className="management-status active">
-                          <i />
+        <span className="management-status active">
+          <i />
 
-                          {request.status === 'APPROVED'
-                            ? 'Aprobada'
-                            : request.status === 'IN_PROGRESS'
-                              ? 'En proceso'
-                              : 'Completada'}
-                        </span>
+          {
+            request.status ===
+            'APPROVED'
+              ? 'Aprobada'
+              : request.status ===
+                  'IN_PROGRESS'
+                ? 'En proceso'
+                : 'Completada'
+          }
+        </span>
 
-                      </div>
+      </div>
 
-                      <div className="management-service-content">
+      <div className="management-service-content">
 
-                        <h3>
-                          {request.service.name}
-                        </h3>
+        <h3>
+          {
+            request
+              .service
+              .name
+          }
+        </h3>
 
-                        <p>
-                          Cliente: {request.client.name}
-                        </p>
+        <p>
+          Cliente:{' '}
+          {
+            request
+              .client
+              .name
+          }
+        </p>
 
-                        <p>
-                          {request.client.email}
-                        </p>
+        <p>
+          {
+            request
+              .client
+              .email
+          }
+        </p>
 
-                        {request.message && (
-                          <p>
-                            Mensaje: {request.message}
-                          </p>
-                        )}
+        {request.message && (
+          <p>
+            Mensaje:{' '}
+            {
+              request
+                .message
+            }
+          </p>
+        )}
 
-                      </div>
+      </div>
 
-                      <div className="management-service-price">
+      <div className="management-service-price">
 
-                        <strong>
-                          {formatPrice(
-                            request.service.price
-                          )}
-                        </strong>
+        <strong>
+          {
+            formatPrice(
+              request
+                .service
+                .price
+            )
+          }
+        </strong>
 
-                        <span>
-                          {getPriceTypeLabel(
-                            request.service.priceType
-                          )}
-                        </span>
+        <span>
+          {
+            getPriceTypeLabel(
+              request
+                .service
+                .priceType
+            )
+          }
+        </span>
 
-                      </div>
+      </div>
 
-                      <div className="management-service-bottom">
+      <div className="management-service-bottom">
 
-                        <span className="management-status active">
-                          <i />
-                          Solicitud #{request.id}
-                        </span>
+        <span className="management-status active">
+          <i />
 
-                      </div>
+          Solicitud #
+          {request.id}
+        </span>
 
-                    </article>
+        <button
+          type="button"
+          className="request-detail-link"
+          onClick={(event) => {
 
-                  )
-                )}
+            /*
+              Evita ejecutar también
+              el click del article.
+            */
+            event.stopPropagation();
+
+            navigate(
+              `/specialist/requests/${request.id}`
+            );
+          }}
+        >
+          Ver detalles
+
+          <span>
+            →
+          </span>
+        </button>
+
+      </div>
+
+    </article>
+
+  )
+)}
 
               </div>
 

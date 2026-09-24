@@ -15,6 +15,14 @@ import SpecialistDashboard from '../pages/SpecialistDashboard/SpecialistDashboar
 import SpecialistSetup from '../pages/SpecialistSetup/SpecialistSetup';
 import CreateService from '../pages/CreateService/CreateService';
 import MyProfile from '../pages/MyProfile/MyProfile';
+import SpecialistEarnings
+  from '../pages/SpecialistEarnings/SpecialistEarnings';
+/*
+  NUEVA PANTALLA:
+  DETALLE DE SOLICITUD DEL ESPECIALISTA
+*/
+import SpecialistRequestDetail
+  from '../pages/SpecialistRequestDetail/SpecialistRequestDetail';
 
 import ClientDashboard from '../pages/ClientDashboard/ClientDashboard';
 import ClientProfile from '../pages/client/ClientProfile';
@@ -37,37 +45,41 @@ const AppRoutes = () => {
 
         <Route
           path="/"
-          element={<Home />}
+          element={
+            <Home />
+          }
         />
 
         <Route
           path="/login"
-          element={<Login />}
+          element={
+            <Login />
+          }
         />
 
         <Route
           path="/register"
-          element={<Register />}
+          element={
+            <Register />
+          }
         />
 
         {/* =====================================
             ESPECIALISTAS PÚBLICOS
-
-            Cualquier persona puede:
-            - buscar
-            - filtrar
-            - ver especialistas
-            - ver perfiles
         ====================================== */}
 
         <Route
           path="/specialists"
-          element={<Specialists />}
+          element={
+            <Specialists />
+          }
         />
 
         <Route
           path="/specialists/:id"
-          element={<SpecialistProfile />}
+          element={
+            <SpecialistProfile />
+          }
         />
 
         {/* =====================================
@@ -87,7 +99,10 @@ const AppRoutes = () => {
             <MyProfile />
           }
         />
-
+<Route
+  path="/specialist/earnings"
+  element={<SpecialistEarnings />}
+/>
         <Route
           path="/specialist/setup"
           element={
@@ -99,6 +114,15 @@ const AppRoutes = () => {
           path="/specialist/services/new"
           element={
             <CreateService />
+          }
+        />
+
+        {/* DETALLE DE SOLICITUD */}
+
+        <Route
+          path="/specialist/requests/:id"
+          element={
+            <SpecialistRequestDetail />
           }
         />
 

@@ -1,0 +1,1656 @@
+
+/* =========================================
+   FASYN - GANANCIAS DEL ESPECIALISTA
+========================================= */
+
+* {
+  box-sizing: border-box;
+}
+
+.earnings-page {
+  min-height: 100vh;
+
+  background:
+    linear-gradient(
+      180deg,
+      #f8f9fc 0%,
+      #f4f6fa 100%
+    );
+
+  color: #1d2433;
+}
+
+/* =========================================
+   HEADER
+========================================= */
+
+.earnings-header {
+  position: sticky;
+
+  top: 0;
+
+  z-index: 100;
+
+  height: 72px;
+
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      0.96
+    );
+
+  border-bottom:
+    1px solid #e8eaf0;
+
+  backdrop-filter:
+    blur(12px);
+}
+
+.earnings-header-inner {
+  width: 100%;
+
+  max-width: 1320px;
+
+  height: 100%;
+
+  margin: 0 auto;
+
+  padding:
+    0 30px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content:
+    space-between;
+
+  gap: 20px;
+}
+
+/* =========================================
+   LOGO
+========================================= */
+
+.earnings-brand {
+  padding: 0;
+
+  border: none;
+
+  background:
+    transparent;
+
+  display: flex;
+
+  align-items: center;
+
+  cursor: pointer;
+}
+
+.earnings-brand img {
+  width: auto;
+
+  height: 35px;
+
+  display: block;
+
+  object-fit:
+    contain;
+}
+
+/* =========================================
+   VOLVER
+========================================= */
+
+.earnings-back-button {
+  min-height: 38px;
+
+  padding:
+    0 14px;
+
+  display:
+    inline-flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 7px;
+
+  border:
+    1px solid #e1e4eb;
+
+  border-radius:
+    9px;
+
+  background:
+    #ffffff;
+
+  color:
+    #626978;
+
+  font-family:
+    inherit;
+
+  font-size:
+    10px;
+
+  font-weight:
+    700;
+
+  cursor:
+    pointer;
+
+  transition:
+    all 0.2s ease;
+}
+
+.earnings-back-button:hover {
+  color:
+    #5c7cff;
+
+  border-color:
+    #ccd5ff;
+
+  background:
+    #f8faff;
+
+  transform:
+    translateY(-1px);
+}
+
+/* =========================================
+   MAIN
+========================================= */
+
+.earnings-main {
+  width: 100%;
+
+  max-width: 1220px;
+
+  margin: 0 auto;
+
+  padding:
+    34px 32px 80px;
+}
+
+/* =========================================
+   ENCABEZADO
+========================================= */
+
+.earnings-heading {
+  margin-bottom:
+    24px;
+
+  display: flex;
+
+  align-items:
+    flex-end;
+
+  justify-content:
+    space-between;
+
+  gap: 20px;
+}
+
+.earnings-heading-content {
+  min-width: 0;
+}
+
+.earnings-eyebrow {
+  display: block;
+
+  margin-bottom:
+    6px;
+
+  color:
+    #657cff;
+
+  font-size:
+    8px;
+
+  font-weight:
+    800;
+
+  letter-spacing:
+    1.1px;
+}
+
+.earnings-heading h1 {
+  margin: 0;
+
+  color:
+    #222938;
+
+  font-size:
+    28px;
+
+  line-height:
+    1.2;
+
+  letter-spacing:
+    -0.6px;
+}
+
+.earnings-heading p {
+  max-width:
+    620px;
+
+  margin:
+    8px 0 0;
+
+  color:
+    #8a909d;
+
+  font-size:
+    10px;
+
+  line-height:
+    1.6;
+}
+
+/* =========================================
+   REFRESCAR
+========================================= */
+
+.earnings-refresh {
+  min-height:
+    38px;
+
+  padding:
+    0 14px;
+
+  flex-shrink: 0;
+
+  border:
+    1px solid #e1e5ed;
+
+  border-radius:
+    10px;
+
+  background:
+    #ffffff;
+
+  color:
+    #555d6d;
+
+  font-family:
+    inherit;
+
+  font-size:
+    9px;
+
+  font-weight:
+    700;
+
+  cursor:
+    pointer;
+
+  transition:
+    all 0.2s ease;
+}
+
+.earnings-refresh:hover {
+  color:
+    #5c7cff;
+
+  border-color:
+    #ccd5ff;
+
+  background:
+    #f8faff;
+}
+
+/* =========================================
+   TARJETA PRINCIPAL
+========================================= */
+
+.earnings-wallet-card {
+  position:
+    relative;
+
+  overflow:
+    hidden;
+
+  min-height:
+    230px;
+
+  padding:
+    30px;
+
+  border-radius:
+    22px;
+
+  background:
+    radial-gradient(
+      circle at 90% 20%,
+      rgba(
+        105,
+        128,
+        255,
+        0.35
+      ),
+      transparent 32%
+    ),
+    linear-gradient(
+      135deg,
+      #182033,
+      #26324e
+    );
+
+  box-shadow:
+    0 18px 45px
+    rgba(
+      24,
+      32,
+      51,
+      0.14
+    );
+
+  color:
+    #ffffff;
+}
+
+.earnings-wallet-card::after {
+  content: '';
+
+  position:
+    absolute;
+
+  width:
+    290px;
+
+  height:
+    290px;
+
+  right:
+    -130px;
+
+  bottom:
+    -180px;
+
+  border:
+    1px solid
+    rgba(
+      255,
+      255,
+      255,
+      0.09
+    );
+
+  border-radius:
+    50%;
+}
+
+.earnings-wallet-top {
+  position:
+    relative;
+
+  z-index:
+    2;
+
+  display:
+    flex;
+
+  align-items:
+    flex-start;
+
+  justify-content:
+    space-between;
+
+  gap:
+    24px;
+}
+
+.wallet-label {
+  display:
+    block;
+
+  margin-bottom:
+    7px;
+
+  color:
+    #aab8ff;
+
+  font-size:
+    8px;
+
+  font-weight:
+    800;
+
+  letter-spacing:
+    1.1px;
+}
+
+.wallet-balance {
+  margin: 0;
+
+  color:
+    #ffffff;
+
+  font-size:
+    38px;
+
+  line-height:
+    1;
+
+  letter-spacing:
+    -1.4px;
+}
+
+.wallet-currency {
+  margin-top:
+    7px;
+
+  color:
+    #acb5c8;
+
+  font-size:
+    9px;
+}
+
+/* =========================================
+   RETIRO
+========================================= */
+
+.wallet-withdraw-button {
+  min-height:
+    43px;
+
+  padding:
+    0 18px;
+
+  display:
+    inline-flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  gap:
+    7px;
+
+  border:
+    1px solid
+    rgba(
+      255,
+      255,
+      255,
+      0.12
+    );
+
+  border-radius:
+    11px;
+
+  background:
+    #ffffff;
+
+  color:
+    #27314b;
+
+  font-family:
+    inherit;
+
+  font-size:
+    9px;
+
+  font-weight:
+    800;
+
+  cursor:
+    pointer;
+
+  box-shadow:
+    0 9px 24px
+    rgba(
+      0,
+      0,
+      0,
+      0.12
+    );
+
+  transition:
+    transform 0.2s ease;
+}
+
+.wallet-withdraw-button:hover {
+  transform:
+    translateY(-2px);
+}
+
+.wallet-withdraw-button:disabled {
+  opacity:
+    0.5;
+
+  cursor:
+    not-allowed;
+
+  transform:
+    none;
+}
+
+/* =========================================
+   MÉTRICAS DEL WALLET
+========================================= */
+
+.wallet-stats {
+  position:
+    relative;
+
+  z-index:
+    2;
+
+  margin-top:
+    30px;
+
+  display:
+    grid;
+
+  grid-template-columns:
+    repeat(
+      3,
+      minmax(
+        0,
+        1fr
+      )
+    );
+
+  gap:
+    10px;
+}
+
+.wallet-stat {
+  padding:
+    14px 16px;
+
+  border:
+    1px solid
+    rgba(
+      255,
+      255,
+      255,
+      0.08
+    );
+
+  border-radius:
+    13px;
+
+  background:
+    rgba(
+      255,
+      255,
+      255,
+      0.06
+    );
+}
+
+.wallet-stat span {
+  display:
+    block;
+
+  margin-bottom:
+    5px;
+
+  color:
+    #aeb8ca;
+
+  font-size:
+    7px;
+
+  font-weight:
+    700;
+
+  letter-spacing:
+    0.7px;
+}
+
+.wallet-stat strong {
+  color:
+    #ffffff;
+
+  font-size:
+    14px;
+}
+
+/* =========================================
+   GRID SECUNDARIO
+========================================= */
+
+.earnings-grid {
+  margin-top:
+    20px;
+
+  display:
+    grid;
+
+  grid-template-columns:
+    minmax(
+      0,
+      1fr
+    )
+    360px;
+
+  gap:
+    20px;
+
+  align-items:
+    start;
+}
+
+/* =========================================
+   CARDS GENERALES
+========================================= */
+
+.earnings-card {
+  padding:
+    22px;
+
+  border:
+    1px solid #e8eaf0;
+
+  border-radius:
+    17px;
+
+  background:
+    #ffffff;
+
+  box-shadow:
+    0 5px 20px
+    rgba(
+      24,
+      32,
+      51,
+      0.035
+    );
+}
+
+.earnings-card-header {
+  margin-bottom:
+    18px;
+
+  display:
+    flex;
+
+  align-items:
+    flex-start;
+
+  justify-content:
+    space-between;
+
+  gap:
+    20px;
+}
+
+.earnings-card-header h2 {
+  margin: 0;
+
+  color:
+    #2d3444;
+
+  font-size:
+    14px;
+}
+
+.earnings-card-header p {
+  margin:
+    5px 0 0;
+
+  color:
+    #959ba7;
+
+  font-size:
+    9px;
+}
+
+/* =========================================
+   GANANCIAS POR SERVICIO
+========================================= */
+
+.service-earnings-list {
+  display:
+    flex;
+
+  flex-direction:
+    column;
+}
+
+.service-earning-item {
+  min-height:
+    70px;
+
+  padding:
+    12px 0;
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    space-between;
+
+  gap:
+    16px;
+
+  border-bottom:
+    1px solid #eff1f5;
+}
+
+.service-earning-item:last-child {
+  border-bottom:
+    none;
+}
+
+.service-earning-info {
+  min-width:
+    0;
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  gap:
+    11px;
+}
+
+.service-earning-icon {
+  width:
+    38px;
+
+  height:
+    38px;
+
+  flex-shrink:
+    0;
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  border-radius:
+    10px;
+
+  background:
+    #eef1ff;
+
+  color:
+    #5c7cff;
+
+  font-size:
+    12px;
+
+  font-weight:
+    800;
+}
+
+.service-earning-content {
+  min-width:
+    0;
+
+  display:
+    flex;
+
+  flex-direction:
+    column;
+}
+
+.service-earning-content strong {
+  overflow:
+    hidden;
+
+  color:
+    #3b4251;
+
+  font-size:
+    10px;
+
+  white-space:
+    nowrap;
+
+  text-overflow:
+    ellipsis;
+}
+
+.service-earning-content span {
+  margin-top:
+    4px;
+
+  color:
+    #969ca9;
+
+  font-size:
+    8px;
+}
+
+.service-earning-amount {
+  flex-shrink:
+    0;
+
+  color:
+    #293143;
+
+  font-size:
+    11px;
+
+  font-weight:
+    800;
+
+  text-align:
+    right;
+}
+
+/* =========================================
+   MOVIMIENTOS
+========================================= */
+
+.earnings-transactions {
+  display:
+    flex;
+
+  flex-direction:
+    column;
+}
+
+.earnings-transaction {
+  min-height:
+    58px;
+
+  padding:
+    10px 0;
+
+  display:
+    grid;
+
+  grid-template-columns:
+    35px
+    minmax(
+      0,
+      1fr
+    )
+    auto;
+
+  align-items:
+    center;
+
+  gap:
+    10px;
+
+  border-bottom:
+    1px solid #eff1f5;
+}
+
+.earnings-transaction:last-child {
+  border-bottom:
+    none;
+}
+
+.transaction-icon {
+  width:
+    34px;
+
+  height:
+    34px;
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  border-radius:
+    10px;
+
+  background:
+    #eef8f3;
+
+  color:
+    #38a971;
+
+  font-size:
+    12px;
+
+  font-weight:
+    800;
+}
+
+.transaction-icon.withdrawal {
+  background:
+    #fff5eb;
+
+  color:
+    #da8b39;
+}
+
+.transaction-information {
+  min-width:
+    0;
+
+  display:
+    flex;
+
+  flex-direction:
+    column;
+}
+
+.transaction-information strong {
+  color:
+    #414856;
+
+  font-size:
+    9px;
+}
+
+.transaction-information span {
+  margin-top:
+    3px;
+
+  color:
+    #9aa0ac;
+
+  font-size:
+    7.5px;
+}
+
+.transaction-amount {
+  color:
+    #32a36b;
+
+  font-size:
+    9px;
+
+  font-weight:
+    800;
+}
+
+.transaction-amount.negative {
+  color:
+    #e0873e;
+}
+
+/* =========================================
+   ESTADOS
+========================================= */
+
+.transaction-status {
+  display:
+    inline-flex;
+
+  align-items:
+    center;
+
+  width:
+    fit-content;
+
+  margin-top:
+    4px;
+
+  padding:
+    3px 6px;
+
+  border-radius:
+    5px;
+
+  background:
+    #eef8f3;
+
+  color:
+    #37a36e;
+
+  font-size:
+    6.5px;
+
+  font-weight:
+    800;
+}
+
+.transaction-status.pending {
+  background:
+    #fff6e9;
+
+  color:
+    #d58a37;
+}
+
+.transaction-status.failed {
+  background:
+    #fff0f0;
+
+  color:
+    #d65858;
+}
+
+/* =========================================
+   VACÍO
+========================================= */
+
+.earnings-empty {
+  min-height:
+    180px;
+
+  padding:
+    25px;
+
+  display:
+    flex;
+
+  flex-direction:
+    column;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  text-align:
+    center;
+}
+
+.earnings-empty-icon {
+  width:
+    48px;
+
+  height:
+    48px;
+
+  margin-bottom:
+    12px;
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  border-radius:
+    14px;
+
+  background:
+    #eef1ff;
+
+  color:
+    #5c7cff;
+
+  font-size:
+    18px;
+}
+
+.earnings-empty strong {
+  color:
+    #444b5b;
+
+  font-size:
+    11px;
+}
+
+.earnings-empty p {
+  max-width:
+    320px;
+
+  margin:
+    6px 0 0;
+
+  color:
+    #989eaa;
+
+  font-size:
+    9px;
+
+  line-height:
+    1.5;
+}
+
+/* =========================================
+   LOADING
+========================================= */
+
+.earnings-loading {
+  min-height:
+    100vh;
+
+  display:
+    flex;
+
+  flex-direction:
+    column;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  background:
+    #f6f7fa;
+}
+
+.earnings-loader {
+  width:
+    38px;
+
+  height:
+    38px;
+
+  margin-bottom:
+    14px;
+
+  border:
+    4px solid #e5e8ef;
+
+  border-top-color:
+    #5c7cff;
+
+  border-radius:
+    50%;
+
+  animation:
+    earnings-spin
+    0.75s
+    linear
+    infinite;
+}
+
+.earnings-loading strong {
+  color:
+    #394150;
+
+  font-size:
+    11px;
+}
+
+@keyframes earnings-spin {
+  to {
+    transform:
+      rotate(
+        360deg
+      );
+  }
+}
+
+/* =========================================
+   ERROR
+========================================= */
+
+.earnings-error {
+  margin-bottom:
+    18px;
+
+  padding:
+    12px 14px;
+
+  border:
+    1px solid #ffdcdc;
+
+  border-radius:
+    10px;
+
+  background:
+    #fff5f5;
+
+  color:
+    #bc5050;
+
+  font-size:
+    9px;
+}
+
+/* =========================================
+   MODAL RETIRO
+========================================= */
+
+.withdraw-overlay {
+  position:
+    fixed;
+
+  inset: 0;
+
+  z-index:
+    1000;
+
+  padding:
+    20px;
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  background:
+    rgba(
+      15,
+      20,
+      31,
+      0.55
+    );
+
+  backdrop-filter:
+    blur(5px);
+}
+
+.withdraw-modal {
+  width:
+    100%;
+
+  max-width:
+    460px;
+
+  padding:
+    25px;
+
+  border-radius:
+    20px;
+
+  background:
+    #ffffff;
+
+  box-shadow:
+    0 25px 70px
+    rgba(
+      15,
+      20,
+      31,
+      0.2
+    );
+}
+
+.withdraw-modal-header {
+  display:
+    flex;
+
+  align-items:
+    flex-start;
+
+  justify-content:
+    space-between;
+
+  gap:
+    20px;
+}
+
+.withdraw-modal-header span {
+  display:
+    block;
+
+  margin-bottom:
+    5px;
+
+  color:
+    #647cff;
+
+  font-size:
+    7px;
+
+  font-weight:
+    800;
+
+  letter-spacing:
+    1px;
+}
+
+.withdraw-modal-header h2 {
+  margin: 0;
+
+  color:
+    #2c3342;
+
+  font-size:
+    17px;
+}
+
+.withdraw-close {
+  width:
+    32px;
+
+  height:
+    32px;
+
+  border:
+    1px solid #e4e6eb;
+
+  border-radius:
+    9px;
+
+  background:
+    #ffffff;
+
+  color:
+    #777e8c;
+
+  font-size:
+    17px;
+
+  cursor:
+    pointer;
+}
+
+/* =========================================
+   SALDO MODAL
+========================================= */
+
+.withdraw-balance {
+  margin-top:
+    20px;
+
+  padding:
+    15px;
+
+  border-radius:
+    13px;
+
+  background:
+    #f6f8ff;
+}
+
+.withdraw-balance span {
+  color:
+    #969ca8;
+
+  font-size:
+    8px;
+}
+
+.withdraw-balance strong {
+  display:
+    block;
+
+  margin-top:
+    4px;
+
+  color:
+    #27314a;
+
+  font-size:
+    21px;
+}
+
+/* =========================================
+   FORM
+========================================= */
+
+.withdraw-field {
+  margin-top:
+    18px;
+
+  display:
+    flex;
+
+  flex-direction:
+    column;
+
+  gap:
+    7px;
+}
+
+.withdraw-field label {
+  color:
+    #5f6674;
+
+  font-size:
+    8px;
+
+  font-weight:
+    800;
+}
+
+.withdraw-field input,
+.withdraw-field select {
+  width:
+    100%;
+
+  min-height:
+    43px;
+
+  padding:
+    0 12px;
+
+  border:
+    1px solid #dee2ea;
+
+  border-radius:
+    10px;
+
+  outline:
+    none;
+
+  background:
+    #ffffff;
+
+  color:
+    #303745;
+
+  font-family:
+    inherit;
+
+  font-size:
+    10px;
+}
+
+.withdraw-field input:focus,
+.withdraw-field select:focus {
+  border-color:
+    #6e84ff;
+
+  box-shadow:
+    0 0 0 3px
+    rgba(
+      92,
+      124,
+      255,
+      0.1
+    );
+}
+
+/* =========================================
+   ACCIONES MODAL
+========================================= */
+
+.withdraw-actions {
+  margin-top:
+    22px;
+
+  display:
+    grid;
+
+  grid-template-columns:
+    1fr 1fr;
+
+  gap:
+    10px;
+}
+
+.withdraw-cancel,
+.withdraw-confirm {
+  min-height:
+    42px;
+
+  border-radius:
+    10px;
+
+  font-family:
+    inherit;
+
+  font-size:
+    9px;
+
+  font-weight:
+    800;
+
+  cursor:
+    pointer;
+}
+
+.withdraw-cancel {
+  border:
+    1px solid #e0e3e9;
+
+  background:
+    #ffffff;
+
+  color:
+    #666d7b;
+}
+
+.withdraw-confirm {
+  border:
+    none;
+
+  background:
+    #5c7cff;
+
+  color:
+    #ffffff;
+
+  box-shadow:
+    0 8px 20px
+    rgba(
+      92,
+      124,
+      255,
+      0.2
+    );
+}
+
+.withdraw-confirm:hover:not(
+  :disabled
+) {
+  background:
+    #506ff0;
+}
+
+.withdraw-confirm:disabled {
+  opacity:
+    0.5;
+
+  cursor:
+    not-allowed;
+}
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media (
+  max-width: 900px
+) {
+
+  .earnings-grid {
+    grid-template-columns:
+      1fr;
+  }
+
+}
+
+@media (
+  max-width: 700px
+) {
+
+  .earnings-header-inner {
+    padding:
+      0 16px;
+  }
+
+  .earnings-main {
+    padding:
+      25px 16px
+      60px;
+  }
+
+  .earnings-heading {
+    align-items:
+      flex-start;
+
+    flex-direction:
+      column;
+  }
+
+  .earnings-heading h1 {
+    font-size:
+      24px;
+  }
+
+  .earnings-wallet-card {
+    padding:
+      24px 20px;
+  }
+
+  .earnings-wallet-top {
+    flex-direction:
+      column;
+  }
+
+  .wallet-balance {
+    font-size:
+      32px;
+  }
+
+  .wallet-withdraw-button {
+    width:
+      100%;
+  }
+
+  .wallet-stats {
+    grid-template-columns:
+      1fr;
+  }
+
+}
+
+@media (
+  max-width: 480px
+) {
+
+  .earnings-heading h1 {
+    font-size:
+      21px;
+  }
+
+  .earnings-card {
+    padding:
+      18px;
+  }
+
+  .earnings-transaction {
+    grid-template-columns:
+      32px
+      minmax(
+        0,
+        1fr
+      );
+  }
+
+  .transaction-amount {
+    grid-column:
+      2;
+
+    text-align:
+      left;
+  }
+
+  .withdraw-actions {
+    grid-template-columns:
+      1fr;
+  }
+
+}

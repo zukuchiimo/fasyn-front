@@ -1588,7 +1588,50 @@
   opacity: 0.55;
   cursor: not-allowed;
 }
+.request-clickable {
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
 
+.request-clickable:hover {
+  transform: translateY(-3px);
+  box-shadow:
+    0 16px 38px
+    rgba(0, 0, 0, 0.08);
+}
+
+.request-clickable:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 4px;
+}
+
+.request-detail-link {
+  border: 0;
+  background: transparent;
+  padding: 6px 0;
+
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+.request-detail-link span {
+  transition:
+    transform 0.2s ease;
+}
+
+.request-detail-link:hover span {
+  transform:
+    translateX(4px);
+}
 /* =========================================
    RESPONSIVE
 ========================================= */
@@ -1698,4 +1741,5 @@
   .quick-actions-card {
     padding: 20px;
   }
+  
 }
