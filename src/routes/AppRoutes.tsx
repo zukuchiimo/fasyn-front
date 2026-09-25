@@ -17,6 +17,7 @@ import CreateService from '../pages/CreateService/CreateService';
 import MyProfile from '../pages/MyProfile/MyProfile';
 import SpecialistEarnings
   from '../pages/SpecialistEarnings/SpecialistEarnings';
+  import AdminPayouts from '../pages/admin/AdminPayouts';
 /*
   NUEVA PANTALLA:
   DETALLE DE SOLICITUD DEL ESPECIALISTA
@@ -168,6 +169,10 @@ const AppRoutes = () => {
             <AdminSpecialists />
           }
         />
+        <Route
+  path="/admin/payouts"
+  element={<AdminPayouts />}
+/>
 
         <Route
           path="/admin/clients"

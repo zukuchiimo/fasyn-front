@@ -8,6 +8,7 @@ import {
   MapContainer,
   Marker,
   TileLayer,
+  useMap,
   useMapEvents,
 } from 'react-leaflet';
 import L from 'leaflet';
@@ -90,12 +91,34 @@ type Specialist = {
   startingPrice?: number | null;
 };
 
+type ClientPaymentStatus =
+  | 'PENDING'
+  | 'IN_PROCESS'
+  | 'APPROVED'
+  | 'REJECTED'
+  | 'CANCELLED'
+  | 'REFUNDED'
+  | 'CHARGED_BACK';
+
+type ClientPayment = {
+  id: number;
+  amount: string | number;
+  currency: string;
+  status: ClientPaymentStatus;
+  approvedAt?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
 type ClientServiceRequest = {
   id: number;
   clientId?: number;
   serviceId: number;
   status: RequestStatus;
   message?: string | null;
+  scheduledAt?: string | null;
+  scheduledTimeZone?: string | null;
+  payment?: ClientPayment | null;
   createdAt?: string;
   updatedAt?: string;
 };
@@ -184,12 +207,189 @@ const mapMarkerIcon = L.divIcon({
   iconAnchor: [19, 38],
 });
 
+type AddressLookup = {
+  state?: string;
+  municipality?: string;
+  neighborhood?: string;
+  postalCode?: string;
+  street?: string;
+  exteriorNumber?: string;
+};
+
+type NominatimAddress = {
+  house_number?: string;
+  road?: string;
+  pedestrian?: string;
+  residential?: string;
+  footway?: string;
+
+  neighbourhood?: string;
+  suburb?: string;
+  quarter?: string;
+  village?: string;
+
+  city?: string;
+  town?: string;
+  municipality?: string;
+  county?: string;
+  city_district?: string;
+
+  state?: string;
+  region?: string;
+
+  postcode?: string;
+};
+
+type NominatimPlace = {
+  lat: string;
+  lon: string;
+  display_name: string;
+  address?: NominatimAddress;
+};
+
+const normalizeMapAddress = (
+  address?: NominatimAddress
+): AddressLookup => {
+  if (!address) {
+    return {};
+  }
+
+  return {
+    state:
+      address.state ||
+      address.region ||
+      '',
+
+    municipality:
+      address.city ||
+      address.town ||
+      address.municipality ||
+      address.city_district ||
+      address.county ||
+      '',
+
+    neighborhood:
+      address.neighbourhood ||
+      address.suburb ||
+      address.quarter ||
+      address.village ||
+      '',
+
+    postalCode:
+      address.postcode ||
+      '',
+
+    street:
+      address.road ||
+      address.pedestrian ||
+      address.residential ||
+      address.footway ||
+      '',
+
+    exteriorNumber:
+      address.house_number ||
+      '',
+  };
+};
+
+const getTodayInputValue = () => {
+  const now =
+    new Date();
+
+  const year =
+    now.getFullYear();
+
+  const month =
+    String(
+      now.getMonth() + 1
+    ).padStart(
+      2,
+      '0'
+    );
+
+  const day =
+    String(
+      now.getDate()
+    ).padStart(
+      2,
+      '0'
+    );
+
+  return `${year}-${month}-${day}`;
+};
+
+type MapViewportSyncProps = {
+  latitude: number | null;
+  longitude: number | null;
+};
+
+const MapViewportSync = ({
+  latitude,
+  longitude,
+}: MapViewportSyncProps) => {
+  const map =
+    useMap();
+
+  useEffect(() => {
+    if (
+      latitude === null ||
+      longitude === null
+    ) {
+      return;
+    }
+
+    map.flyTo(
+      [
+        latitude,
+        longitude,
+      ],
+      17,
+      {
+        duration: 0.65,
+      }
+    );
+  }, [
+    latitude,
+    longitude,
+    map,
+  ]);
+
+  return null;
+};
+
+type MapClickHandlerProps = {
+  onPick: (
+    latitude: number,
+    longitude: number
+  ) => void;
+};
+
+const MapClickHandler = ({
+  onPick,
+}: MapClickHandlerProps) => {
+  useMapEvents({
+    click(event) {
+      onPick(
+        event.latlng.lat,
+        event.latlng.lng
+      );
+    },
+  });
+
+  return null;
+};
+
 type AddressMapPickerProps = {
   latitude: number | null;
   longitude: number | null;
+
   onChange: (
     latitude: number,
     longitude: number
+  ) => void;
+
+  onAddressResolved: (
+    address: AddressLookup
   ) => void;
 };
 
@@ -197,61 +397,617 @@ const AddressMapPicker = ({
   latitude,
   longitude,
   onChange,
+  onAddressResolved,
 }: AddressMapPickerProps) => {
-  const position: [number, number] = [
-    latitude ?? DEFAULT_MAP_POSITION[0],
-    longitude ?? DEFAULT_MAP_POSITION[1],
-  ];
+  const [
+    searchText,
+    setSearchText,
+  ] = useState('');
 
-  const MapClickHandler = () => {
-    useMapEvents({
-      click(event) {
-        onChange(
-          event.latlng.lat,
-          event.latlng.lng
+  const [
+    searchResults,
+    setSearchResults,
+  ] = useState<
+    NominatimPlace[]
+  >([]);
+
+  const [
+    searching,
+    setSearching,
+  ] = useState(false);
+
+  const [
+    locating,
+    setLocating,
+  ] = useState(false);
+
+  const [
+    resolvingAddress,
+    setResolvingAddress,
+  ] = useState(false);
+
+  const [
+    mapMessage,
+    setMapMessage,
+  ] = useState('');
+
+  const [
+    resolvedAddress,
+    setResolvedAddress,
+  ] = useState('');
+
+  const position:
+    [number, number] = [
+      latitude ??
+        DEFAULT_MAP_POSITION[0],
+
+      longitude ??
+        DEFAULT_MAP_POSITION[1],
+    ];
+
+  const reverseGeocode =
+    async (
+      currentLatitude: number,
+      currentLongitude: number
+    ) => {
+      try {
+        setResolvingAddress(
+          true
         );
-      },
-    });
 
-    return null;
-  };
+        const params =
+          new URLSearchParams({
+            format:
+              'jsonv2',
+
+            lat:
+              String(
+                currentLatitude
+              ),
+
+            lon:
+              String(
+                currentLongitude
+              ),
+
+            addressdetails:
+              '1',
+
+            zoom:
+              '18',
+          });
+
+        const response =
+          await fetch(
+            `https://nominatim.openstreetmap.org/reverse?${params.toString()}`,
+            {
+              headers: {
+                Accept:
+                  'application/json',
+              },
+            }
+          );
+
+        if (!response.ok) {
+          throw new Error(
+            'No fue posible consultar la dirección'
+          );
+        }
+
+        const result =
+          (await response.json()) as
+            NominatimPlace;
+
+        setResolvedAddress(
+          result.display_name ||
+            ''
+        );
+
+        onAddressResolved(
+          normalizeMapAddress(
+            result.address
+          )
+        );
+
+        setMapMessage(
+          ''
+        );
+      } catch (error) {
+        console.error(
+          'REVERSE GEOCODING ERROR:',
+          error
+        );
+
+        /*
+          El pin sigue siendo válido aunque
+          el servicio de geocodificación no
+          pueda resolver el texto.
+        */
+        setMapMessage(
+          'Ubicación seleccionada. Puedes completar la dirección manualmente.'
+        );
+      } finally {
+        setResolvingAddress(
+          false
+        );
+      }
+    };
+
+  const selectCoordinates =
+    async (
+      currentLatitude: number,
+      currentLongitude: number
+    ) => {
+      onChange(
+        currentLatitude,
+        currentLongitude
+      );
+
+      setSearchResults(
+        []
+      );
+
+      await reverseGeocode(
+        currentLatitude,
+        currentLongitude
+      );
+    };
+
+  const handleSearch =
+    async (
+      event:
+        React.FormEvent<HTMLFormElement>
+    ) => {
+      event.preventDefault();
+
+      const query =
+        searchText.trim();
+
+      if (
+        query.length < 3
+      ) {
+        setMapMessage(
+          'Escribe al menos 3 caracteres para buscar.'
+        );
+
+        return;
+      }
+
+      try {
+        setSearching(
+          true
+        );
+
+        setMapMessage(
+          ''
+        );
+
+        const params =
+          new URLSearchParams({
+            format:
+              'jsonv2',
+
+            q:
+              query,
+
+            limit:
+              '6',
+
+            addressdetails:
+              '1',
+
+            countrycodes:
+              'mx',
+          });
+
+        const response =
+          await fetch(
+            `https://nominatim.openstreetmap.org/search?${params.toString()}`,
+            {
+              headers: {
+                Accept:
+                  'application/json',
+              },
+            }
+          );
+
+        if (!response.ok) {
+          throw new Error(
+            'No fue posible buscar la dirección'
+          );
+        }
+
+        const results =
+          (await response.json()) as
+            NominatimPlace[];
+
+        setSearchResults(
+          results
+        );
+
+        if (
+          results.length === 0
+        ) {
+          setMapMessage(
+            'No encontramos esa ubicación. Intenta con calle, colonia y municipio.'
+          );
+        }
+      } catch (error) {
+        console.error(
+          'MAP SEARCH ERROR:',
+          error
+        );
+
+        setMapMessage(
+          'No fue posible buscar la ubicación. Puedes colocar el pin manualmente.'
+        );
+      } finally {
+        setSearching(
+          false
+        );
+      }
+    };
+
+  const handleSelectSearchResult =
+    async (
+      result:
+        NominatimPlace
+    ) => {
+      const selectedLatitude =
+        Number(
+          result.lat
+        );
+
+      const selectedLongitude =
+        Number(
+          result.lon
+        );
+
+      if (
+        !Number.isFinite(
+          selectedLatitude
+        ) ||
+        !Number.isFinite(
+          selectedLongitude
+        )
+      ) {
+        return;
+      }
+
+      onChange(
+        selectedLatitude,
+        selectedLongitude
+      );
+
+      setResolvedAddress(
+        result.display_name
+      );
+
+      setSearchText(
+        result.display_name
+      );
+
+      setSearchResults(
+        []
+      );
+
+      onAddressResolved(
+        normalizeMapAddress(
+          result.address
+        )
+      );
+    };
+
+  const handleUseMyLocation =
+    () => {
+      if (
+        !navigator.geolocation
+      ) {
+        setMapMessage(
+          'Tu navegador no permite obtener la ubicación.'
+        );
+
+        return;
+      }
+
+      setLocating(
+        true
+      );
+
+      setMapMessage(
+        ''
+      );
+
+      navigator.geolocation.getCurrentPosition(
+        async (
+          positionResult
+        ) => {
+          try {
+            await selectCoordinates(
+              positionResult.coords
+                .latitude,
+
+              positionResult.coords
+                .longitude
+            );
+          } finally {
+            setLocating(
+              false
+            );
+          }
+        },
+
+        (
+          error
+        ) => {
+          console.error(
+            'GEOLOCATION ERROR:',
+            error
+          );
+
+          setLocating(
+            false
+          );
+
+          setMapMessage(
+            'No fue posible obtener tu ubicación. Revisa el permiso del navegador.'
+          );
+        },
+
+        {
+          enableHighAccuracy:
+            true,
+
+          timeout:
+            12000,
+
+          maximumAge:
+            30000,
+        }
+      );
+    };
 
   return (
-    <MapContainer
-      center={position}
-      zoom={latitude !== null ? 16 : 11}
-      className="service-address-map"
-      scrollWheelZoom
-    >
-      <TileLayer
-        attribution='&copy; OpenStreetMap contributors'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
+    <div className="service-map-picker">
 
-      <MapClickHandler />
+      <div className="service-map-toolbar">
 
-      {latitude !== null &&
-        longitude !== null && (
-        <Marker
-          position={[latitude, longitude]}
-          icon={mapMarkerIcon}
-          draggable
-          eventHandlers={{
-            dragend(event) {
-              const marker =
-                event.target as L.Marker;
-              const location =
-                marker.getLatLng();
+        <form
+          className="service-map-search"
+          onSubmit={
+            handleSearch
+          }
+        >
+          <span className="service-map-search-icon">
+            ⌕
+          </span>
 
-              onChange(
-                location.lat,
-                location.lng
+          <input
+            type="text"
+            value={
+              searchText
+            }
+            onChange={(
+              event
+            ) => {
+              setSearchText(
+                event.target.value
               );
-            },
-          }}
-        />
+
+              if (
+                searchResults.length >
+                0
+              ) {
+                setSearchResults(
+                  []
+                );
+              }
+            }}
+            placeholder="Buscar calle, colonia o lugar"
+            autoComplete="off"
+          />
+
+          <button
+            type="submit"
+            disabled={
+              searching
+            }
+          >
+            {
+              searching
+                ? 'Buscando...'
+                : 'Buscar'
+            }
+          </button>
+
+        </form>
+
+        <button
+          type="button"
+          className="service-map-location-button"
+          onClick={
+            handleUseMyLocation
+          }
+          disabled={
+            locating
+          }
+        >
+          <span>
+            ◎
+          </span>
+
+          {
+            locating
+              ? 'Ubicando...'
+              : 'Usar mi ubicación'
+          }
+        </button>
+
+      </div>
+
+      {searchResults.length >
+        0 && (
+
+        <div className="service-map-results">
+
+          {searchResults.map(
+            (
+              result,
+              index
+            ) => (
+
+              <button
+                key={
+                  `${result.lat}-${result.lon}-${index}`
+                }
+                type="button"
+                onClick={() =>
+                  handleSelectSearchResult(
+                    result
+                  )
+                }
+              >
+                <span>
+                  📍
+                </span>
+
+                <p>
+                  {
+                    result.display_name
+                  }
+                </p>
+              </button>
+
+            )
+          )}
+
+        </div>
       )}
-    </MapContainer>
+
+      <div className="service-map-canvas">
+
+        <MapContainer
+          center={
+            position
+          }
+          zoom={
+            latitude !== null
+              ? 17
+              : 11
+          }
+          className="service-address-map"
+          scrollWheelZoom
+        >
+
+          <TileLayer
+            attribution='&copy; OpenStreetMap contributors'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+
+          <MapViewportSync
+            latitude={
+              latitude
+            }
+            longitude={
+              longitude
+            }
+          />
+
+          <MapClickHandler
+            onPick={(
+              currentLatitude,
+              currentLongitude
+            ) => {
+              void selectCoordinates(
+                currentLatitude,
+                currentLongitude
+              );
+            }}
+          />
+
+          {latitude !== null &&
+            longitude !== null && (
+
+            <Marker
+              position={[
+                latitude,
+                longitude,
+              ]}
+              icon={
+                mapMarkerIcon
+              }
+              draggable
+              eventHandlers={{
+                dragend(
+                  event
+                ) {
+                  const marker =
+                    event.target as
+                      L.Marker;
+
+                  const location =
+                    marker.getLatLng();
+
+                  void selectCoordinates(
+                    location.lat,
+                    location.lng
+                  );
+                },
+              }}
+            />
+
+          )}
+
+        </MapContainer>
+
+        <div className="service-map-tip">
+          <span>
+            📍
+          </span>
+
+          <p>
+            Haz clic en el mapa o arrastra
+            el pin hasta la entrada exacta.
+          </p>
+        </div>
+
+      </div>
+
+      {resolvingAddress && (
+        <div className="service-map-status">
+          Obteniendo dirección...
+        </div>
+      )}
+
+      {resolvedAddress && (
+        <div className="service-map-resolved">
+
+          <span>
+            ✓
+          </span>
+
+          <div>
+            <small>
+              UBICACIÓN SELECCIONADA
+            </small>
+
+            <strong>
+              {
+                resolvedAddress
+              }
+            </strong>
+          </div>
+
+        </div>
+      )}
+
+      {mapMessage && (
+        <div className="service-map-message">
+          {mapMessage}
+        </div>
+      )}
+
+    </div>
   );
 };
 
@@ -414,6 +1170,13 @@ const SpecialistProfile = () => {
   );
 
   const [
+    creatingPaymentId,
+    setCreatingPaymentId,
+  ] = useState<number | null>(
+    null
+  );
+
+  const [
     requestMessage,
     setRequestMessage,
   ] = useState('');
@@ -455,6 +1218,16 @@ const SpecialistProfile = () => {
   const [
     serviceMessage,
     setServiceMessage,
+  ] = useState('');
+
+  const [
+    serviceDate,
+    setServiceDate,
+  ] = useState('');
+
+  const [
+    serviceTime,
+    setServiceTime,
   ] = useState('');
 
   const [
@@ -771,6 +1544,8 @@ const SpecialistProfile = () => {
     setRequestError('');
     setSelectedService(service);
     setServiceMessage('');
+    setServiceDate('');
+    setServiceTime('');
     setShowNewAddressForm(false);
     setSelectedAddressId(null);
 
@@ -814,6 +1589,8 @@ const SpecialistProfile = () => {
       setSelectedService(null);
       setSelectedAddressId(null);
       setServiceMessage('');
+      setServiceDate('');
+      setServiceTime('');
       setShowNewAddressForm(false);
       setRequestError('');
     };
@@ -1176,6 +1953,59 @@ const SpecialistProfile = () => {
         return;
       }
 
+      if (
+        !serviceDate ||
+        !serviceTime
+      ) {
+        setRequestError(
+          'Selecciona la fecha y hora del servicio.'
+        );
+        return;
+      }
+
+      /*
+        El input date/time representa la hora local
+        seleccionada por el usuario.
+
+        Al crear Date sin Z, el navegador interpreta
+        esa hora en la zona local del dispositivo.
+      */
+      const localScheduledDate =
+        new Date(
+          `${serviceDate}T${serviceTime}:00`
+        );
+
+      if (
+        Number.isNaN(
+          localScheduledDate.getTime()
+        )
+      ) {
+        setRequestError(
+          'La fecha y hora seleccionadas no son válidas.'
+        );
+        return;
+      }
+
+      if (
+        localScheduledDate.getTime() <=
+        Date.now()
+      ) {
+        setRequestError(
+          'Selecciona una fecha y hora futura.'
+        );
+        return;
+      }
+
+      const scheduledAt =
+        localScheduledDate.toISOString();
+
+      const scheduledTimeZone =
+        Intl
+          .DateTimeFormat()
+          .resolvedOptions()
+          .timeZone ||
+        'America/Mexico_City';
+
       try {
         const token =
           localStorage.getItem(
@@ -1200,8 +2030,14 @@ const SpecialistProfile = () => {
             {
               serviceId:
                 selectedService.id,
+
               addressId:
                 selectedAddressId,
+
+              scheduledAt,
+
+              scheduledTimeZone,
+
               message:
                 serviceMessage.trim(),
             },
@@ -1221,14 +2057,15 @@ const SpecialistProfile = () => {
         await loadMyRequests();
 
         setRequestMessage(
-          response.data?.message ||
-            'Tu solicitud fue enviada al administrador para revisión.'
+          'Solicitud enviada correctamente. FASYN la revisará y, cuando sea aprobada, aparecerá el botón “Continuar al pago”.'
         );
 
         setRequestModalOpen(false);
         setSelectedService(null);
         setSelectedAddressId(null);
         setServiceMessage('');
+        setServiceDate('');
+        setServiceTime('');
         setShowNewAddressForm(false);
       } catch (
         requestError: any
@@ -1247,9 +2084,11 @@ const SpecialistProfile = () => {
           localStorage.removeItem(
             'token'
           );
+
           localStorage.removeItem(
             'user'
           );
+
           navigate('/login');
           return;
         }
@@ -1340,6 +2179,111 @@ const SpecialistProfile = () => {
     };
 
   /*
+    CONTINUAR AL PAGO
+
+    Solo se ejecuta cuando la solicitud ya fue
+    aprobada por FASYN. El importe nunca sale
+    del frontend: el backend lo obtiene del
+    servicio asociado a la solicitud.
+  */
+  const handleContinueToPayment =
+    async (
+      requestId: number
+    ) => {
+      try {
+        const token =
+          localStorage.getItem(
+            'token'
+          );
+
+        if (!token) {
+          navigate('/login');
+          return;
+        }
+
+        setCreatingPaymentId(
+          requestId
+        );
+
+        setRequestError('');
+        setRequestMessage('');
+
+        const response =
+          await api.post(
+            `/payments/request/${requestId}`,
+            {},
+            {
+              headers: {
+                Authorization:
+                  `Bearer ${token}`,
+              },
+            }
+          );
+
+        console.log(
+          'PAGO MERCADO PAGO:',
+          response.data
+        );
+
+        /*
+          Si el webhook ya confirmó el pago,
+          no volvemos a enviar al usuario al
+          checkout.
+        */
+        if (
+          response.data?.alreadyPaid
+        ) {
+          setRequestMessage(
+            'Este servicio ya se encuentra pagado.'
+          );
+
+          await loadMyRequests();
+          return;
+        }
+
+        const checkoutUrl =
+          response.data?.checkoutUrl;
+
+        if (!checkoutUrl) {
+          throw new Error(
+            'Mercado Pago no devolvió la URL de pago.'
+          );
+        }
+
+        /*
+          Checkout Pro.
+
+          Usamos location.assign porque queremos
+          continuar el flujo en la página segura
+          de Mercado Pago.
+        */
+        window.location.assign(
+          checkoutUrl
+        );
+      } catch (
+        paymentError: any
+      ) {
+        console.error(
+          'ERROR CREANDO PAGO:',
+          paymentError.response
+            ?.data ||
+            paymentError
+        );
+
+        setRequestError(
+          paymentError.response
+            ?.data?.message ||
+            paymentError.message ||
+            'No fue posible iniciar el pago.'
+        );
+      } finally {
+        setCreatingPaymentId(
+          null
+        );
+      }
+    };
+
+  /*
     BOTÓN SEGÚN ESTADO
   */
   const renderRequestButton = (
@@ -1413,7 +2357,31 @@ const SpecialistProfile = () => {
     }
 
     /*
-      APROBADA
+      APROBADA + PAGO CONFIRMADO
+    */
+    if (
+      existingRequest.status ===
+        'APPROVED' &&
+      existingRequest.payment
+        ?.status === 'APPROVED'
+    ) {
+      return (
+        <button
+          type="button"
+          disabled
+          className="public-service-paid"
+        >
+          Pagado
+
+          <b>
+            ✓
+          </b>
+        </button>
+      );
+    }
+
+    /*
+      APROBADA - CONTINUAR AL PAGO
     */
     if (
       existingRequest.status ===
@@ -1422,13 +2390,24 @@ const SpecialistProfile = () => {
       return (
         <button
           type="button"
-          disabled
-          className="public-service-approved"
+          className="public-service-payment"
+          disabled={
+            creatingPaymentId ===
+            existingRequest.id
+          }
+          onClick={() =>
+            handleContinueToPayment(
+              existingRequest.id
+            )
+          }
         >
-          Solicitud aprobada
+          {creatingPaymentId ===
+          existingRequest.id
+            ? 'Preparando pago...'
+            : 'Continuar al pago'}
 
           <b>
-            ✓
+            →
           </b>
         </button>
       );
@@ -2529,7 +3508,136 @@ const SpecialistProfile = () => {
                       Agregar nueva dirección
                     </button>
 
+                    <div className="service-request-schedule">
+
+                      <div className="service-request-section-title compact">
+                        <div>
+                          <span>
+                            02
+                          </span>
+
+                          <div>
+                            <strong>
+                              Fecha y hora
+                            </strong>
+
+                            <small>
+                              Indica cuándo necesitas
+                              que se realice el servicio.
+                            </small>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="service-schedule-grid">
+
+                        <div className="service-form-field">
+                          <label
+                            htmlFor="serviceDate"
+                          >
+                            Fecha *
+                          </label>
+
+                          <input
+                            id="serviceDate"
+                            type="date"
+                            value={
+                              serviceDate
+                            }
+                            min={
+                              getTodayInputValue()
+                            }
+                            onClick={(event) => {
+                              try {
+                                event.currentTarget
+                                  .showPicker?.();
+                              } catch {
+                                // Algunos navegadores abren
+                                // el selector de forma nativa.
+                              }
+                            }}
+                            onChange={(
+                              event
+                            ) => {
+                              setServiceDate(
+                                event.target
+                                  .value
+                              );
+
+                              setRequestError(
+                                ''
+                              );
+                            }}
+                          />
+                        </div>
+
+                        <div className="service-form-field">
+                          <label
+                            htmlFor="serviceTime"
+                          >
+                            Hora *
+                          </label>
+
+                          <input
+                            id="serviceTime"
+                            type="time"
+                            value={
+                              serviceTime
+                            }
+                            step={900}
+                            onClick={(event) => {
+                              try {
+                                event.currentTarget
+                                  .showPicker?.();
+                              } catch {
+                                // Algunos navegadores abren
+                                // el selector de forma nativa.
+                              }
+                            }}
+                            onChange={(
+                              event
+                            ) => {
+                              setServiceTime(
+                                event.target
+                                  .value
+                              );
+
+                              setRequestError(
+                                ''
+                              );
+                            }}
+                          />
+                        </div>
+
+                      </div>
+
+                      <small className="service-schedule-timezone">
+                        La hora se enviará usando tu zona horaria actual.
+                      </small>
+
+                    </div>
+
                     <div className="service-request-message-field">
+
+                      <div className="service-request-section-title compact">
+                        <div>
+                          <span>
+                            03
+                          </span>
+
+                          <div>
+                            <strong>
+                              Indicaciones
+                            </strong>
+
+                            <small>
+                              Información adicional para
+                              que el especialista pueda llegar.
+                            </small>
+                          </div>
+                        </div>
+                      </div>
+
                       <label
                         htmlFor="serviceMessage"
                       >
@@ -2558,6 +3666,7 @@ const SpecialistProfile = () => {
                         {serviceMessage.length}
                         /500
                       </small>
+
                     </div>
                   </>
                 )}
@@ -2793,20 +3902,64 @@ const SpecialistProfile = () => {
                     </p>
 
                     <AddressMapPicker
-                      latitude={newAddress.latitude}
-                      longitude={newAddress.longitude}
+                      latitude={
+                        newAddress.latitude
+                      }
+                      longitude={
+                        newAddress.longitude
+                      }
                       onChange={(
                         latitude,
                         longitude
                       ) => {
                         setNewAddress(
-                          (previous) => ({
+                          (
+                            previous
+                          ) => ({
                             ...previous,
                             latitude,
                             longitude,
                           })
                         );
-                        setRequestError('');
+
+                        setRequestError(
+                          ''
+                        );
+                      }}
+                      onAddressResolved={(
+                        resolved
+                      ) => {
+                        setNewAddress(
+                          (
+                            previous
+                          ) => ({
+                            ...previous,
+
+                            state:
+                              resolved.state ||
+                              previous.state,
+
+                            municipality:
+                              resolved.municipality ||
+                              previous.municipality,
+
+                            neighborhood:
+                              resolved.neighborhood ||
+                              previous.neighborhood,
+
+                            postalCode:
+                              resolved.postalCode ||
+                              previous.postalCode,
+
+                            street:
+                              resolved.street ||
+                              previous.street,
+
+                            exteriorNumber:
+                              resolved.exteriorNumber ||
+                              previous.exteriorNumber,
+                          })
+                        );
                       }}
                     />
 
@@ -2920,6 +4073,8 @@ const SpecialistProfile = () => {
                   disabled={
                     loadingAddresses ||
                     !selectedAddressId ||
+                    !serviceDate ||
+                    !serviceTime ||
                     requestingServiceId !==
                       null
                   }

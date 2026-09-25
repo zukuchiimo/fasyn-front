@@ -491,6 +491,15 @@ const AdminDashboard = () => {
   <span>◇</span>
   Categorías
 </button>
+<button
+  type="button"
+  onClick={() =>
+    navigate('/admin/payouts')
+  }
+>
+  <span>$</span>
+  Pagos
+</button>
 
         </nav>
 
