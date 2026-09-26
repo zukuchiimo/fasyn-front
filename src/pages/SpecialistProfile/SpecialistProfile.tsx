@@ -2286,206 +2286,153 @@ const SpecialistProfile = () => {
   /*
     BOTÓN SEGÚN ESTADO
   */
-  const renderRequestButton = (
-    service: Service
-  ) => {
-    const existingRequest =
-      getActiveRequest(
-        service.id
-      );
+const renderRequestButton = (
+  service: Service
+) => {
+  const existingRequest =
+    getActiveRequest(service.id);
 
-    /*
-      TODAVÍA NO HAY SOLICITUD
-    */
-    if (!existingRequest) {
-      return (
-        <button
-          type="button"
-          disabled={
-            requestingServiceId ===
-            service.id
-          }
-          onClick={() =>
-            openRequestModal(
-              service
-            )
-          }
-        >
-          {requestingServiceId ===
-          service.id
-            ? 'Enviando...'
-            : 'Solicitar'}
-
-          <b>
-            →
-          </b>
-        </button>
-      );
-    }
-
-    /*
-      PENDIENTE DE ADMIN
-    */
-    if (
-      existingRequest.status ===
-      'PENDING_ADMIN'
-    ) {
-      return (
-        <button
-          type="button"
-          className="public-service-cancel"
-          disabled={
-            cancellingRequestId ===
-            existingRequest.id
-          }
-          onClick={() =>
-            handleCancelRequest(
-              existingRequest.id
-            )
-          }
-        >
-          {cancellingRequestId ===
-          existingRequest.id
-            ? 'Cancelando...'
-            : 'Cancelar'}
-
-          <b>
-            ×
-          </b>
-        </button>
-      );
-    }
-
-    /*
-      APROBADA + PAGO CONFIRMADO
-    */
-    if (
-      existingRequest.status ===
-        'APPROVED' &&
-      existingRequest.payment
-        ?.status === 'APPROVED'
-    ) {
-      return (
-        <button
-          type="button"
-          disabled
-          className="public-service-paid"
-        >
-          Pagado
-
-          <b>
-            ✓
-          </b>
-        </button>
-      );
-    }
-
-    /*
-      APROBADA - CONTINUAR AL PAGO
-    */
-    if (
-      existingRequest.status ===
-      'APPROVED'
-    ) {
-      return (
-        <button
-          type="button"
-          className="public-service-payment"
-          disabled={
-            creatingPaymentId ===
-            existingRequest.id
-          }
-          onClick={() =>
-            handleContinueToPayment(
-              existingRequest.id
-            )
-          }
-        >
-          {creatingPaymentId ===
-          existingRequest.id
-            ? 'Preparando pago...'
-            : 'Continuar al pago'}
-
-          <b>
-            →
-          </b>
-        </button>
-      );
-    }
-
-    /*
-      EN PROCESO
-    */
-    if (
-      existingRequest.status ===
-      'IN_PROGRESS'
-    ) {
-      return (
-        <button
-          type="button"
-          disabled
-          className="public-service-approved"
-        >
-          En proceso
-
-          <b>
-            ✓
-          </b>
-        </button>
-      );
-    }
-
-    /*
-      COMPLETADA
-    */
-    if (
-      existingRequest.status ===
-      'COMPLETED'
-    ) {
-      return (
-        <button
-          type="button"
-          disabled
-          className="public-service-completed"
-        >
-          Completado
-
-          <b>
-            ✓
-          </b>
-        </button>
-      );
-    }
-
-    /*
-      CANCELADA / RECHAZADA
-      permite volver a solicitar.
-    */
+  // NO EXISTE SOLICITUD
+  if (!existingRequest) {
     return (
       <button
         type="button"
         disabled={
-          requestingServiceId ===
-          service.id
+          requestingServiceId === service.id
         }
         onClick={() =>
-          openRequestModal(
-            service
-          )
+          openRequestModal(service)
         }
       >
-        {requestingServiceId ===
-        service.id
+        {requestingServiceId === service.id
           ? 'Enviando...'
           : 'Solicitar'}
 
-        <b>
-          →
-        </b>
+        <b>→</b>
       </button>
     );
-  };
+  }
 
+  const paymentStatus =
+    existingRequest.payment?.status;
+
+  /*
+    PAGO YA CONFIRMADO +
+    SOLICITUD ESPERANDO PROCESARSE
+  */
+  if (
+    existingRequest.status ===
+      'PENDING_ADMIN' &&
+    paymentStatus === 'APPROVED'
+  ) {
+    return (
+      <button
+        type="button"
+        disabled
+        className="public-service-paid"
+      >
+        Por procesar
+        <b>✓</b>
+      </button>
+    );
+  }
+
+  /*
+    SOLICITUD CREADA PERO NO PAGADA
+  */
+  if (
+    existingRequest.status ===
+      'PENDING_ADMIN' &&
+    paymentStatus !== 'APPROVED'
+  ) {
+    return (
+      <button
+        type="button"
+        className="public-service-payment"
+        disabled={
+          creatingPaymentId ===
+          existingRequest.id
+        }
+        onClick={() =>
+          handleContinueToPayment(
+            existingRequest.id
+          )
+        }
+      >
+        {creatingPaymentId ===
+        existingRequest.id
+          ? 'Preparando pago...'
+          : 'Continuar al pago'}
+
+        <b>→</b>
+      </button>
+    );
+  }
+
+  /*
+    ADMIN YA APROBÓ
+  */
+  if (
+    existingRequest.status ===
+    'APPROVED'
+  ) {
+    return (
+      <button
+        type="button"
+        disabled
+        className="public-service-approved"
+      >
+         Servicio solicitado
+
+        <b>✓</b>
+      </button>
+    );
+  }
+
+  if (
+    existingRequest.status ===
+    'IN_PROGRESS'
+  ) {
+    return (
+      <button
+        type="button"
+        disabled
+        className="public-service-approved"
+      >
+        En proceso
+        <b>✓</b>
+      </button>
+    );
+  }
+
+  if (
+    existingRequest.status ===
+    'COMPLETED'
+  ) {
+    return (
+      <button
+        type="button"
+        disabled
+        className="public-service-completed"
+      >
+        Completado
+        <b>✓</b>
+      </button>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={() =>
+        openRequestModal(service)
+      }
+    >
+      Solicitar
+      <b>→</b>
+    </button>
+  );
+};
   /*
     LOADING
   */

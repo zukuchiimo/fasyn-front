@@ -18,6 +18,7 @@ import MyProfile from '../pages/MyProfile/MyProfile';
 import SpecialistEarnings
   from '../pages/SpecialistEarnings/SpecialistEarnings';
   import AdminPayouts from '../pages/admin/AdminPayouts';
+  import PaymentSuccess from '../pages/payment/PaymentSuccess';
 /*
   NUEVA PANTALLA:
   DETALLE DE SOLICITUD DEL ESPECIALISTA
@@ -75,7 +76,10 @@ const AppRoutes = () => {
             <Specialists />
           }
         />
-
+<Route
+  path="/payment/success"
+  element={<PaymentSuccess />}
+/>
         <Route
           path="/specialists/:id"
           element={

@@ -500,14 +500,13 @@ const MyRequests = () => {
 
     switch (status) {
 
-      case 'PENDING_ADMIN':
-        return {
-          label:
-            'Pendiente de aprobación',
-          className:
-            'request-status pending',
-        };
+   
 
+        case 'PENDING_ADMIN':
+  return {
+    label: 'Por procesar',
+    className: 'request-status pending',
+  };
       case 'APPROVED':
         return {
           label:
@@ -1237,7 +1236,7 @@ const MyRequests = () => {
                       {request.message && (
                         <div className="request-message-box">
 
-                          <span className="request-detail-title">
+                          <span className="request-detail-title ">
                             INDICACIONES
                           </span>
 

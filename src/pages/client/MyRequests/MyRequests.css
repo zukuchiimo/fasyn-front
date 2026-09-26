@@ -1247,7 +1247,25 @@
   box-shadow: none;
 }
 
+.request-message-box {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: 10px;
+}
 
+.request-message-box .request-detail-title {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  margin-bottom: 4px;
+  letter-spacing: 0.4px;
+}
+
+.request-message-box p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.4;
+}
 /* =========================================================
    ANIMACIONES
    ========================================================= */
