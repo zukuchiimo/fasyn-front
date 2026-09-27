@@ -823,29 +823,25 @@ const MyRequests = () => {
             Mis solicitudes
           </button>
 
-          <button
-            type="button"
-            onClick={() =>
-              alert(
-                'Favoritos estará disponible próximamente.'
-              )
-            }
-          >
-            <span>♡</span>
-            Favoritos
-          </button>
+<button
+  type="button"
+  onClick={() =>
+    navigate('/client/favorites')
+  }
+>
+  <span>♡</span>
+  Favoritos
+</button>
 
-          <button
-            type="button"
-            onClick={() =>
-              alert(
-                'Historial estará disponible próximamente.'
-              )
-            }
-          >
-            <span>✓</span>
-            Historial
-          </button>
+<button
+  type="button"
+  onClick={() =>
+    navigate('/client/history')
+  }
+>
+  <span>✓</span>
+  Historial
+</button>
 
           <button
             type="button"

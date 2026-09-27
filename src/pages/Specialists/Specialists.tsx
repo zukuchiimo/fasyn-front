@@ -1058,7 +1058,51 @@ const formatRequestDate = (
     }
   ).format(parsedDate);
 };
+const addFavorite = async (
+  specialistId: number
+) => {
+  if (!token) {
+    navigate('/login');
+    return;
+  }
 
+  if (
+    currentUser?.role !== 'CLIENT'
+  ) {
+    return;
+  }
+
+  try {
+    await api.post(
+      `/favorites/${specialistId}`,
+      {},
+      {
+        headers: {
+          Authorization:
+            `Bearer ${token}`,
+        },
+      }
+    );
+
+    alert(
+      'Especialista agregado a favoritos.'
+    );
+  } catch (
+    requestError: any
+  ) {
+    console.error(
+      'ERROR AGREGANDO FAVORITO:',
+      requestError.response?.data ||
+        requestError
+    );
+
+    alert(
+      requestError.response?.data
+        ?.message ||
+        'No fue posible agregar a favoritos.'
+    );
+  }
+};
 const formatRequestPrice = (
   request: ClientServiceRequest
 ) => {
@@ -3824,7 +3868,23 @@ const formatRequestPrice = (
 
 
                 <div className="specialist-card-actions">
-
+{currentUser?.role === 'CLIENT' && (
+  <button
+    type="button"
+    className="favorite-specialist-button"
+    title="Agregar a favoritos"
+    onClick={() =>
+      addFavorite(
+        specialist.id
+      )
+    }
+  >
+    ♡
+    <span>
+      Agregar a favoritos
+    </span>
+  </button>
+)}
   <button
     type="button"
     className="profile-button"

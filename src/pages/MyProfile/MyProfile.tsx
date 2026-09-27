@@ -362,142 +362,162 @@ const MyProfile = () => {
     setSuccess('');
   };
 
-  const handleProfilePhotoChange = async (
-    event: ChangeEvent<HTMLInputElement>
-  ) => {
-    const file =
-      event.target.files?.[0];
+const handleProfilePhotoChange = async (
+  event: ChangeEvent<HTMLInputElement>
+) => {
+  const file =
+    event.target.files?.[0];
 
-    if (!file) {
-      return;
-    }
+  console.log(
+    '📸 FOTO SELECCIONADA:',
+    file
+  );
 
-    const allowedTypes = [
-      'image/jpeg',
-      'image/png',
-      'image/webp',
-    ];
+  if (!file) {
+    return;
+  }
 
-    if (
-      !allowedTypes.includes(file.type)
-    ) {
-      setError(
-        'La foto debe ser JPG, PNG o WEBP.'
-      );
+  const allowedTypes = [
+    'image/jpeg',
+    'image/png',
+    'image/webp',
+  ];
 
-      event.target.value = '';
-      return;
-    }
+  if (
+    !allowedTypes.includes(file.type)
+  ) {
+    setError(
+      'La foto debe ser JPG, PNG o WEBP.'
+    );
 
-    const maxSize =
-      5 * 1024 * 1024;
+    event.target.value = '';
+    return;
+  }
 
-    if (file.size > maxSize) {
-      setError(
-        'La foto no puede pesar más de 5 MB.'
-      );
+  const maxSize =
+    5 * 1024 * 1024;
 
-      event.target.value = '';
-      return;
-    }
+  if (file.size > maxSize) {
+    setError(
+      'La foto no puede pesar más de 5 MB.'
+    );
 
-    const token =
-      localStorage.getItem('token');
+    event.target.value = '';
+    return;
+  }
 
-    if (!token) {
-      navigate('/login');
-      return;
-    }
+  const token =
+    localStorage.getItem('token');
 
-    const previousPhoto =
-      resolveUploadUrl(
-        profile?.profilePhotoUrl
-      );
+  if (!token) {
+    navigate('/login');
+    return;
+  }
 
-    const localPreview =
-      URL.createObjectURL(file);
+  const previousPhoto =
+    resolveUploadUrl(
+      profile?.profilePhotoUrl
+    );
 
-    try {
-      setUploadingPhoto(true);
-      setError('');
-      setSuccess('');
-      setProfilePhotoPreview(
-        localPreview
-      );
+  const localPreview =
+    URL.createObjectURL(file);
 
-      const formData =
-        new FormData();
+  try {
+    setUploadingPhoto(true);
+    setError('');
+    setSuccess('');
 
-      formData.append(
-        'profilePhoto',
-        file
-      );
+    setProfilePhotoPreview(
+      localPreview
+    );
 
-      const response =
-        await api.post(
-          '/specialists/profile/files',
-          formData,
-          {
-            headers: {
-              Authorization:
-                `Bearer ${token}`,
-            },
-          }
-        );
+    const formData =
+      new FormData();
 
-      const savedPhotoUrl =
-        response.data?.files
-          ?.profilePhotoUrl;
+    formData.append(
+      'profilePhoto',
+      file
+    );
 
-      if (savedPhotoUrl) {
-        setProfile((current) =>
-          current
-            ? {
-                ...current,
-                profilePhotoUrl:
-                  savedPhotoUrl,
-              }
-            : current
-        );
-
-        setProfilePhotoPreview(
-          resolveUploadUrl(
-            savedPhotoUrl
-          )
-        );
-      } else {
-        await loadProfile();
+    console.log(
+      '📤 SUBIENDO FOTO...',
+      {
+        name: file.name,
+        type: file.type,
+        size: file.size,
       }
+    );
 
-      setSuccess(
-        'Tu foto de perfil se actualizó correctamente.'
+    const response =
+      await api.post(
+        '/specialists/profile/files',
+        formData,
+        {
+          headers: {
+            Authorization:
+              `Bearer ${token}`,
+          },
+        }
       );
-    } catch (requestError: any) {
-      console.error(
-        'ERROR ACTUALIZANDO FOTO:',
-        requestError.response?.data ||
-          requestError
+
+    console.log(
+      '✅ RESPUESTA FOTO:',
+      response.data
+    );
+
+    const savedPhotoUrl =
+      response.data?.files
+        ?.profilePhotoUrl;
+
+    if (savedPhotoUrl) {
+      setProfile((current) =>
+        current
+          ? {
+              ...current,
+              profilePhotoUrl:
+                savedPhotoUrl,
+            }
+          : current
       );
 
       setProfilePhotoPreview(
-        previousPhoto
+        resolveUploadUrl(
+          savedPhotoUrl
+        )
       );
-
-      setError(
-        requestError.response?.data
-          ?.message ||
-          'No fue posible actualizar tu foto de perfil.'
-      );
-    } finally {
-      URL.revokeObjectURL(
-        localPreview
-      );
-
-      setUploadingPhoto(false);
-      event.target.value = '';
+    } else {
+      await loadProfile();
     }
-  };
 
+    setSuccess(
+      'Tu foto de perfil se actualizó correctamente.'
+    );
+  } catch (requestError: any) {
+    console.error(
+      'ERROR ACTUALIZANDO FOTO:',
+      requestError.response?.data ||
+        requestError
+    );
+
+    setProfilePhotoPreview(
+      previousPhoto
+    );
+
+    setError(
+      requestError.response?.data
+        ?.message ||
+        'No fue posible actualizar tu foto de perfil.'
+    );
+  } finally {
+    URL.revokeObjectURL(
+      localPreview
+    );
+
+    setUploadingPhoto(false);
+
+    event.target.value = '';
+  }
+};
   const completionPercentage =
     useMemo(() => {
       let completed = 0;
@@ -559,13 +579,17 @@ const MyProfile = () => {
 
   const handleSave = async () => {
     try {
+      console.log('💾 GUARDANDO PERFIL:', {
+        form,
+        selectedCategories,
+      });
       const token =
         localStorage.getItem('token');
-
       if (!token) {
         navigate('/login');
         return;
       }
+      console.log('💾 GUARDANDO xssssPERFIL:' );
 
       if (!form.phone.trim()) {
         setError(
@@ -573,6 +597,7 @@ const MyProfile = () => {
         );
         return;
       }
+      console.log('💾 GUARDANDO xsssssqqssssssPERFIL:' );
 
       if (
         !form.description.trim()

@@ -624,30 +624,25 @@ console.log('DATA PROFILE PHOTO -------:', data
   Mis solicitudes
 </button>
 
-          <button
-            type="button"
-            onClick={() =>
-              handlePendingSection(
-                'Favoritos'
-              )
-            }
-          >
-            <span>♡</span>
-            Favoritos
-          </button>
-
-          <button
-            type="button"
-            onClick={() =>
-              handlePendingSection(
-                'Historial'
-              )
-            }
-          >
-            <span>✓</span>
-            Historial
-          </button>
-
+     <button
+  type="button"
+  onClick={() =>
+    navigate('/client/favorites')
+  }
+>
+  <span>♡</span>
+  Favoritos
+</button>
+ 
+<button
+  type="button"
+  onClick={() =>
+    navigate('/client/history')
+  }
+>
+  <span>✓</span>
+  Historial
+</button>
           <button
             type="button"
             className="active"

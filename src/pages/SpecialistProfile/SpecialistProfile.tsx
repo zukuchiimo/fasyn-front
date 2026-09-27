@@ -30,6 +30,7 @@ type PriceType =
   | 'ACTIVITY';
 
 type RequestStatus =
+  | 'PENDING_PAYMENT'
   | 'PENDING_ADMIN'
   | 'APPROVED'
   | 'REJECTED'
@@ -1175,7 +1176,10 @@ const SpecialistProfile = () => {
   ] = useState<number | null>(
     null
   );
-
+const [
+  createdRequestId,
+  setCreatedRequestId,
+] = useState<number | null>(null);
   const [
     requestMessage,
     setRequestMessage,
@@ -1524,9 +1528,11 @@ const openRequestModal = async (
     return;
   }
 
-  setRequestMessage('');
-  setRequestError('');
-  setSelectedService(service);
+setRequestMessage('');
+setRequestError('');
+setCreatedRequestId(null);
+
+setSelectedService(service);
   setServiceMessage('');
   setServiceDate('');
   setServiceTime('');
@@ -2025,24 +2031,29 @@ const openRequestModal = async (
             }
           );
 
-        console.log(
-          'SOLICITUD CREADA:',
-          response.data
-        );
+ console.log(
+  'SOLICITUD CREADA:',
+  response.data
+);
 
-        await loadMyRequests();
+const createdRequest =
+  response.data?.request;
 
-        setRequestMessage(
-          'Solicitud enviada correctamente. FASYN la revisará y, cuando sea aprobada, aparecerá el botón “Continuar al pago”.'
-        );
+if (!createdRequest?.id) {
+  throw new Error(
+    'No se recibió la solicitud creada.'
+  );
+}
 
-        setRequestModalOpen(false);
-        setSelectedService(null);
-        setSelectedAddressId(null);
-        setServiceMessage('');
-        setServiceDate('');
-        setServiceTime('');
-        setShowNewAddressForm(false);
+setCreatedRequestId(
+  createdRequest.id
+);
+
+await loadMyRequests();
+
+setRequestMessage(
+  'Solicitud creada correctamente. Continúa con el pago.'
+);
       } catch (
         requestError: any
       ) {
@@ -2296,22 +2307,37 @@ const renderRequestButton = (
     PAGO YA CONFIRMADO +
     SOLICITUD ESPERANDO PROCESARSE
   */
-  if (
-    existingRequest.status ===
-      'PENDING_ADMIN' &&
-    paymentStatus === 'APPROVED'
-  ) {
-    return (
-      <button
-        type="button"
-        disabled
-        className="public-service-paid"
-      >
-        Por procesar
-        <b>✓</b>
-      </button>
-    );
-  }
+ 
+/*
+  SOLICITUD CREADA PERO NO PAGADA
+*/
+if (
+  existingRequest.status ===
+  'PENDING_PAYMENT'
+) {
+  return (
+    <button
+      type="button"
+      className="public-service-payment"
+      disabled={
+        creatingPaymentId ===
+        existingRequest.id
+      }
+      onClick={() =>
+        handleContinueToPayment(
+          existingRequest.id
+        )
+      }
+    >
+      {creatingPaymentId ===
+      existingRequest.id
+        ? 'Preparando pago...'
+        : 'Continuar al pago'}
+
+      <b>→</b>
+    </button>
+  );
+}
 
   /*
     SOLICITUD CREADA PERO NO PAGADA
@@ -3986,31 +4012,55 @@ const renderRequestButton = (
                 >
                   Cancelar
                 </button>
+{createdRequestId === null ? (
+  <button
+    type="button"
+    className="primary"
+    onClick={
+      handleRequestService
+    }
+    disabled={
+      loadingAddresses ||
+      !selectedAddressId ||
+      !serviceDate ||
+      !serviceTime ||
+      requestingServiceId !==
+        null
+    }
+  >
+    {requestingServiceId !==
+    null
+      ? 'Enviando solicitud...'
+      : 'Enviar solicitud'}
 
-                <button
-                  type="button"
-                  className="primary"
-                  onClick={
-                    handleRequestService
-                  }
-                  disabled={
-                    loadingAddresses ||
-                    !selectedAddressId ||
-                    !serviceDate ||
-                    !serviceTime ||
-                    requestingServiceId !==
-                      null
-                  }
-                >
-                  {requestingServiceId !==
-                  null
-                    ? 'Enviando solicitud...'
-                    : 'Enviar solicitud'}
+    <span>
+      →
+    </span>
+  </button>
+) : (
+  <button
+    type="button"
+    className="primary"
+    onClick={() =>
+      handleContinueToPayment(
+        createdRequestId
+      )
+    }
+    disabled={
+      creatingPaymentId ===
+      createdRequestId
+    }
+  >
+    {creatingPaymentId ===
+    createdRequestId
+      ? 'Preparando pago...'
+      : 'Continuar al pago'}
 
-                  <span>
-                    →
-                  </span>
-                </button>
+    <span>
+      →
+    </span>
+  </button>
+)}
               </div>
             )}
 

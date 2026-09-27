@@ -10,7 +10,7 @@ import Register from '../pages/Register/Register';
 
 import Specialists from '../pages/Specialists/Specialists';
 import SpecialistProfile from '../pages/SpecialistProfile/SpecialistProfile';
-
+import ClientHistory from '../pages/client/History/ClientHistory';
 import SpecialistDashboard from '../pages/SpecialistDashboard/SpecialistDashboard';
 import SpecialistSetup from '../pages/SpecialistSetup/SpecialistSetup';
 import CreateService from '../pages/CreateService/CreateService';
@@ -19,6 +19,7 @@ import SpecialistEarnings
   from '../pages/SpecialistEarnings/SpecialistEarnings';
   import AdminPayouts from '../pages/admin/AdminPayouts';
   import PaymentSuccess from '../pages/payment/PaymentSuccess';
+  import ClientFavorites from '../pages/client/Favorites/ClientFavorites';
 /*
   NUEVA PANTALLA:
   DETALLE DE SOLICITUD DEL ESPECIALISTA
@@ -108,6 +109,12 @@ const AppRoutes = () => {
   path="/specialist/earnings"
   element={<SpecialistEarnings />}
 />
+<Route
+  path="/client/favorites"
+  element={
+    <ClientFavorites />
+  }
+/>
         <Route
           path="/specialist/setup"
           element={
@@ -141,7 +148,12 @@ const AppRoutes = () => {
             <ClientDashboard />
           }
         />
-
+<Route
+  path="/client/history"
+  element={
+    <ClientHistory />
+  }
+/>
         <Route
           path="/client/profile"
           element={
