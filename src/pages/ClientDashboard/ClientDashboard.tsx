@@ -309,11 +309,11 @@ const ClientDashboard = () => {
             Buscar especialistas
           </button>
 
-          <button
+            <button
             type="button"
             onClick={() =>
-              handlePendingSection(
-                'Mis solicitudes'
+              navigate(
+                '/client/requests'
               )
             }
           >
@@ -332,6 +332,18 @@ const ClientDashboard = () => {
   <span>♡</span>
   Favoritos
 </button>
+
+   <button
+            type="button"
+            onClick={() =>
+              navigate(
+                '/client/history'
+              )
+            }
+          >
+            <span>✓</span>
+            Historial
+          </button>
           <button
             type="button"
             onClick={() =>

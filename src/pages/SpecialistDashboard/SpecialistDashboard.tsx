@@ -62,11 +62,20 @@ type SpecialistProfileData = {
 
 type SpecialistRequest = {
   id: number;
+
   status:
     | 'APPROVED'
+    | 'ACKNOWLEDGED'
+    | 'ON_THE_WAY'
+    | 'ARRIVED'
     | 'IN_PROGRESS'
     | 'COMPLETED';
+
   message?: string | null;
+
+  scheduledAt?: string | null;
+  scheduledTimeZone?: string | null;
+
   createdAt: string;
   updatedAt: string;
 
@@ -88,7 +97,6 @@ type SpecialistRequest = {
     };
   };
 };
-
 type EditForm = {
   name: string;
   description: string;
@@ -706,7 +714,41 @@ const SpecialistDashboard = () => {
       block: 'start',
     });
   };
+const upcomingRequest =
+  useMemo(() => {
+    const now =
+      Date.now();
 
+    return requests
+      .filter(
+        (request) =>
+          request.scheduledAt &&
+          [
+            'APPROVED',
+            'ACKNOWLEDGED',
+            'ON_THE_WAY',
+            'ARRIVED',
+            'IN_PROGRESS',
+          ].includes(
+            request.status
+          )
+      )
+      .filter(
+        (request) =>
+          new Date(
+            request.scheduledAt!
+          ).getTime() >= now
+      )
+      .sort(
+        (a, b) =>
+          new Date(
+            a.scheduledAt!
+          ).getTime() -
+          new Date(
+            b.scheduledAt!
+          ).getTime()
+      )[0] ?? null;
+  }, [requests]);
   return (
     <div className="pro-dashboard">
 
@@ -842,7 +884,118 @@ const SpecialistDashboard = () => {
       </header>
 
       <main className="pro-main">
+{upcomingRequest && (
+  <section className="service-alert">
 
+    <div className="service-alert-icon">
+      !
+    </div>
+
+    <div className="service-alert-content">
+
+      <div className="service-alert-heading">
+
+        <span>
+          TIENES UN SERVICIO PRÓXIMO
+        </span>
+
+        <strong>
+          Atención
+        </strong>
+
+      </div>
+
+      <div className="service-alert-main">
+
+        <div>
+
+          <small>
+            {
+              upcomingRequest
+                .service
+                .category
+                .name
+            }
+          </small>
+
+          <h3>
+            {
+              upcomingRequest
+                .service
+                .name
+            }
+          </h3>
+
+          <p>
+            Cliente:{' '}
+            <strong>
+              {
+                upcomingRequest
+                  .client
+                  .name
+              }
+            </strong>
+          </p>
+
+        </div>
+
+        <div className="service-alert-date">
+
+          <small>
+            FECHA DEL SERVICIO
+          </small>
+
+          <strong>
+            {new Date(
+              upcomingRequest
+                .scheduledAt!
+            ).toLocaleDateString(
+              'es-MX',
+              {
+                weekday: 'long',
+                day: 'numeric',
+                month: 'long',
+              }
+            )}
+          </strong>
+
+          <span>
+            {new Date(
+              upcomingRequest
+                .scheduledAt!
+            ).toLocaleTimeString(
+              'es-MX',
+              {
+                hour: '2-digit',
+                minute: '2-digit',
+              }
+            )}
+          </span>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <button
+      type="button"
+      className="service-alert-button"
+      onClick={() =>
+        navigate(
+          `/specialist/requests/${upcomingRequest.id}`
+        )
+      }
+    >
+      Ver servicio
+
+      <span>
+        →
+      </span>
+    </button>
+
+  </section>
+)}
         <section className="pro-hero">
 
           <div className="pro-hero-content">

@@ -815,9 +815,13 @@ const MyRequests = () => {
             Buscar especialistas
           </button>
 
-          <button
+            <button
             type="button"
-            className="active"
+            onClick={() =>
+              navigate(
+                '/client/requests'
+              )
+            }
           >
             <span>◉</span>
             Mis solicitudes

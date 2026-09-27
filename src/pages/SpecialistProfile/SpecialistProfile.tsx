@@ -1517,16 +1517,19 @@ const openRequestModal = async (
     return;
   }
 
-  if (
-    currentRole &&
-    currentRole !== 'CLIENT'
-  ) {
-    setRequestError(
-      'Para solicitar un servicio debes ingresar con una cuenta de cliente.'
-    );
+if (
+  currentRole !== 'CLIENT'
+) {
+  navigate('/login', {
+    state: {
+      returnTo: `/specialists/${id}`,
+      action: 'request-service',
+      serviceId: service.id,
+    },
+  });
 
-    return;
-  }
+  return;
+}
 
 setRequestMessage('');
 setRequestError('');
@@ -2273,6 +2276,12 @@ setRequestMessage(
   /*
     BOTÓN SEGÚN ESTADO
   */
+ const [
+  selectedRequestDetail,
+  setSelectedRequestDetail,
+] = useState<ClientServiceRequest | null>(
+  null
+);
 const renderRequestButton = (
   service: Service
 ) => {
@@ -2375,21 +2384,25 @@ if (
     ADMIN YA APROBÓ
   */
   if (
-    existingRequest.status ===
-    'APPROVED'
-  ) {
-    return (
-      <button
-        type="button"
-        disabled
-        className="public-service-approved"
-      >
-         Servicio solicitado
+  existingRequest.status ===
+  'APPROVED'
+) {
+  return (
+    <button
+      type="button"
+      className="public-service-details"
+      onClick={() =>
+        setSelectedRequestDetail(
+          existingRequest
+        )
+      }
+    >
+      Ver detalles
 
-        <b>✓</b>
-      </button>
-    );
-  }
+      <b>→</b>
+    </button>
+  );
+}
 
   if (
     existingRequest.status ===
@@ -3324,7 +3337,7 @@ if (
 
                     <div>
                       <strong>
-                        Dirección del servicio
+                        Dirección del servicio. ss
                       </strong>
 
                       <small>
@@ -4068,7 +4081,260 @@ if (
         </div>
 
       )}
+ {selectedRequestDetail && (
+  <div
+    className="service-detail-overlay"
+    onMouseDown={(event) => {
+      if (
+        event.target ===
+        event.currentTarget
+      ) {
+        setSelectedRequestDetail(
+          null
+        );
+      }
+    }}
+  >
+    <div className="service-detail-modal">
 
+      <button
+        type="button"
+        className="service-detail-close"
+        onClick={() =>
+          setSelectedRequestDetail(
+            null
+          )
+        }
+        aria-label="Cerrar"
+      >
+        ×
+      </button>
+
+      <div className="service-detail-top">
+
+        <div className="service-detail-success-icon">
+          ✓
+        </div>
+
+        <span className="service-detail-eyebrow">
+          SERVICIO CONFIRMADO
+        </span>
+
+        <h2>
+          Tu servicio está solicitado
+        </h2>
+
+        <p>
+          El pago fue confirmado y tu
+          solicitud ya está registrada.
+        </p>
+
+      </div>
+
+      <div className="service-detail-service-card">
+
+        <div className="service-detail-service-copy">
+
+          <small>
+            SOLICITUD
+          </small>
+
+          <strong>
+            Solicitud #
+            {selectedRequestDetail.id}
+          </strong>
+
+          {selectedRequestDetail
+            .scheduledAt && (
+            <span>
+              {new Date(
+                selectedRequestDetail
+                  .scheduledAt
+              ).toLocaleDateString(
+                'es-MX',
+                {
+                  weekday: 'long',
+                  day: 'numeric',
+                  month: 'long',
+                  year: 'numeric',
+                }
+              )}
+            </span>
+          )}
+
+        </div>
+
+        <div className="service-detail-payment-chip">
+          <span>
+            ✓
+          </span>
+
+          Pagado
+        </div>
+
+      </div>
+
+      <div className="service-detail-info-grid">
+
+        <div className="service-detail-info">
+
+          <div className="service-detail-info-icon">
+            $
+          </div>
+
+          <div>
+            <small>
+              TOTAL PAGADO
+            </small>
+
+            <strong>
+              {selectedRequestDetail
+                .payment?.amount
+                ? Number(
+                    selectedRequestDetail
+                      .payment.amount
+                  ).toLocaleString(
+                    'es-MX',
+                    {
+                      style:
+                        'currency',
+                      currency:
+                        'MXN',
+                    }
+                  )
+                : 'No disponible'}
+            </strong>
+          </div>
+
+        </div>
+
+        <div className="service-detail-info">
+
+          <div className="service-detail-info-icon">
+            ◷
+          </div>
+
+          <div>
+            <small>
+              HORARIO
+            </small>
+
+            <strong>
+              {selectedRequestDetail
+                .scheduledAt
+                ? new Date(
+                    selectedRequestDetail
+                      .scheduledAt
+                  ).toLocaleTimeString(
+                    'es-MX',
+                    {
+                      hour:
+                        '2-digit',
+                      minute:
+                        '2-digit',
+                    }
+                  )
+                : 'Por definir'}
+            </strong>
+          </div>
+
+        </div>
+
+      </div>
+
+      <div className="service-detail-progress">
+
+        <div className="service-detail-progress-line">
+
+          <div className="service-detail-step completed">
+            <span>
+              ✓
+            </span>
+
+            <small>
+              Solicitud
+            </small>
+          </div>
+
+          <div className="service-detail-progress-bar completed" />
+
+          <div className="service-detail-step completed">
+            <span>
+              ✓
+            </span>
+
+            <small>
+              Pago
+            </small>
+          </div>
+
+          <div className="service-detail-progress-bar" />
+
+          <div className="service-detail-step">
+            <span>
+              3
+            </span>
+
+            <small>
+              Servicio
+            </small>
+          </div>
+
+        </div>
+
+      </div>
+
+      {selectedRequestDetail
+        .message && (
+        <div className="service-detail-notes">
+
+          <small>
+            INDICACIONES DEL SERVICIO
+          </small>
+
+          <p>
+            {selectedRequestDetail
+              .message}
+          </p>
+
+        </div>
+      )}
+
+      <div className="service-detail-footer">
+
+        <button
+          type="button"
+          className="service-detail-secondary"
+          onClick={() =>
+            setSelectedRequestDetail(
+              null
+            )
+          }
+        >
+          Cerrar
+        </button>
+
+        <button
+          type="button"
+          className="service-detail-primary"
+          onClick={() =>
+            navigate(
+              '/client/requests'
+            )
+          }
+        >
+          Ir a mis solicitudes
+
+          <span>
+            →
+          </span>
+        </button>
+
+      </div>
+
+    </div>
+  </div>
+)}
     </div>
   );
 };

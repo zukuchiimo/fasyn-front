@@ -178,48 +178,48 @@ const Specialists = () => {
 
   */
 
- type RequestStatus =
+  type RequestStatus =
 
-  | 'PENDING_ADMIN'
+    | 'PENDING_ADMIN'
 
-  | 'APPROVED'
+    | 'APPROVED'
 
-  | 'REJECTED'
+    | 'REJECTED'
 
-  | 'IN_PROGRESS'
+    | 'IN_PROGRESS'
 
-  | 'COMPLETED'
+    | 'COMPLETED'
 
-  | 'CANCELLED';
+    | 'CANCELLED';
 
 
 
-type ClientServiceRequest = {
-  id: number;
-  serviceId: number;
-  status: RequestStatus;
-
-  message?: string | null;
-  scheduledAt?: string | null;
-  scheduledTimeZone?: string | null;
-  createdAt?: string;
-  updatedAt?: string;
-
-  service: {
+  type ClientServiceRequest = {
     id: number;
-    name: string;
-    description?: string | null;
-    price: number;
-    priceType: PriceType;
+    serviceId: number;
+    status: RequestStatus;
 
-    specialist: {
+    message?: string | null;
+    scheduledAt?: string | null;
+    scheduledTimeZone?: string | null;
+    createdAt?: string;
+    updatedAt?: string;
+
+    service: {
       id: number;
-      name?: string;
+      name: string;
+      description?: string | null;
+      price: number;
+      priceType: PriceType;
+
+      specialist: {
+        id: number;
+        name?: string;
+      };
     };
   };
-};
 
-const [myRequests, setMyRequests] = useState<ClientServiceRequest[]>([]);
+  const [myRequests, setMyRequests] = useState<ClientServiceRequest[]>([]);
 
   const token =
 
@@ -239,18 +239,21 @@ const [myRequests, setMyRequests] = useState<ClientServiceRequest[]>([]);
 
     );
 
+  const [
+
+    selectedRequest,
+
+    setSelectedRequest,
+
+  ] = useState<ClientServiceRequest | null>(
+
+    null
+
+  );
 const [
-
-  selectedRequest,
-
-  setSelectedRequest,
-
-] = useState<ClientServiceRequest | null>(
-
-  null
-
-);
-
+  favoriteIds,
+  setFavoriteIds,
+] = useState<number[]>([]);
   const currentUser =
 
     useMemo<SessionUser | null>(
@@ -275,7 +278,7 @@ const [
 
         } catch (
 
-          storageError
+        storageError
 
         ) {
 
@@ -299,42 +302,42 @@ const [
 
     );
 
-const loadMyRequests = async () => {
-  if (
-    !token ||
-    currentUser?.role !== 'CLIENT'
-  ) {
-    setMyRequests([]);
-    return;
-  }
+  const loadMyRequests = async () => {
+    if (
+      !token ||
+      currentUser?.role !== 'CLIENT'
+    ) {
+      setMyRequests([]);
+      return;
+    }
 
-  try {
-    const response = await api.get(
-      '/requests/my',
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+    try {
+      const response = await api.get(
+        '/requests/my',
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-    console.log(
-      'MIS SOLICITUDES:',
-      response.data
-    );
+      console.log(
+        'MIS SOLICITUDES:',
+        response.data
+      );
 
-    setMyRequests(
-      response.data?.requests || []
-    );
-  } catch (error: any) {
-    console.error(
-      'ERROR CARGANDO SOLICITUDES:',
-      error.response?.data || error
-    );
+      setMyRequests(
+        response.data?.requests || []
+      );
+    } catch (error: any) {
+      console.error(
+        'ERROR CARGANDO SOLICITUDES:',
+        error.response?.data || error
+      );
 
-    setMyRequests([]);
-  }
-};
+      setMyRequests([]);
+    }
+  };
 
   const isLoggedIn =
 
@@ -402,7 +405,44 @@ const loadMyRequests = async () => {
 
     useState('');
 
+const loadFavorites = async () => {
+  if (
+    !token ||
+    currentUser?.role !== 'CLIENT'
+  ) {
+    setFavoriteIds([]);
+    return;
+  }
 
+  try {
+    const response = await api.get(
+      '/favorites',
+      {
+        headers: {
+          Authorization:
+            `Bearer ${token}`,
+        },
+      }
+    );
+
+    const favorites =
+      response.data?.favorites || [];
+
+    setFavoriteIds(
+      favorites.map(
+        (specialist: any) =>
+          Number(specialist.id)
+      )
+    );
+  } catch (error) {
+    console.error(
+      'ERROR CARGANDO FAVORITOS:',
+      error
+    );
+
+    setFavoriteIds([]);
+  }
+};
 
   const [
 
@@ -711,7 +751,7 @@ const loadMyRequests = async () => {
 
     switch (
 
-      currentUser.role
+    currentUser.role
 
     ) {
 
@@ -919,7 +959,7 @@ const loadMyRequests = async () => {
 
       } catch (
 
-        requestError: any
+      requestError: any
 
       ) {
 
@@ -970,99 +1010,90 @@ const loadMyRequests = async () => {
 
 
 useEffect(() => {
-
   loadData();
 
-
-
   if (
-
     token &&
-
     currentUser?.role === 'CLIENT'
-
   ) {
-
     loadMyRequests();
-
+    loadFavorites();
   }
-
 }, []);
 
-const getSpecialistActiveRequest = (
+  const getSpecialistActiveRequest = (
 
-  specialistId: number
+    specialistId: number
 
-) => {
+  ) => {
 
-  return myRequests.find(
+    return myRequests.find(
 
-    (request) =>
+      (request) =>
 
-      Number(
+        Number(
 
-        request.service?.specialist?.id
+          request.service?.specialist?.id
 
-      ) === Number(specialistId) &&
+        ) === Number(specialistId) &&
 
-      request.status !== 'CANCELLED' &&
+        request.status !== 'CANCELLED' &&
 
-      request.status !== 'REJECTED'
+        request.status !== 'REJECTED'
 
-  );
+    );
 
-};
+  };
 
-const getRequestStatusLabel = (
-  status: RequestStatus
-) => {
-  switch (status) {
-    case 'PENDING_ADMIN':
-      return 'Por procesar';
-    case 'APPROVED':
-      return 'Servicio solicitado';
-    case 'IN_PROGRESS':
-      return 'Servicio en proceso';
-    case 'COMPLETED':
-      return 'Servicio completado';
-    case 'REJECTED':
-      return 'Solicitud rechazada';
-    case 'CANCELLED':
-      return 'Solicitud cancelada';
-    default:
-      return status;
-  }
-};
-
-const formatRequestDate = (
-  date?: string | null
-) => {
-  if (!date) {
-    return 'No especificada';
-  }
-
-  const parsedDate = new Date(date);
-
-  if (Number.isNaN(parsedDate.getTime())) {
-    return 'No especificada';
-  }
-
-  return new Intl.DateTimeFormat(
-    'es-MX',
-    {
-      day: '2-digit',
-      month: 'long',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
+  const getRequestStatusLabel = (
+    status: RequestStatus
+  ) => {
+    switch (status) {
+      case 'PENDING_ADMIN':
+        return 'Por procesar';
+      case 'APPROVED':
+        return 'Servicio solicitado';
+      case 'IN_PROGRESS':
+        return 'Servicio en proceso';
+      case 'COMPLETED':
+        return 'Servicio completado';
+      case 'REJECTED':
+        return 'Solicitud rechazada';
+      case 'CANCELLED':
+        return 'Solicitud cancelada';
+      default:
+        return status;
     }
-  ).format(parsedDate);
-};
-const addFavorite = async (
+  };
+
+  const formatRequestDate = (
+    date?: string | null
+  ) => {
+    if (!date) {
+      return 'No especificada';
+    }
+
+    const parsedDate = new Date(date);
+
+    if (Number.isNaN(parsedDate.getTime())) {
+      return 'No especificada';
+    }
+
+    return new Intl.DateTimeFormat(
+      'es-MX',
+      {
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      }
+    ).format(parsedDate);
+  };
+const toggleFavorite = async (
   specialistId: number
 ) => {
   if (!token) {
-    navigate('/login');
     return;
   }
 
@@ -1072,26 +1103,54 @@ const addFavorite = async (
     return;
   }
 
-  try {
-    await api.post(
-      `/favorites/${specialistId}`,
-      {},
-      {
-        headers: {
-          Authorization:
-            `Bearer ${token}`,
-        },
-      }
+  const isFavorite =
+    favoriteIds.includes(
+      specialistId
     );
 
-    alert(
-      'Especialista agregado a favoritos.'
-    );
+  try {
+    if (isFavorite) {
+      await api.delete(
+        `/favorites/${specialistId}`,
+        {
+          headers: {
+            Authorization:
+              `Bearer ${token}`,
+          },
+        }
+      );
+
+      setFavoriteIds(
+        (current) =>
+          current.filter(
+            (id) =>
+              id !== specialistId
+          )
+      );
+    } else {
+      await api.post(
+        `/favorites/${specialistId}`,
+        {},
+        {
+          headers: {
+            Authorization:
+              `Bearer ${token}`,
+          },
+        }
+      );
+
+      setFavoriteIds(
+        (current) => [
+          ...current,
+          specialistId,
+        ]
+      );
+    }
   } catch (
     requestError: any
   ) {
     console.error(
-      'ERROR AGREGANDO FAVORITO:',
+      'ERROR ACTUALIZANDO FAVORITO:',
       requestError.response?.data ||
         requestError
     );
@@ -1099,46 +1158,46 @@ const addFavorite = async (
     alert(
       requestError.response?.data
         ?.message ||
-        'No fue posible agregar a favoritos.'
+        'No fue posible actualizar favoritos.'
     );
   }
 };
-const formatRequestPrice = (
-  request: ClientServiceRequest
-) => {
-  const price = Number(
-    request.service.price
-  );
-
-  if (!Number.isFinite(price)) {
-    return 'Consultar';
-  }
-
-  const formatted =
-    price.toLocaleString(
-      'es-MX',
-      {
-        style: 'currency',
-        currency: 'MXN',
-      }
+  const formatRequestPrice = (
+    request: ClientServiceRequest
+  ) => {
+    const price = Number(
+      request.service.price
     );
 
-  if (
-    request.service.priceType ===
-    'HOUR'
-  ) {
-    return `${formatted} / hora`;
-  }
+    if (!Number.isFinite(price)) {
+      return 'Consultar';
+    }
 
-  if (
-    request.service.priceType ===
-    'DAY'
-  ) {
-    return `${formatted} / día`;
-  }
+    const formatted =
+      price.toLocaleString(
+        'es-MX',
+        {
+          style: 'currency',
+          currency: 'MXN',
+        }
+      );
 
-  return formatted;
-};
+    if (
+      request.service.priceType ===
+      'HOUR'
+    ) {
+      return `${formatted} / hora`;
+    }
+
+    if (
+      request.service.priceType ===
+      'DAY'
+    ) {
+      return `${formatted} / día`;
+    }
+
+    return formatted;
+  };
 
 
 
@@ -1252,11 +1311,9 @@ const formatRequestPrice = (
 
                     ) =>
 
-                      `${service.name} ${
+                      `${service.name} ${service.description ||
 
-                        service.description ||
-
-                        ''
+                      ''
 
                       }`
 
@@ -1276,7 +1333,7 @@ const formatRequestPrice = (
 
                   specialist.description ||
 
-                    '',
+                  '',
 
 
 
@@ -1290,19 +1347,19 @@ const formatRequestPrice = (
 
                   specialist.state ||
 
-                    '',
+                  '',
 
 
 
                   specialist.municipality ||
 
-                    '',
+                  '',
 
 
 
                   specialist.neighborhood ||
 
-                    '',
+                  '',
 
                 ]
 
@@ -1334,7 +1391,7 @@ const formatRequestPrice = (
 
                 categoryId ===
 
-                  'ALL' ||
+                'ALL' ||
 
 
 
@@ -1394,7 +1451,7 @@ const formatRequestPrice = (
 
                 priceType ===
 
-                  'ALL' ||
+                'ALL' ||
 
 
 
@@ -1694,15 +1751,15 @@ const formatRequestPrice = (
 
     categoryId !==
 
-      'ALL' ||
+    'ALL' ||
 
     priceType !==
 
-      'ALL' ||
+    'ALL' ||
 
     sort !==
 
-      'DEFAULT';
+    'DEFAULT';
 
 
 
@@ -2902,17 +2959,15 @@ const formatRequestPrice = (
 
                     ? 'Buscando especialistas...'
 
-                    : `${filteredSpecialists.length} ${
+                    : `${filteredSpecialists.length} ${filteredSpecialists.length ===
 
-                        filteredSpecialists.length ===
+                      1
 
-                        1
+                      ? 'profesional encontrado'
 
-                          ? 'profesional encontrado'
+                      : 'profesionales encontrados'
 
-                          : 'profesionales encontrados'
-
-                      }`
+                    }`
 
                 }
 
@@ -3136,37 +3191,37 @@ const formatRequestPrice = (
 
               {filteredSpecialists.map(
 
-  (specialist) => {
+                (specialist) => {
 
 
 
-    const firstService =
+                  const firstService =
 
-      specialist.services[0];
-
-
-
-    const existingRequest =
-
-      getSpecialistActiveRequest(
-
-        specialist.id
-
-      );
+                    specialist.services[0];
 
 
 
-    const location = [
+                  const existingRequest =
 
-      specialist.municipality,
+                    getSpecialistActiveRequest(
 
-      specialist.state,
+                      specialist.id
 
-    ]
+                    );
 
-      .filter(Boolean)
 
-      .join(', ');
+
+                  const location = [
+
+                    specialist.municipality,
+
+                    specialist.state,
+
+                  ]
+
+                    .filter(Boolean)
+
+                    .join(', ');
 
 
                   return (
@@ -3517,21 +3572,17 @@ const formatRequestPrice = (
 
                                 .experience
 
-                                ? `${
+                                ? `${specialist.experience
 
-                                    specialist.experience
+                                } ${specialist.experience ===
 
-                                  } ${
+                                  1
 
-                                    specialist.experience ===
+                                  ? 'año de experiencia'
 
-                                    1
+                                  : 'años de experiencia'
 
-                                      ? 'año de experiencia'
-
-                                      : 'años de experiencia'
-
-                                  }`
+                                }`
 
                                 : 'Experiencia no especificada'
 
@@ -3605,7 +3656,7 @@ const formatRequestPrice = (
 
                                 .length ===
 
-                              1
+                                1
 
                                 ? 'servicio'
 
@@ -3737,9 +3788,9 @@ const formatRequestPrice = (
 
 
 
-                              specialist
+                                specialist
 
-                                .startingPrice !==
+                                  .startingPrice !==
 
                                 undefined
 
@@ -3867,54 +3918,80 @@ const formatRequestPrice = (
 
 
 
-                <div className="specialist-card-actions">
-{currentUser?.role === 'CLIENT' && (
-  <button
-    type="button"
-    className="favorite-specialist-button"
-    title="Agregar a favoritos"
-    onClick={() =>
-      addFavorite(
-        specialist.id
-      )
-    }
-  >
-    ♡
-    <span>
-      Agregar a favoritos
-    </span>
-  </button>
-)}
-  <button
-    type="button"
-    className="profile-button"
-    onClick={() =>
-      navigate(
-        `/specialists/${specialist.id}`
-      )
-    }
-  >
-    Ver perfil
-    <span>→</span>
-  </button>
+                          <div className="specialist-card-actions">
+                      {isLoggedIn &&
+  currentUser?.role === 'CLIENT' && (() => {
 
-  {currentUser?.role === 'CLIENT' &&
-    existingRequest && (
+    const isFavorite =
+      favoriteIds.includes(
+        specialist.id
+      );
+
+    return (
       <button
         type="button"
-        className="request-button"
+        className={
+          `favorite-specialist-button ${
+            isFavorite
+              ? 'is-favorite'
+              : ''
+          }`
+        }
+        title={
+          isFavorite
+            ? 'Quitar de favoritos'
+            : 'Agregar a favoritos'
+        }
         onClick={() =>
-          setSelectedRequest(
-            existingRequest
+          toggleFavorite(
+            specialist.id
           )
         }
       >
-        Ver solicitud
-        <span>→</span>
-      </button>
-    )}
+        <span className="favorite-heart">
+          {isFavorite
+            ? '♥'
+            : '♡'}
+        </span>
 
-</div>
+        <span>
+          {isFavorite
+            ? 'En favoritos'
+            : 'Guardar'}
+        </span>
+      </button>
+    );
+  })()}
+                            <button
+                              type="button"
+                              className="profile-button"
+                              onClick={() =>
+                                navigate(
+                                  `/specialists/${specialist.id}`
+                                )
+                              }
+                            >
+                              Ver perfil
+                              <span>→</span>
+                            </button>
+
+                            {currentUser?.role === 'CLIENT' &&
+                              existingRequest && (
+                                <button
+                                  type="button"
+                                  className="request-button"
+                                  onClick={() =>
+                                    setSelectedRequest(
+                                      existingRequest
+                                    )
+                                  }
+                                >
+                                  Ver solicitud
+                                  <span>→</span>
+                                </button>
+                              )}
+
+                          </div>
 
 
 
@@ -3946,7 +4023,7 @@ const formatRequestPrice = (
 
                   .length ===
 
-                  0 && (
+                0 && (
 
 
 
