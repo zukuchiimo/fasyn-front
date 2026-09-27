@@ -5,8 +5,10 @@ import {
   useState,
 } from 'react';
 
-import { useNavigate } from 'react-router-dom';
-
+ import {
+  useLocation,
+  useNavigate,
+} from 'react-router-dom';
 import { api } from '../../api/api';
 import logo from '../../assets/logo.png';
 
@@ -124,8 +126,8 @@ const getPhotoUrl = (
 };
 
 const AdminClients = () => {
-  const navigate = useNavigate();
-
+ const navigate = useNavigate();
+const location = useLocation();
   const token =
     localStorage.getItem('token');
 
@@ -788,60 +790,86 @@ const AdminClients = () => {
             </div>
           </div>
 
-          <nav className="admin-menu">
 
-            <button
-              type="button"
-              onClick={() =>
-                navigate(
-                  '/admin'
-                )
-              }
-            >
-              <span>⌂</span>
-              Resumen
-            </button>
+<nav className="admin-menu">
 
-            <button
-              type="button"
-              onClick={() =>
-                navigate(
-                  '/admin'
-                )
-              }
-            >
-              <span>▤</span>
-              Solicitudes
-            </button>
+  <button
+    type="button"
+    className={
+      location.pathname === '/admin'
+        ? 'active'
+        : ''
+    }
+    onClick={() =>
+      navigate('/admin')
+    }
+  >
+    <span>◫</span>
+    Solicitudes
+  </button>
 
-            <button
-              type="button"
-              onClick={() =>
-                navigate(
-                  '/admin/specialists'
-                )
-              }
-            >
-              <span>♙</span>
-              Especialistas
-            </button>
+ 
+  <button
+    type="button"
+    className={
+      location.pathname === '/admin/specialists'
+        ? 'active'
+        : ''
+    }
+    onClick={() =>
+      navigate('/admin/specialists')
+    }
+  >
+    <span>♙</span>
+    Especialistas
+  </button>
 
-            <button
-              type="button"
-              className="active"
-            >
-              <span>♧</span>
-              Clientes
-            </button>
+  <button
+    type="button"
+    className={
+      location.pathname === '/admin/clients'
+        ? 'active'
+        : ''
+    }
+    onClick={() =>
+      navigate('/admin/clients')
+    }
+  >
+    <span>♧</span>
+    Clientes
+  </button>
 
-            <button
-              type="button"
-            >
-              <span>▦</span>
-              Categorías
-            </button>
+  <button
+    type="button"
+    className={
+      location.pathname === '/admin/categories'
+        ? 'active'
+        : ''
+    }
+    onClick={() =>
+      navigate('/admin/categories')
+    }
+  >
+    <span>◇</span>
+    Categorías
+  </button>
 
-          </nav>
+  <button
+    type="button"
+    className={
+      location.pathname === '/admin/payouts'
+        ? 'active'
+        : ''
+    }
+    onClick={() =>
+      navigate('/admin/payouts')
+    }
+  >
+    <span>$</span>
+    Pagos
+  </button>
+
+</nav>
         </div>
 
         <div className="admin-sidebar-bottom">

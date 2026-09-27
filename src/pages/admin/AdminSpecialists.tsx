@@ -77,8 +77,8 @@ interface Specialist {
   createdAt: string;
 
   specialistProfile:
-    | SpecialistProfile
-    | null;
+  | SpecialistProfile
+  | null;
 }
 
 type FilterType =
@@ -255,7 +255,7 @@ const AdminSpecialists = () => {
 
         setError(
           err?.response?.data?.message ||
-            'No fue posible consultar los especialistas.'
+          'No fue posible consultar los especialistas.'
         );
       } finally {
         setLoading(false);
@@ -405,10 +405,10 @@ const AdminSpecialists = () => {
         profile?.description ?? '',
       experience:
         profile?.experience !== null &&
-        profile?.experience !== undefined
+          profile?.experience !== undefined
           ? String(
-              profile.experience
-            )
+            profile.experience
+          )
           : '',
       state: profile?.state ?? '',
       municipality:
@@ -467,8 +467,8 @@ const AdminSpecialists = () => {
           experience:
             editForm.experience
               ? Number(
-                  editForm.experience
-                )
+                editForm.experience
+              )
               : null,
           state:
             editForm.state.trim(),
@@ -505,7 +505,7 @@ const AdminSpecialists = () => {
 
       setError(
         err?.response?.data?.message ||
-          'No fue posible actualizar el especialista.'
+        'No fue posible actualizar el especialista.'
       );
     } finally {
       setSaving(false);
@@ -556,7 +556,7 @@ const AdminSpecialists = () => {
 
         setError(
           err?.response?.data?.message ||
-            'No fue posible cambiar el estado del especialista.'
+          'No fue posible cambiar el estado del especialista.'
         );
       } finally {
         setActionLoading(false);
@@ -598,7 +598,7 @@ const AdminSpecialists = () => {
 
         setError(
           err?.response?.data?.message ||
-            'No fue posible eliminar el especialista.'
+          'No fue posible eliminar el especialista.'
         );
       } finally {
         setActionLoading(false);
@@ -677,30 +677,32 @@ const AdminSpecialists = () => {
             </div>
           </div>
 
-  <nav className="admin-menu">
-  <button
-    type="button"
-    onClick={() =>
-      navigate('/admin')
-    }
-  >
-    <span>⌂</span>
-    Resumen
-  </button>
+       
+<nav className="admin-menu">
 
   <button
     type="button"
+    className={
+      location.pathname === '/admin'
+        ? 'active'
+        : ''
+    }
     onClick={() =>
       navigate('/admin')
     }
   >
-    <span>▤</span>
+    <span>◫</span>
     Solicitudes
   </button>
 
+   
   <button
     type="button"
-    className="active"
+    className={
+      location.pathname === '/admin/specialists'
+        ? 'active'
+        : ''
+    }
     onClick={() =>
       navigate('/admin/specialists')
     }
@@ -711,6 +713,11 @@ const AdminSpecialists = () => {
 
   <button
     type="button"
+    className={
+      location.pathname === '/admin/clients'
+        ? 'active'
+        : ''
+    }
     onClick={() =>
       navigate('/admin/clients')
     }
@@ -721,13 +728,34 @@ const AdminSpecialists = () => {
 
   <button
     type="button"
+    className={
+      location.pathname === '/admin/categories'
+        ? 'active'
+        : ''
+    }
     onClick={() =>
       navigate('/admin/categories')
     }
   >
-    <span>▦</span>
+    <span>◇</span>
     Categorías
   </button>
+
+  <button
+    type="button"
+    className={
+      location.pathname === '/admin/payouts'
+        ? 'active'
+        : ''
+    }
+    onClick={() =>
+      navigate('/admin/payouts')
+    }
+  >
+    <span>$</span>
+    Pagos
+  </button>
+
 </nav>
         </div>
 
@@ -877,7 +905,7 @@ const AdminSpecialists = () => {
               }{' '}
               resultado
               {filteredSpecialists.length !==
-              1
+                1
                 ? 's'
                 : ''}
             </span>
@@ -923,7 +951,7 @@ const AdminSpecialists = () => {
                 type="button"
                 className={
                   filter ===
-                  'ACTIVE'
+                    'ACTIVE'
                     ? 'active'
                     : ''
                 }
@@ -940,7 +968,7 @@ const AdminSpecialists = () => {
                 type="button"
                 className={
                   filter ===
-                  'INACTIVE'
+                    'INACTIVE'
                     ? 'active'
                     : ''
                 }
@@ -1097,7 +1125,7 @@ const AdminSpecialists = () => {
                               año
                               {(profile?.experience ??
                                 0) !==
-                              1
+                                1
                                 ? 's'
                                 : ''}{' '}
                               de experiencia
@@ -1106,7 +1134,7 @@ const AdminSpecialists = () => {
 
                           <div className="specialist-specialties">
                             {specialties.length >
-                            0 ? (
+                              0 ? (
                               specialties.map(
                                 (
                                   specialty

@@ -1495,87 +1495,63 @@ const SpecialistProfile = () => {
       }
     };
 
-  const openRequestModal = async (
-    service: Service
-  ) => {
-    const currentToken =
-      localStorage.getItem(
-        'token'
-      );
+const openRequestModal = async (
+  service: Service
+) => {
+  const currentToken =
+    localStorage.getItem('token');
 
-    /*
-      Sin sesión sí mandamos a login.
-      Guardamos de dónde venía para poder
-      regresar al perfil después.
-    */
-    if (!currentToken) {
-      navigate(
-        '/login',
-        {
-          state: {
-            returnTo:
-              `/specialists/${id}`,
-          },
-        }
-      );
-
-      return;
-    }
-
-    /*
-      Si conocemos el rol y no es CLIENT,
-      no mandamos a login porque YA existe
-      una sesión. Solamente informamos que
-      una cuenta de especialista/admin no
-      puede contratar servicios.
-    */
-    if (
-      currentRole &&
-      currentRole !== 'CLIENT'
-    ) {
-      setRequestError(
-        'Para solicitar un servicio debes ingresar con una cuenta de cliente.'
-      );
-
-      return;
-    }
-
-    setRequestMessage('');
-    setRequestError('');
-    setSelectedService(service);
-    setServiceMessage('');
-    setServiceDate('');
-    setServiceTime('');
-    setShowNewAddressForm(false);
-    setSelectedAddressId(null);
-
-    setNewAddress({
-      label: '',
-      state: '',
-      municipality: '',
-      neighborhood: '',
-      postalCode: '',
-      street: '',
-      exteriorNumber: '',
-      interiorNumber: '',
-      references: '',
-      latitude: null,
-      longitude: null,
-      isDefault: false,
+  if (!currentToken) {
+    navigate('/login', {
+      state: {
+        returnTo: `/specialists/${id}`,
+        action: 'request-service',
+        serviceId: service.id,
+      },
     });
 
-    setRequestModalOpen(true);
+    return;
+  }
 
-    /*
-      Si por alguna razón no pudimos leer el rol
-      desde localStorage/JWT, el backend decidirá.
-      - CLIENT válido: devuelve direcciones.
-      - Otro rol: devuelve 403.
-      - Token vencido: devuelve 401.
-    */
-    await loadAddresses();
-  };
+  if (
+    currentRole &&
+    currentRole !== 'CLIENT'
+  ) {
+    setRequestError(
+      'Para solicitar un servicio debes ingresar con una cuenta de cliente.'
+    );
 
+    return;
+  }
+
+  setRequestMessage('');
+  setRequestError('');
+  setSelectedService(service);
+  setServiceMessage('');
+  setServiceDate('');
+  setServiceTime('');
+  setShowNewAddressForm(false);
+  setSelectedAddressId(null);
+
+  setNewAddress({
+    label: '',
+    state: '',
+    municipality: '',
+    neighborhood: '',
+    postalCode: '',
+    street: '',
+    exteriorNumber: '',
+    interiorNumber: '',
+    references: '',
+    latitude: null,
+    longitude: null,
+    isDefault: false,
+  });
+
+  setRequestModalOpen(true);
+
+  await loadAddresses();
+};
   const closeRequestModal =
     () => {
       if (

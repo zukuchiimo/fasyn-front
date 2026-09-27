@@ -1,6 +1,9 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-
+import {
+  useNavigate,
+  Link,
+  useLocation,
+} from 'react-router-dom';
 import { api } from '../../api/api';
 import logo from '../../assets/logo.png';
 
@@ -8,7 +11,16 @@ import './Login.css';
 
 const Login = () => {
   const navigate = useNavigate();
+const location = useLocation();
 
+const loginState =
+  location.state as
+    | {
+        returnTo?: string;
+        action?: string;
+        serviceId?: number;
+      }
+    | null;
   const [email, setEmail] =
     useState('');
 
@@ -138,19 +150,30 @@ const Login = () => {
       /*
         3. CLIENTE
       */
-      if (
-        user.role ===
-        'CLIENT'
-      ) {
-        navigate(
-          '/client',
-          {
-            replace: true,
-          }
-        );
-
-        return;
+ if (user.role === 'CLIENT') {
+  if (loginState?.returnTo) {
+    navigate(
+      loginState.returnTo,
+      {
+        replace: true,
+        state: {
+          action:
+            loginState.action,
+          serviceId:
+            loginState.serviceId,
+        },
       }
+    );
+
+    return;
+  }
+
+  navigate('/client', {
+    replace: true,
+  });
+
+  return;
+}
 
       /*
         4. ADMIN

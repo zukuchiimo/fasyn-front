@@ -174,7 +174,7 @@ const AdminDashboard = () => {
         setRequests(
           response.data
             ?.requests ||
-            []
+          []
         );
 
         setStats(
@@ -187,13 +187,13 @@ const AdminDashboard = () => {
           }
         );
       } catch (
-        requestError: any
+      requestError: any
       ) {
         console.error(
           'ERROR ADMIN:',
           requestError.response
             ?.data ||
-            requestError
+          requestError
         );
 
         if (
@@ -226,7 +226,7 @@ const AdminDashboard = () => {
         setError(
           requestError.response
             ?.data?.message ||
-            'No fue posible cargar las solicitudes.'
+          'No fue posible cargar las solicitudes.'
         );
       } finally {
         setLoading(false);
@@ -270,19 +270,19 @@ const AdminDashboard = () => {
 
         await loadAdminData();
       } catch (
-        requestError: any
+      requestError: any
       ) {
         console.error(
           'ERROR APROBANDO:',
           requestError.response
             ?.data ||
-            requestError
+          requestError
         );
 
         setError(
           requestError.response
             ?.data?.message ||
-            'No fue posible aprobar la solicitud.'
+          'No fue posible aprobar la solicitud.'
         );
       } finally {
         setProcessingId(
@@ -328,19 +328,19 @@ const AdminDashboard = () => {
 
         await loadAdminData();
       } catch (
-        requestError: any
+      requestError: any
       ) {
         console.error(
           'ERROR RECHAZANDO:',
           requestError.response
             ?.data ||
-            requestError
+          requestError
         );
 
         setError(
           requestError.response
             ?.data?.message ||
-            'No fue posible rechazar la solicitud.'
+          'No fue posible rechazar la solicitud.'
         );
       } finally {
         setProcessingId(
@@ -438,70 +438,87 @@ const AdminDashboard = () => {
 
         </div>
 
-        <nav className="admin-menu">
+ 
+<nav className="admin-menu">
 
-          <button
-            type="button"
-            className="active"
-          >
-            <span>◫</span>
-            Resumen
-          </button>
+  <button
+    type="button"
+    className={
+      location.pathname === '/admin'
+        ? 'active'
+        : ''
+    }
+    onClick={() =>
+      navigate('/admin')
+    }
+  >
+    <span>◫</span>
+    Solicitudes
+  </button>
 
-          <button
-            type="button"
-            onClick={() => {
-              document
-                .getElementById(
-                  'admin-requests'
-                )
-                ?.scrollIntoView({
-                  behavior:
-                    'smooth',
-                });
-            }}
-          >
-            <span>◉</span>
-            Solicitudes
-          </button>
+ 
 
- <button
-  type="button"
-  onClick={() => navigate('/admin/specialists')}
->
-  <span>♙</span>
-  Especialistas
-</button>
-<button
-  type="button"
-  onClick={() => {
-    console.log('CLICK CLIENTES');
-    navigate('/admin/clients');
-  }}
->
-  <span>♧</span>
-  Clientes
-</button>
-      <button
-  type="button"
-  onClick={() =>
-    navigate('/admin/categories')
-  }
->
-  <span>◇</span>
-  Categorías
-</button>
-<button
-  type="button"
-  onClick={() =>
-    navigate('/admin/payouts')
-  }
->
-  <span>$</span>
-  Pagos
-</button>
+  <button
+    type="button"
+    className={
+      location.pathname === '/admin/specialists'
+        ? 'active'
+        : ''
+    }
+    onClick={() =>
+      navigate('/admin/specialists')
+    }
+  >
+    <span>♙</span>
+    Especialistas
+  </button>
 
-        </nav>
+  <button
+    type="button"
+    className={
+      location.pathname === '/admin/clients'
+        ? 'active'
+        : ''
+    }
+    onClick={() =>
+      navigate('/admin/clients')
+    }
+  >
+    <span>♧</span>
+    Clientes
+  </button>
+
+  <button
+    type="button"
+    className={
+      location.pathname === '/admin/categories'
+        ? 'active'
+        : ''
+    }
+    onClick={() =>
+      navigate('/admin/categories')
+    }
+  >
+    <span>◇</span>
+    Categorías
+  </button>
+
+  <button
+    type="button"
+    className={
+      location.pathname === '/admin/payouts'
+        ? 'active'
+        : ''
+    }
+    onClick={() =>
+      navigate('/admin/payouts')
+    }
+  >
+    <span>$</span>
+    Pagos
+  </button>
+
+</nav>
 
         <div className="admin-sidebar-bottom">
 
@@ -884,46 +901,46 @@ const AdminDashboard = () => {
                         {request.status ===
                           'PENDING_ADMIN' && (
 
-                          <div className="admin-request-actions">
+                            <div className="admin-request-actions">
 
-                            <button
-                              type="button"
-                              className="admin-approve"
-                              disabled={
-                                processingId ===
-                                request.id
-                              }
-                              onClick={() =>
-                                handleApprove(
+                              <button
+                                type="button"
+                                className="admin-approve"
+                                disabled={
+                                  processingId ===
                                   request.id
-                                )
-                              }
-                            >
-                              {processingId ===
-                              request.id
-                                ? 'Procesando...'
-                                : 'Aprobar'}
-                            </button>
-
-                            <button
-                              type="button"
-                              className="admin-reject"
-                              disabled={
-                                processingId ===
-                                request.id
-                              }
-                              onClick={() =>
-                                handleReject(
+                                }
+                                onClick={() =>
+                                  handleApprove(
+                                    request.id
+                                  )
+                                }
+                              >
+                                {processingId ===
                                   request.id
-                                )
-                              }
-                            >
-                              Rechazar
-                            </button>
+                                  ? 'Procesando...'
+                                  : 'Aprobar'}
+                              </button>
 
-                          </div>
+                              <button
+                                type="button"
+                                className="admin-reject"
+                                disabled={
+                                  processingId ===
+                                  request.id
+                                }
+                                onClick={() =>
+                                  handleReject(
+                                    request.id
+                                  )
+                                }
+                              >
+                                Rechazar
+                              </button>
 
-                        )}
+                            </div>
+
+                          )}
 
                       </div>
 

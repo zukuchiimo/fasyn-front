@@ -26,27 +26,27 @@ interface Earning {
   id: number;
 
   grossAmount:
-    | string
-    | number;
+  | string
+  | number;
 
   platformFee:
-    | string
-    | number;
+  | string
+  | number;
 
   specialistAmount:
-    | string
-    | number;
+  | string
+  | number;
 
   status:
-    EarningStatus;
+  EarningStatus;
 
   availableAt?:
-    | string
-    | null;
+  | string
+  | null;
 
   paidAt?:
-    | string
-    | null;
+  | string
+  | null;
 
   specialist: {
     user: {
@@ -80,22 +80,22 @@ interface Earning {
   payment: {
     id: number;
     amount:
-      | string
-      | number;
+    | string
+    | number;
 
     currency: string;
     status: string;
   };
 
   payout?:
-    | {
-        id: number;
-        status: string;
-        amount:
-          | string
-          | number;
-      }
-    | null;
+  | {
+    id: number;
+    status: string;
+    amount:
+    | string
+    | number;
+  }
+  | null;
 }
 
 interface Stats {
@@ -114,18 +114,18 @@ interface Stats {
 
 const EMPTY_STATS:
   Stats = {
-    pendingCount: 0,
-    pendingAmount: 0,
+  pendingCount: 0,
+  pendingAmount: 0,
 
-    availableCount: 0,
-    availableAmount: 0,
+  availableCount: 0,
+  availableAmount: 0,
 
-    processingCount: 0,
-    processingAmount: 0,
+  processingCount: 0,
+  processingAmount: 0,
 
-    paidCount: 0,
-    paidAmount: 0,
-  };
+  paidCount: 0,
+  paidAmount: 0,
+};
 
 const AdminPayouts = () => {
 
@@ -147,8 +147,8 @@ const AdminPayouts = () => {
       try {
         return userRaw
           ? JSON.parse(
-              userRaw
-            )
+            userRaw
+          )
           : null;
       } catch {
         return null;
@@ -220,7 +220,7 @@ const AdminPayouts = () => {
           setEarnings(
             response.data
               ?.earnings ||
-              []
+            []
           );
 
           setStats({
@@ -234,21 +234,21 @@ const AdminPayouts = () => {
           });
 
         } catch (
-          err: any
+        err: any
         ) {
 
           console.error(
             'ADMIN PAYOUTS ERROR:',
             err?.response
               ?.data ||
-              err
+            err
           );
 
           setError(
             err?.response
               ?.data
               ?.message ||
-              'No fue posible consultar los pagos.'
+            'No fue posible consultar los pagos.'
           );
 
         } finally {
@@ -300,7 +300,7 @@ const AdminPayouts = () => {
   ) => {
 
     switch (
-      status
+    status
     ) {
 
       case 'PENDING':
@@ -364,82 +364,87 @@ const AdminPayouts = () => {
 
           </div>
 
-          <nav className="admin-menu">
+        
+<nav className="admin-menu">
 
-            <button
-              type="button"
-              onClick={() =>
-                navigate(
-                  '/admin'
-                )
-              }
-            >
-              <span>⌂</span>
-              Resumen
-            </button>
+  <button
+    type="button"
+    className={
+      location.pathname === '/admin'
+        ? 'active'
+        : ''
+    }
+    onClick={() =>
+      navigate('/admin')
+    }
+  >
+    <span>◫</span>
+    Solicitudes
+  </button>
 
-            <button
-              type="button"
-              onClick={() =>
-                navigate(
-                  '/admin'
-                )
-              }
-            >
-              <span>▤</span>
-              Solicitudes
-            </button>
+  
 
-            <button
-              type="button"
-              onClick={() =>
-                navigate(
-                  '/admin/specialists'
-                )
-              }
-            >
-              <span>♙</span>
-              Especialistas
-            </button>
+  <button
+    type="button"
+    className={
+      location.pathname === '/admin/specialists'
+        ? 'active'
+        : ''
+    }
+    onClick={() =>
+      navigate('/admin/specialists')
+    }
+  >
+    <span>♙</span>
+    Especialistas
+  </button>
 
-            <button
-              type="button"
-              onClick={() =>
-                navigate(
-                  '/admin/clients'
-                )
-              }
-            >
-              <span>♧</span>
-              Clientes
-            </button>
+  <button
+    type="button"
+    className={
+      location.pathname === '/admin/clients'
+        ? 'active'
+        : ''
+    }
+    onClick={() =>
+      navigate('/admin/clients')
+    }
+  >
+    <span>♧</span>
+    Clientes
+  </button>
 
-            <button
-              type="button"
-              onClick={() =>
-                navigate(
-                  '/admin/categories'
-                )
-              }
-            >
-              <span>◇</span>
-              Categorías
-            </button>
+  <button
+    type="button"
+    className={
+      location.pathname === '/admin/categories'
+        ? 'active'
+        : ''
+    }
+    onClick={() =>
+      navigate('/admin/categories')
+    }
+  >
+    <span>◇</span>
+    Categorías
+  </button>
 
-            <button
-              type="button"
-              className="active"
-              onClick={() =>
-                navigate(
-                  '/admin/payouts'
-                )
-              }
-            >
-              <span>$</span>
-              Pagos
-            </button>
+  <button
+    type="button"
+    className={
+      location.pathname === '/admin/payouts'
+        ? 'active'
+        : ''
+    }
+    onClick={() =>
+      navigate('/admin/payouts')
+    }
+  >
+    <span>$</span>
+    Pagos
+  </button>
 
-          </nav>
+</nav>
 
         </div>
 
@@ -815,7 +820,7 @@ const AdminPayouts = () => {
 
                       {
                         earning.status ===
-                          'AVAILABLE' && (
+                        'AVAILABLE' && (
 
                           <div className="payout-actions">
 

@@ -698,61 +698,79 @@ const AdminCategories = () => {
 
           </div>
 
-          <nav className="admin-menu">
+  
+<nav className="admin-menu">
 
-            <button
-              type="button"
-              onClick={() =>
-                navigate('/admin')
-              }
-            >
-              <span>⌂</span>
-              Resumen
-            </button>
+  <button
+    type="button"
+    className={
+      location.pathname === '/admin'
+        ? 'active'
+        : ''
+    }
+    onClick={() =>
+      navigate('/admin')
+    }
+  >
+    <span>◫</span>
+    Solicitudes
+  </button>
 
-            <button
-              type="button"
-              onClick={() =>
-                navigate('/admin')
-              }
-            >
-              <span>▤</span>
-              Solicitudes
-            </button>
+  
+      <button
+            type="button"
+            onClick={() => navigate('/admin/specialists')}
+          >
+            <span>♙</span>
+            Especialistas
+          </button>
+ 
+  <button
+    type="button"
+    className={
+      location.pathname === '/admin/clients'
+        ? 'active'
+        : ''
+    }
+    onClick={() =>
+      navigate('/admin/clients')
+    }
+  >
+    <span>♧</span>
+    Clientes
+  </button>
 
-            <button
-              type="button"
-              onClick={() =>
-                navigate(
-                  '/admin/specialists'
-                )
-              }
-            >
-              <span>♙</span>
-              Especialistas
-            </button>
+  <button
+    type="button"
+    className={
+      location.pathname === '/admin/categories'
+        ? 'active'
+        : ''
+    }
+    onClick={() =>
+      navigate('/admin/categories')
+    }
+  >
+    <span>◇</span>
+    Categorías
+  </button>
 
-            <button
-              type="button"
-              onClick={() =>
-                navigate(
-                  '/admin/clients'
-                )
-              }
-            >
-              <span>♧</span>
-              Clientes
-            </button>
+  <button
+    type="button"
+    className={
+      location.pathname === '/admin/payouts'
+        ? 'active'
+        : ''
+    }
+    onClick={() =>
+      navigate('/admin/payouts')
+    }
+  >
+    <span>$</span>
+    Pagos
+  </button>
 
-            <button
-              type="button"
-              className="active"
-            >
-              <span>▦</span>
-              Categorías
-            </button>
-
-          </nav>
+</nav>
 
         </div>
 
