@@ -1458,7 +1458,7 @@ const location = useLocation();
 
               <div>
                 <span className="admin-eyebrow">
-                  INFORMACIÓN DEL CLIENTE
+                  INFORMACIÓN DEL CLIENTEcf
                 </span>
 
                 <h2>

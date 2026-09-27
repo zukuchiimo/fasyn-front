@@ -1394,15 +1394,21 @@ const upcomingRequest =
         <span className="management-status active">
           <i />
 
-          {
-            request.status ===
-            'APPROVED'
-              ? 'Aprobada'
-              : request.status ===
-                  'IN_PROGRESS'
-                ? 'En proceso'
-                : 'Completada'
-          }
+ {
+  request.status === 'APPROVED'
+    ? 'Servicio asignado'
+    : request.status === 'ACKNOWLEDGED'
+      ? 'Enterado'
+      : request.status === 'ON_THE_WAY'
+        ? 'En camino'
+        : request.status === 'ARRIVED'
+          ? 'En el lugar'
+          : request.status === 'IN_PROGRESS'
+            ? 'En proceso'
+            : request.status === 'COMPLETED'
+              ? 'Finalizado'
+              : request.status
+}
         </span>
 
       </div>

@@ -1451,7 +1451,359 @@
 }
 .specialist-request-summary-price {
   margin-top: 14px;
+}/* =========================================================
+   FEISIN - ESTADO / ACCIONES DEL SERVICIO
+   Diseño compacto alineado al resto de SpecialistRequestDetail
+   ========================================================= */
+
+.service-execution-card {
+  position: relative;
+  overflow: hidden;
+  padding: 18px 20px;
+  border: 1px solid #e5e9ff;
+  border-radius: 17px;
+  background:
+    linear-gradient(
+      180deg,
+      #ffffff 0%,
+      #fbfcff 100%
+    );
+  box-shadow:
+    0 5px 20px
+    rgba(24, 32, 51, 0.035);
 }
+
+.service-execution-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 3px;
+  height: 100%;
+  background:
+    linear-gradient(
+      180deg,
+      #5c7cff,
+      #7b8fff
+    );
+}
+
+.service-execution-card .request-detail-eyebrow {
+  margin-bottom: 10px;
+  color: #6c83f7;
+}
+
+.service-execution-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.service-execution-header > div {
+  min-width: 0;
+}
+
+.service-execution-header small {
+  display: block;
+  margin-bottom: 4px;
+  color: #9aa1af;
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: 0.9px;
+}
+
+.service-execution-header h2 {
+  margin: 0;
+  color: #252c3b;
+  font-size: 15px;
+  line-height: 1.25;
+}
+
+.service-execution-header p {
+  max-width: 520px;
+  margin: 5px 0 0;
+  color: #858c99;
+  font-size: 9px;
+  line-height: 1.55;
+}
+
+.service-execution-status {
+  min-height: 24px;
+  padding: 0 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1px solid #dfe4ff;
+  border-radius: 999px;
+  background: #f3f5ff;
+  color: #5c7cff;
+  font-size: 7.5px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+/* =========================================
+   MODAL PAGO - SERVICIO FINALIZADO
+========================================= */
+
+.payment-modal-overlay {
+  position: fixed;
+  inset: 0;
+
+  width: 100%;
+  height: 100%;
+
+  background: rgba(15, 23, 42, 0.55);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 20px;
+
+  z-index: 99999;
+
+  backdrop-filter: blur(3px);
+}
+
+.payment-modal {
+  width: 100%;
+  max-width: 420px;
+
+  background: #ffffff;
+
+  border-radius: 20px;
+
+  padding: 32px 28px 26px;
+
+  text-align: center;
+
+  border: 1px solid #e8ebf8;
+
+  box-shadow:
+    0 25px 70px rgba(15, 23, 42, 0.25);
+
+  animation: paymentModalIn 0.2s ease-out;
+}
+
+.payment-modal-icon {
+  width: 64px;
+  height: 64px;
+
+  margin: 0 auto 18px;
+
+  border-radius: 50%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #eef2ff;
+
+  color: #5c7cff;
+
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.payment-modal h2 {
+  margin: 0 0 10px;
+
+  font-size: 22px;
+  font-weight: 700;
+
+  color: #172033;
+}
+
+.payment-modal p {
+  margin: 0 0 24px;
+
+  font-size: 15px;
+  line-height: 1.6;
+
+  color: #667085;
+}
+
+.payment-modal button {
+  width: 100%;
+
+  min-height: 46px;
+
+  border: none;
+  border-radius: 12px;
+
+  background: linear-gradient(
+    135deg,
+    #5c7cff,
+    #6d86ff
+  );
+
+  color: #ffffff;
+
+  font-size: 15px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.payment-modal button:hover {
+  transform: translateY(-1px);
+
+  box-shadow:
+    0 8px 20px rgba(92, 124, 255, 0.28);
+}
+
+@keyframes paymentModalIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.service-execution-button {
+  width: 100%;
+  min-height: 41px;
+  margin-top: 14px;
+  padding: 0 14px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  border: 0;
+  border-radius: 10px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #5c7cff,
+      #6d86ff
+    );
+
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 9.5px;
+  font-weight: 800;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 7px 18px
+    rgba(92, 124, 255, 0.16);
+
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    opacity 0.18s ease;
+}
+
+.service-execution-button span {
+  font-size: 12px;
+  line-height: 1;
+}
+
+.service-execution-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow:
+    0 10px 22px
+    rgba(92, 124, 255, 0.22);
+}
+
+.service-execution-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.service-execution-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.service-status-message {
+  margin-top: 10px;
+  padding: 9px 11px;
+  border: 1px solid #d7f3e3;
+  border-radius: 9px;
+  background: #f3fbf7;
+  color: #228256;
+  font-size: 8.5px;
+  font-weight: 700;
+}
+
+.service-execution-finished {
+  margin-top: 10px;
+  padding: 11px 12px;
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  border: 1px solid #d8f1e3;
+  border-radius: 11px;
+
+  background: #f4fbf7;
+  color: #237e54;
+}
+
+.service-execution-finished > span {
+  width: 28px;
+  height: 28px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  border-radius: 50%;
+  background: #e0f5e8;
+
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.service-execution-finished strong {
+  display: block;
+  font-size: 9.5px;
+}
+
+.service-execution-finished p {
+  margin: 3px 0 0;
+  color: #6d9d84;
+  font-size: 8px;
+  line-height: 1.45;
+}
+
+@media (max-width: 700px) {
+  .service-execution-card {
+    padding: 16px;
+  }
+
+  .service-execution-header {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .service-execution-status {
+    align-self: flex-start;
+  }
+
+  .service-execution-button {
+    min-height: 44px;
+  }
+}
+
 
 .specialist-request-summary-price small {
   font-size: 6.5px;
