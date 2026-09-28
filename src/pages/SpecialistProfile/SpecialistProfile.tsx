@@ -1903,21 +1903,19 @@ setSelectedService(service);
     BUSCAR SOLICITUD ACTIVA
     DE UN SERVICIO
   */
-  const getActiveRequest = (
-    serviceId: number
-  ) => {
-    return myRequests.find(
-      (request) =>
-        Number(
-          request.serviceId
-        ) ===
-          Number(serviceId) &&
-        request.status !==
-          'CANCELLED' &&
-        request.status !==
-          'REJECTED'
-    );
-  };
+ 
+const getActiveRequest = (
+  serviceId: number
+) => {
+  return myRequests.find(
+    (request) =>
+      Number(request.serviceId) ===
+        Number(serviceId) &&
+      request.status !== 'CANCELLED' &&
+      request.status !== 'REJECTED' &&
+      request.status !== 'COMPLETED'
+  );
+};
 
   /*
     SOLICITAR SERVICIO
@@ -4044,7 +4042,7 @@ if (
     {requestingServiceId !==
     null
       ? 'Enviando solicitud...'
-      : 'Enviar solicitud'}
+      : 'Enviar solccicitud'}
 
     <span>
       →

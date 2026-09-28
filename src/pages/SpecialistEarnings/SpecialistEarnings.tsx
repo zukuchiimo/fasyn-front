@@ -1,4 +1,3 @@
-
 import {
   useCallback,
   useEffect,
@@ -12,10 +11,6 @@ import { api } from '../../api/api';
 import logo from '../../assets/logo.png';
 
 import './SpecialistEarnings.css';
-
-/* =========================================
-   TIPOS
-========================================= */
 
 type Wallet = {
   availableBalance: number | string;
@@ -46,33 +41,32 @@ type TransactionStatus =
 
 type WalletTransaction = {
   id: number;
-
   type: TransactionType;
-
   status: TransactionStatus;
-
   amount: number | string;
-
   description?: string | null;
-
   requestId?: number | null;
-
   createdAt: string;
 };
 
+type PayoutDestinationType =
+  | 'MERCADO_PAGO'
+  | 'BANK_ACCOUNT';
+
 type PayoutAccount = {
   id: number;
+  type: PayoutDestinationType;
 
-  bankName: string;
+  bankName?: string | null;
+  accountHolderName?: string | null;
+  last4?: string | null;
 
-  last4: string;
+  providerAccountId?: string | null;
+  mercadoPagoEmail?: string | null;
 
   isDefault?: boolean;
+  active?: boolean;
 };
-
-/* =========================================
-   VALORES INICIALES
-========================================= */
 
 const emptyWallet: Wallet = {
   availableBalance: 0,
@@ -80,323 +74,316 @@ const emptyWallet: Wallet = {
   totalEarned: 0,
 };
 
-/* =========================================
-   COMPONENTE
-========================================= */
-
 const SpecialistEarnings = () => {
+  const navigate = useNavigate();
 
-  const navigate =
-    useNavigate();
+  const [wallet, setWallet] =
+    useState<Wallet>(emptyWallet);
 
-  /* =====================================
-     ESTADOS
-  ===================================== */
+  const [earnings, setEarnings] =
+    useState<ServiceEarning[]>([]);
 
-  const [
-    wallet,
-    setWallet,
-  ] =
-    useState<Wallet>(
-      emptyWallet
-    );
+  const [transactions, setTransactions] =
+    useState<WalletTransaction[]>([]);
 
-  const [
-    earnings,
-    setEarnings,
-  ] =
-    useState<
-      ServiceEarning[]
-    >([]);
+  const [accounts, setAccounts] =
+    useState<PayoutAccount[]>([]);
 
-  const [
-    transactions,
-    setTransactions,
-  ] =
-    useState<
-      WalletTransaction[]
-    >([]);
-
-  const [
-    accounts,
-    setAccounts,
-  ] =
-    useState<
-      PayoutAccount[]
-    >([]);
-
-  const [
-    loading,
-    setLoading,
-  ] =
+  const [loading, setLoading] =
     useState(true);
 
-  const [
-    error,
-    setError,
-  ] =
+  const [error, setError] =
     useState('');
 
-  /* =====================================
-     MODAL RETIRO
-  ===================================== */
+  /*
+    RETIRO
+  */
 
   const [
     showWithdrawModal,
     setShowWithdrawModal,
-  ] =
-    useState(false);
+  ] = useState(false);
 
   const [
     withdrawAmount,
     setWithdrawAmount,
-  ] =
-    useState('');
+  ] = useState('');
 
   const [
     selectedAccountId,
     setSelectedAccountId,
-  ] =
-    useState('');
+  ] = useState('');
 
   const [
     withdrawing,
     setWithdrawing,
-  ] =
-    useState(false);
+  ] = useState(false);
 
   const [
     withdrawError,
     setWithdrawError,
+  ] = useState('');
+
+  /*
+    AGREGAR CUENTA
+  */
+
+  const [
+    showAccountModal,
+    setShowAccountModal,
+  ] = useState(false);
+
+  const [
+    accountType,
+    setAccountType,
   ] =
-    useState('');
+    useState<PayoutDestinationType>(
+      'MERCADO_PAGO'
+    );
 
-  /* =====================================
-     TOKEN
-  ===================================== */
+  const [
+    mercadoPagoEmail,
+    setMercadoPagoEmail,
+  ] = useState('');
 
-  const getToken =
-    () => {
+  const [
+    providerAccountId,
+    setProviderAccountId,
+  ] = useState('');
 
-      return (
-        localStorage.getItem(
-          'token'
-        ) || ''
+  const [
+    bankName,
+    setBankName,
+  ] = useState('');
+
+  const [
+    accountHolderName,
+    setAccountHolderName,
+  ] = useState('');
+
+  const [
+    bankLast4,
+    setBankLast4,
+  ] = useState('');
+
+  const [
+    makeDefault,
+    setMakeDefault,
+  ] = useState(true);
+
+  const [
+    savingAccount,
+    setSavingAccount,
+  ] = useState(false);
+
+  const [
+    accountError,
+    setAccountError,
+  ] = useState('');
+
+  const getToken = () => {
+    return (
+      localStorage.getItem(
+        'token'
+      ) || ''
+    );
+  };
+
+  const formatMoney = (
+    value:
+      | number
+      | string
+      | null
+      | undefined
+  ) => {
+    const numberValue =
+      Number(value || 0);
+
+    return numberValue
+      .toLocaleString(
+        'es-MX',
+        {
+          style:
+            'currency',
+
+          currency:
+            'MXN',
+
+          minimumFractionDigits:
+            2,
+
+          maximumFractionDigits:
+            2,
+        }
       );
-    };
+  };
 
-  /* =====================================
-     FORMATO MONEDA
-  ===================================== */
-
-  const formatMoney =
-    (
-      value:
-        | number
-        | string
-        | null
-        | undefined
-    ) => {
-
-      const numberValue =
-        Number(
-          value || 0
-        );
-
-      return (
-        numberValue
-          .toLocaleString(
-            'es-MX',
-            {
-              style:
-                'currency',
-
-              currency:
-                'MXN',
-
-              minimumFractionDigits:
-                2,
-
-              maximumFractionDigits:
-                2,
-            }
-          )
-      );
-    };
-
-  /* =====================================
-     FORMATO FECHA
-  ===================================== */
-
-  const formatDate =
-    (
-      value?:
-        | string
-        | null
-    ) => {
-
-      if (!value) {
-        return '';
-      }
-
-      const date =
-        new Date(
-          value
-        );
-
-      if (
-        Number.isNaN(
-          date.getTime()
-        )
-      ) {
-        return value;
-      }
-
-      return (
-        new Intl
-          .DateTimeFormat(
-            'es-MX',
-            {
-              day:
-                '2-digit',
-
-              month:
-                'short',
-
-              year:
-                'numeric',
-
-              hour:
-                '2-digit',
-
-              minute:
-                '2-digit',
-            }
-          )
-          .format(
-            date
-          )
-      );
-    };
-
-  /* =====================================
-     ESTADO MOVIMIENTO
-  ===================================== */
-
-  const getStatusLabel =
-    (
-      status:
-        TransactionStatus
-    ) => {
-
-      switch (
-        status
-      ) {
-
-        case 'PENDING':
-          return 'Pendiente';
-
-        case 'AVAILABLE':
-          return 'Disponible';
-
-        case 'PROCESSING':
-          return 'Procesando';
-
-        case 'COMPLETED':
-          return 'Completado';
-
-        case 'FAILED':
-          return 'Fallido';
-
-        case 'CANCELLED':
-          return 'Cancelado';
-
-        default:
-          return status;
-      }
-    };
-
-  const getStatusClass =
-    (
-      status:
-        TransactionStatus
-    ) => {
-
-      if (
-        status ===
-          'FAILED' ||
-        status ===
-          'CANCELLED'
-      ) {
-        return 'failed';
-      }
-
-      if (
-        status ===
-          'PENDING' ||
-        status ===
-          'PROCESSING'
-      ) {
-        return 'pending';
-      }
-
+  const formatDate = (
+    value?:
+      | string
+      | null
+  ) => {
+    if (!value) {
       return '';
-    };
+    }
 
-  /* =====================================
-     NOMBRE DEL MOVIMIENTO
-  ===================================== */
+    const date =
+      new Date(value);
 
-  const getTransactionTitle =
-    (
-      transaction:
-        WalletTransaction
-    ) => {
+    if (
+      Number.isNaN(
+        date.getTime()
+      )
+    ) {
+      return value;
+    }
 
-      switch (
-        transaction.type
-      ) {
+    return new Intl
+      .DateTimeFormat(
+        'es-MX',
+        {
+          day:
+            '2-digit',
 
-        case 'SERVICE_EARNING':
+          month:
+            'short',
 
-          return (
-            transaction
-              .requestId
-              ? `Servicio #${transaction.requestId}`
-              : 'Ganancia por servicio'
-          );
+          year:
+            'numeric',
 
-        case 'PAYOUT':
+          hour:
+            '2-digit',
 
-          return 'Retiro de saldo';
+          minute:
+            '2-digit',
+        }
+      )
+      .format(date);
+  };
 
-        case 'REFUND':
+  const getStatusLabel = (
+    status:
+      TransactionStatus
+  ) => {
+    switch (status) {
+      case 'PENDING':
+        return 'Pendiente';
 
-          return 'Reembolso';
+      case 'AVAILABLE':
+        return 'Disponible';
 
-        case 'ADJUSTMENT':
+      case 'PROCESSING':
+        return 'Procesando';
 
-          return 'Ajuste de saldo';
+      case 'COMPLETED':
+        return 'Completado';
 
-        default:
+      case 'FAILED':
+        return 'Fallido';
 
-          return 'Movimiento';
-      }
-    };
+      case 'CANCELLED':
+        return 'Cancelado';
 
-  /* =====================================
-     CARGAR WALLET
-  ===================================== */
+      default:
+        return status;
+    }
+  };
+
+  const getStatusClass = (
+    status:
+      TransactionStatus
+  ) => {
+    if (
+      status ===
+        'FAILED' ||
+      status ===
+        'CANCELLED'
+    ) {
+      return 'failed';
+    }
+
+    if (
+      status ===
+        'PENDING' ||
+      status ===
+        'PROCESSING'
+    ) {
+      return 'pending';
+    }
+
+    return '';
+  };
+
+  const getTransactionTitle = (
+    transaction:
+      WalletTransaction
+  ) => {
+    switch (
+      transaction.type
+    ) {
+      case 'SERVICE_EARNING':
+        return transaction
+          .requestId
+          ? `Servicio #${transaction.requestId}`
+          : 'Ganancia por servicio';
+
+      case 'PAYOUT':
+        return 'Retiro de saldo';
+
+      case 'REFUND':
+        return 'Reembolso';
+
+      case 'ADJUSTMENT':
+        return 'Ajuste de saldo';
+
+      default:
+        return 'Movimiento';
+    }
+  };
+
+  const getAccountLabel = (
+    account:
+      PayoutAccount
+  ) => {
+    if (
+      account.type ===
+      'MERCADO_PAGO'
+    ) {
+      return [
+        'Mercado Pago',
+        account
+          .mercadoPagoEmail,
+        account.isDefault
+          ? 'Principal'
+          : '',
+      ]
+        .filter(Boolean)
+        .join(' · ');
+    }
+
+    return [
+      account.bankName ||
+        'Cuenta bancaria',
+
+      account.last4
+        ? `•••• ${account.last4}`
+        : '',
+
+      account.isDefault
+        ? 'Principal'
+        : '',
+    ]
+      .filter(Boolean)
+      .join(' · ');
+  };
 
   const loadData =
     useCallback(
       async () => {
-
         const token =
           getToken();
 
         if (!token) {
-
           navigate(
             '/login'
           );
@@ -405,18 +392,8 @@ const SpecialistEarnings = () => {
         }
 
         try {
-
-          setLoading(
-            true
-          );
-
+          setLoading(true);
           setError('');
-
-          /*
-            Hacemos llamadas independientes para
-            que si una sección falla no se caiga
-            necesariamente toda la pantalla.
-          */
 
           const results =
             await Promise.allSettled([
@@ -461,10 +438,6 @@ const SpecialistEarnings = () => {
               ),
             ]);
 
-          /* =============================
-             WALLET
-          ============================== */
-
           const walletResult =
             results[0];
 
@@ -472,7 +445,6 @@ const SpecialistEarnings = () => {
             walletResult.status ===
             'fulfilled'
           ) {
-
             setWallet(
               walletResult
                 .value
@@ -480,18 +452,12 @@ const SpecialistEarnings = () => {
                 ?.wallet ||
               emptyWallet
             );
-
           } else {
-
             console.error(
               'ERROR WALLET:',
               walletResult.reason
             );
           }
-
-          /* =============================
-             GANANCIAS
-          ============================== */
 
           const earningsResult =
             results[1];
@@ -500,7 +466,6 @@ const SpecialistEarnings = () => {
             earningsResult.status ===
             'fulfilled'
           ) {
-
             setEarnings(
               earningsResult
                 .value
@@ -508,18 +473,12 @@ const SpecialistEarnings = () => {
                 ?.earnings ||
               []
             );
-
           } else {
-
             console.error(
               'ERROR EARNINGS:',
               earningsResult.reason
             );
           }
-
-          /* =============================
-             TRANSACCIONES
-          ============================== */
 
           const transactionsResult =
             results[2];
@@ -528,7 +487,6 @@ const SpecialistEarnings = () => {
             transactionsResult.status ===
             'fulfilled'
           ) {
-
             setTransactions(
               transactionsResult
                 .value
@@ -536,18 +494,13 @@ const SpecialistEarnings = () => {
                 ?.transactions ||
               []
             );
-
           } else {
-
             console.error(
               'ERROR TRANSACTIONS:',
-              transactionsResult.reason
+              transactionsResult
+                .reason
             );
           }
-
-          /* =============================
-             CUENTAS
-          ============================== */
 
           const accountsResult =
             results[3];
@@ -556,13 +509,13 @@ const SpecialistEarnings = () => {
             accountsResult.status ===
             'fulfilled'
           ) {
-
-            const loadedAccounts =
-              accountsResult
-                .value
-                .data
-                ?.accounts ||
-              [];
+            const loadedAccounts:
+              PayoutAccount[] =
+                accountsResult
+                  .value
+                  .data
+                  ?.accounts ||
+                [];
 
             setAccounts(
               loadedAccounts
@@ -571,50 +524,48 @@ const SpecialistEarnings = () => {
             const defaultAccount =
               loadedAccounts.find(
                 (
-                  account:
-                    PayoutAccount
+                  account
                 ) =>
-                  account.isDefault
+                  account
+                    .isDefault
               );
 
             if (
               defaultAccount
             ) {
-
               setSelectedAccountId(
                 String(
                   defaultAccount.id
                 )
               );
-
             } else if (
-              loadedAccounts.length >
+              loadedAccounts
+                .length >
               0
             ) {
-
               setSelectedAccountId(
                 String(
-                  loadedAccounts[0].id
+                  loadedAccounts[0]
+                    .id
                 )
               );
+            } else {
+              setSelectedAccountId(
+                ''
+              );
             }
-
           } else {
-
             console.error(
               'ERROR ACCOUNTS:',
               accountsResult.reason
             );
           }
 
-          /*
-            Si todas fallaron mostramos
-            mensaje general.
-          */
-
           const failedCount =
             results.filter(
-              (result) =>
+              (
+                result
+              ) =>
                 result.status ===
                 'rejected'
             ).length;
@@ -623,16 +574,14 @@ const SpecialistEarnings = () => {
             failedCount ===
             results.length
           ) {
-
             setError(
               'No fue posible cargar la información de tus ganancias.'
             );
           }
-
         } catch (
-          requestError: any
+          requestError:
+            any
         ) {
-
           console.error(
             'ERROR CARGANDO GANANCIAS:',
             requestError
@@ -644,14 +593,15 @@ const SpecialistEarnings = () => {
               ?.status ===
             401
           ) {
+            localStorage
+              .removeItem(
+                'token'
+              );
 
-            localStorage.removeItem(
-              'token'
-            );
-
-            localStorage.removeItem(
-              'user'
-            );
+            localStorage
+              .removeItem(
+                'user'
+              );
 
             navigate(
               '/login'
@@ -663,9 +613,7 @@ const SpecialistEarnings = () => {
           setError(
             'No fue posible cargar tus ganancias.'
           );
-
         } finally {
-
           setLoading(
             false
           );
@@ -674,22 +622,12 @@ const SpecialistEarnings = () => {
       [navigate]
     );
 
-  /* =====================================
-     USE EFFECT
-  ===================================== */
-
   useEffect(
     () => {
-
       loadData();
-
     },
     [loadData]
   );
-
-  /* =====================================
-     SALDO DISPONIBLE
-  ===================================== */
 
   const availableBalance =
     useMemo(
@@ -705,49 +643,265 @@ const SpecialistEarnings = () => {
       ]
     );
 
-  /* =====================================
-     ABRIR MODAL
-  ===================================== */
+  /*
+    CUENTA DE PAGO
+  */
+
+  const openAccountModal =
+    () => {
+      setAccountError(
+        ''
+      );
+
+      setAccountType(
+        'MERCADO_PAGO'
+      );
+
+      setMercadoPagoEmail(
+        ''
+      );
+
+      setProviderAccountId(
+        ''
+      );
+
+      setBankName('');
+      setAccountHolderName(
+        ''
+      );
+      setBankLast4('');
+
+      setMakeDefault(
+        accounts.length ===
+          0
+      );
+
+      setShowAccountModal(
+        true
+      );
+    };
+
+  const closeAccountModal =
+    () => {
+      if (
+        savingAccount
+      ) {
+        return;
+      }
+
+      setAccountError(
+        ''
+      );
+
+      setShowAccountModal(
+        false
+      );
+    };
+
+  const handleSaveAccount =
+    async () => {
+      const token =
+        getToken();
+
+      if (!token) {
+        navigate(
+          '/login'
+        );
+
+        return;
+      }
+
+      if (
+        accountType ===
+        'MERCADO_PAGO'
+      ) {
+        if (
+          !mercadoPagoEmail
+            .trim()
+        ) {
+          setAccountError(
+            'Ingresa el correo asociado a Mercado Pago.'
+          );
+
+          return;
+        }
+      }
+
+      if (
+        accountType ===
+        'BANK_ACCOUNT'
+      ) {
+        if (
+          !bankName.trim()
+        ) {
+          setAccountError(
+            'Ingresa el nombre del banco.'
+          );
+
+          return;
+        }
+
+        if (
+          !accountHolderName
+            .trim()
+        ) {
+          setAccountError(
+            'Ingresa el nombre del titular.'
+          );
+
+          return;
+        }
+
+        if (
+          !/^\d{4}$/.test(
+            bankLast4.trim()
+          )
+        ) {
+          setAccountError(
+            'Ingresa los últimos 4 dígitos de la cuenta.'
+          );
+
+          return;
+        }
+      }
+
+      try {
+        setSavingAccount(
+          true
+        );
+
+        setAccountError(
+          ''
+        );
+
+        const payload =
+          accountType ===
+          'MERCADO_PAGO'
+            ? {
+                type:
+                  'MERCADO_PAGO',
+
+                mercadoPagoEmail:
+                  mercadoPagoEmail
+                    .trim()
+                    .toLowerCase(),
+
+                providerAccountId:
+                  providerAccountId
+                    .trim() ||
+                  undefined,
+
+                isDefault:
+                  makeDefault,
+              }
+            : {
+                type:
+                  'BANK_ACCOUNT',
+
+                bankName:
+                  bankName
+                    .trim(),
+
+                accountHolderName:
+                  accountHolderName
+                    .trim(),
+
+                last4:
+                  bankLast4
+                    .trim(),
+
+                isDefault:
+                  makeDefault,
+              };
+
+        await api.post(
+          '/wallet/accounts',
+          payload,
+          {
+            headers: {
+              Authorization:
+                `Bearer ${token}`,
+            },
+          }
+        );
+
+        setShowAccountModal(
+          false
+        );
+
+        await loadData();
+      } catch (
+        requestError:
+          any
+      ) {
+        console.error(
+          'ERROR GUARDANDO CUENTA:',
+          requestError
+            ?.response
+            ?.data ||
+          requestError
+        );
+
+        setAccountError(
+          requestError
+            ?.response
+            ?.data
+            ?.message ||
+          'No fue posible guardar la cuenta.'
+        );
+      } finally {
+        setSavingAccount(
+          false
+        );
+      }
+    };
+
+  /*
+    RETIRO
+  */
 
   const openWithdrawModal =
     () => {
+      setWithdrawError(
+        ''
+      );
 
-      setWithdrawError('');
+      setWithdrawAmount(
+        ''
+      );
 
-      setWithdrawAmount('');
+      if (
+        accounts.length ===
+        0
+      ) {
+        openAccountModal();
+        return;
+      }
 
       setShowWithdrawModal(
         true
       );
     };
 
-  /* =====================================
-     CERRAR MODAL
-  ===================================== */
-
   const closeWithdrawModal =
     () => {
-
       if (
         withdrawing
       ) {
         return;
       }
 
-      setWithdrawError('');
+      setWithdrawError(
+        ''
+      );
 
       setShowWithdrawModal(
         false
       );
     };
 
-  /* =====================================
-     RETIRAR
-  ===================================== */
-
   const handleWithdraw =
     async () => {
-
       const amount =
         Number(
           withdrawAmount
@@ -759,7 +913,6 @@ const SpecialistEarnings = () => {
         ) ||
         amount <= 0
       ) {
-
         setWithdrawError(
           'Ingresa un monto válido.'
         );
@@ -771,7 +924,6 @@ const SpecialistEarnings = () => {
         amount >
         availableBalance
       ) {
-
         setWithdrawError(
           'El monto supera tu saldo disponible.'
         );
@@ -782,7 +934,6 @@ const SpecialistEarnings = () => {
       if (
         !selectedAccountId
       ) {
-
         setWithdrawError(
           'Selecciona una cuenta para recibir el dinero.'
         );
@@ -794,7 +945,6 @@ const SpecialistEarnings = () => {
         getToken();
 
       if (!token) {
-
         navigate(
           '/login'
         );
@@ -803,17 +953,19 @@ const SpecialistEarnings = () => {
       }
 
       try {
-
         setWithdrawing(
           true
         );
 
-        setWithdrawError('');
+        setWithdrawError(
+          ''
+        );
 
         await api.post(
           '/wallet/payouts',
           {
             amount,
+
             payoutAccountId:
               Number(
                 selectedAccountId
@@ -831,14 +983,15 @@ const SpecialistEarnings = () => {
           false
         );
 
-        setWithdrawAmount('');
+        setWithdrawAmount(
+          ''
+        );
 
         await loadData();
-
       } catch (
-        requestError: any
+        requestError:
+          any
       ) {
-
         console.error(
           'ERROR RETIRANDO SALDO:',
           requestError
@@ -854,51 +1007,29 @@ const SpecialistEarnings = () => {
             ?.message ||
           'No fue posible realizar el retiro.'
         );
-
       } finally {
-
         setWithdrawing(
           false
         );
       }
     };
 
-  /* =====================================
-     LOADING
-  ===================================== */
-
-  if (
-    loading
-  ) {
-
+  if (loading) {
     return (
-
       <div className="earnings-loading">
-
         <div className="earnings-loader" />
 
         <strong>
           Cargando tus ganancias...
         </strong>
-
       </div>
     );
   }
 
-  /* =====================================
-     UI
-  ===================================== */
-
   return (
-
     <div className="earnings-page">
 
-      {/* =================================
-          HEADER
-      ================================= */}
-
       <header className="earnings-header">
-
         <div className="earnings-header-inner">
 
           <button
@@ -910,12 +1041,10 @@ const SpecialistEarnings = () => {
               )
             }
           >
-
             <img
               src={logo}
               alt="FASYN"
             />
-
           </button>
 
           <button
@@ -931,18 +1060,9 @@ const SpecialistEarnings = () => {
           </button>
 
         </div>
-
       </header>
 
-      {/* =================================
-          CONTENIDO
-      ================================= */}
-
       <main className="earnings-main">
-
-        {/* ===============================
-            TITULO
-        ================================ */}
 
         <div className="earnings-heading">
 
@@ -960,38 +1080,49 @@ const SpecialistEarnings = () => {
               Consulta tus ganancias,
               revisa tus movimientos y
               transfiere tu saldo disponible
-              a una de tus cuentas.
+              a Mercado Pago o a una cuenta bancaria.
             </p>
 
           </div>
 
-          <button
-            type="button"
-            className="earnings-refresh"
-            onClick={
-              loadData
-            }
+          <div
+            style={{
+              display:
+                'flex',
+              gap:
+                '10px',
+              flexWrap:
+                'wrap',
+            }}
           >
-            Actualizar
-          </button>
+            <button
+              type="button"
+              className="earnings-refresh"
+              onClick={
+                openAccountModal
+              }
+            >
+              + Agregar cuenta
+            </button>
+
+            <button
+              type="button"
+              className="earnings-refresh"
+              onClick={
+                loadData
+              }
+            >
+              Actualizar
+            </button>
+          </div>
 
         </div>
 
-        {/* ===============================
-            ERROR
-        ================================ */}
-
         {error && (
-
           <div className="earnings-error">
             {error}
           </div>
-
         )}
-
-        {/* ===============================
-            WALLET
-        ================================ */}
 
         <section className="earnings-wallet-card">
 
@@ -1018,31 +1149,43 @@ const SpecialistEarnings = () => {
 
             </div>
 
-            <button
-              type="button"
-              className="wallet-withdraw-button"
-              disabled={
-                availableBalance <=
-                0
-              }
-              onClick={
-                openWithdrawModal
-              }
-            >
-              Retirar dinero
-              <span>
-                →
-              </span>
-            </button>
+<button
+  type="button"
+  className="wallet-withdraw-button"
+  disabled={
+    accounts.length > 0 &&
+    availableBalance <= 0
+  }
+  onClick={() => {
+
+    if (
+      accounts.length === 0
+    ) {
+
+      openAccountModal();
+
+      return;
+    }
+
+    openWithdrawModal();
+  }}
+>
+  {
+    accounts.length === 0
+      ? 'Agregar cuenta de pago'
+      : 'Retirar dinero'
+  }
+
+  <span>
+    →
+  </span>
+</button>
 
           </div>
-
-          {/* STATS */}
 
           <div className="wallet-stats">
 
             <div className="wallet-stat">
-
               <span>
                 DISPONIBLE
               </span>
@@ -1055,11 +1198,9 @@ const SpecialistEarnings = () => {
                   )
                 }
               </strong>
-
             </div>
 
             <div className="wallet-stat">
-
               <span>
                 PENDIENTE
               </span>
@@ -1072,11 +1213,9 @@ const SpecialistEarnings = () => {
                   )
                 }
               </strong>
-
             </div>
 
             <div className="wallet-stat">
-
               <span>
                 TOTAL GANADO
               </span>
@@ -1089,29 +1228,141 @@ const SpecialistEarnings = () => {
                   )
                 }
               </strong>
-
             </div>
 
           </div>
 
         </section>
 
-        {/* =================================
-            GRID
-        ================================= */}
+        <section
+          className="earnings-card"
+          style={{
+            marginBottom:
+              '20px',
+          }}
+        >
+          <div className="earnings-card-header">
+            <div>
+              <span className="earnings-eyebrow">
+                CUENTAS DE PAGO
+              </span>
+
+              <h2>
+                Dónde recibes tu dinero
+              </h2>
+
+              <p>
+                Registra Mercado Pago o una cuenta bancaria
+                para recibir tus retiros.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              className="earnings-refresh"
+              onClick={
+                openAccountModal
+              }
+            >
+              Agregar cuenta
+            </button>
+          </div>
+
+          {accounts.length ===
+          0 ? (
+            <div className="earnings-empty">
+              <div className="earnings-empty-icon">
+                $
+              </div>
+
+              <strong>
+                Sin cuenta registrada
+              </strong>
+
+              <p>
+                Agrega una cuenta de Mercado Pago
+                o una cuenta bancaria.
+              </p>
+
+              <button
+                type="button"
+                className="wallet-withdraw-button"
+                onClick={
+                  openAccountModal
+                }
+                style={{
+                  marginTop:
+                    '12px',
+                }}
+              >
+                Agregar cuenta
+              </button>
+            </div>
+          ) : (
+            <div className="service-earnings-list">
+              {accounts.map(
+                (
+                  account
+                ) => (
+                  <div
+                    key={
+                      account.id
+                    }
+                    className="service-earning-item"
+                  >
+                    <div className="service-earning-info">
+
+                      <div className="service-earning-icon">
+                        {
+                          account.type ===
+                          'MERCADO_PAGO'
+                            ? 'MP'
+                            : 'B'
+                        }
+                      </div>
+
+                      <div className="service-earning-content">
+                        <strong>
+                          {
+                            account.type ===
+                            'MERCADO_PAGO'
+                              ? 'Mercado Pago'
+                              : account.bankName ||
+                                'Cuenta bancaria'
+                          }
+                        </strong>
+
+                        <span>
+                          {
+                            getAccountLabel(
+                              account
+                            )
+                          }
+                        </span>
+                      </div>
+
+                    </div>
+
+                    <div className="service-earning-amount">
+                      {
+                        account.isDefault
+                          ? 'Principal'
+                          : 'Activa'
+                      }
+                    </div>
+                  </div>
+                )
+              )}
+            </div>
+          )}
+        </section>
 
         <div className="earnings-grid">
-
-          {/* ===============================
-              POR SERVICIO
-          ================================ */}
 
           <section className="earnings-card">
 
             <div className="earnings-card-header">
-
               <div>
-
                 <span className="earnings-eyebrow">
                   SERVICIOS
                 </span>
@@ -1124,16 +1375,12 @@ const SpecialistEarnings = () => {
                   Consulta cuánto has generado
                   con cada servicio.
                 </p>
-
               </div>
-
             </div>
 
             {earnings.length ===
             0 ? (
-
               <div className="earnings-empty">
-
                 <div className="earnings-empty-icon">
                   $
                 </div>
@@ -1146,19 +1393,14 @@ const SpecialistEarnings = () => {
                   Cuando completes trabajos,
                   tus ganancias aparecerán aquí.
                 </p>
-
               </div>
-
             ) : (
-
               <div className="service-earnings-list">
-
                 {earnings.map(
                   (
                     earning,
                     index
                   ) => (
-
                     <div
                       key={
                         earning
@@ -1166,7 +1408,6 @@ const SpecialistEarnings = () => {
                       }
                       className="service-earning-item"
                     >
-
                       <div className="service-earning-info">
 
                         <div className="service-earning-icon">
@@ -1175,15 +1416,14 @@ const SpecialistEarnings = () => {
                               index +
                               1
                             )
-                            .padStart(
-                              2,
-                              '0'
-                            )
+                              .padStart(
+                                2,
+                                '0'
+                              )
                           }
                         </div>
 
                         <div className="service-earning-content">
-
                           <strong>
                             {
                               earning
@@ -1196,6 +1436,7 @@ const SpecialistEarnings = () => {
                               earning
                                 .completedJobs
                             }{' '}
+
                             {
                               earning
                                 .completedJobs ===
@@ -1204,43 +1445,30 @@ const SpecialistEarnings = () => {
                                 : 'trabajos completados'
                             }
                           </span>
-
                         </div>
 
                       </div>
 
                       <div className="service-earning-amount">
-
                         {
                           formatMoney(
                             earning
                               .amount
                           )
                         }
-
                       </div>
-
                     </div>
-
                   )
                 )}
-
               </div>
-
             )}
 
           </section>
 
-          {/* ===============================
-              MOVIMIENTOS
-          ================================ */}
-
           <section className="earnings-card">
 
             <div className="earnings-card-header">
-
               <div>
-
                 <span className="earnings-eyebrow">
                   ACTIVIDAD
                 </span>
@@ -1253,16 +1481,12 @@ const SpecialistEarnings = () => {
                   Últimos movimientos
                   de tu cuenta.
                 </p>
-
               </div>
-
             </div>
 
             {transactions.length ===
             0 ? (
-
               <div className="earnings-empty">
-
                 <div className="earnings-empty-icon">
                   ↕
                 </div>
@@ -1275,25 +1499,19 @@ const SpecialistEarnings = () => {
                   Aquí aparecerán tus ingresos
                   y retiros.
                 </p>
-
               </div>
-
             ) : (
-
               <div className="earnings-transactions">
-
                 {transactions.map(
                   (
                     transaction
                   ) => {
-
                     const isPayout =
                       transaction
                         .type ===
                       'PAYOUT';
 
                     return (
-
                       <div
                         key={
                           transaction.id
@@ -1375,17 +1593,13 @@ const SpecialistEarnings = () => {
                                 .amount
                             )
                           }
-
                         </div>
 
                       </div>
-
                     );
                   }
                 )}
-
               </div>
-
             )}
 
           </section>
@@ -1394,12 +1608,8 @@ const SpecialistEarnings = () => {
 
       </main>
 
-      {/* =================================
-          MODAL RETIRO
-      ================================= */}
-
+      {/* MODAL RETIRO */}
       {showWithdrawModal && (
-
         <div className="withdraw-overlay">
 
           <div className="withdraw-modal">
@@ -1407,7 +1617,6 @@ const SpecialistEarnings = () => {
             <div className="withdraw-modal-header">
 
               <div>
-
                 <span>
                   RETIRAR SALDO
                 </span>
@@ -1415,7 +1624,6 @@ const SpecialistEarnings = () => {
                 <h2>
                   Transferir dinero
                 </h2>
-
               </div>
 
               <button
@@ -1433,10 +1641,7 @@ const SpecialistEarnings = () => {
 
             </div>
 
-            {/* SALDO */}
-
             <div className="withdraw-balance">
-
               <span>
                 Saldo disponible
               </span>
@@ -1449,13 +1654,9 @@ const SpecialistEarnings = () => {
                   )
                 }
               </strong>
-
             </div>
 
-            {/* ERROR */}
-
             {withdrawError && (
-
               <div
                 className="earnings-error"
                 style={{
@@ -1468,13 +1669,9 @@ const SpecialistEarnings = () => {
               >
                 {withdrawError}
               </div>
-
             )}
 
-            {/* MONTO */}
-
             <div className="withdraw-field">
-
               <label>
                 Monto a retirar
               </label>
@@ -1501,77 +1698,78 @@ const SpecialistEarnings = () => {
                     )
                 }
               />
-
             </div>
 
-            {/* CUENTA */}
-
             <div className="withdraw-field">
-
               <label>
                 Cuenta destino
               </label>
 
               {accounts.length >
               0 ? (
-
-                <select
-                  value={
-                    selectedAccountId
-                  }
-                  disabled={
-                    withdrawing
-                  }
-                  onChange={
-                    (
-                      event
-                    ) =>
-                      setSelectedAccountId(
+                <>
+                  <select
+                    value={
+                      selectedAccountId
+                    }
+                    disabled={
+                      withdrawing
+                    }
+                    onChange={
+                      (
                         event
-                          .target
-                          .value
+                      ) =>
+                        setSelectedAccountId(
+                          event
+                            .target
+                            .value
+                        )
+                    }
+                  >
+                    {accounts.map(
+                      (
+                        account
+                      ) => (
+                        <option
+                          key={
+                            account.id
+                          }
+                          value={
+                            account.id
+                          }
+                        >
+                          {
+                            getAccountLabel(
+                              account
+                            )
+                          }
+                        </option>
                       )
-                  }
-                >
+                    )}
+                  </select>
 
-                  {accounts.map(
-                    (
-                      account
-                    ) => (
+                  <button
+                    type="button"
+                    className="earnings-refresh"
+                    disabled={
+                      withdrawing
+                    }
+                    onClick={() => {
+                      setShowWithdrawModal(
+                        false
+                      );
 
-                      <option
-                        key={
-                          account.id
-                        }
-                        value={
-                          account.id
-                        }
-                      >
-                        {
-                          account
-                            .bankName
-                        }{' '}
-                        ••••{' '}
-                        {
-                          account
-                            .last4
-                        }
-
-                        {
-                          account
-                            .isDefault
-                            ? ' · Principal'
-                            : ''
-                        }
-                      </option>
-
-                    )
-                  )}
-
-                </select>
-
+                      openAccountModal();
+                    }}
+                    style={{
+                      marginTop:
+                        '10px',
+                    }}
+                  >
+                    + Agregar otra cuenta
+                  </button>
+                </>
               ) : (
-
                 <div
                   style={{
                     padding:
@@ -1587,7 +1785,7 @@ const SpecialistEarnings = () => {
                       '#8b919e',
 
                     fontSize:
-                      '9px',
+                      '12px',
 
                     lineHeight:
                       1.5,
@@ -1597,12 +1795,8 @@ const SpecialistEarnings = () => {
                   registrada para recibir
                   transferencias.
                 </div>
-
               )}
-
             </div>
-
-            {/* BOTONES */}
 
             <div className="withdraw-actions">
 
@@ -1645,9 +1839,401 @@ const SpecialistEarnings = () => {
             </div>
 
           </div>
-
         </div>
+      )}
 
+      {/* MODAL AGREGAR CUENTA */}
+      {showAccountModal && (
+        <div className="withdraw-overlay">
+
+          <div className="withdraw-modal">
+
+            <div className="withdraw-modal-header">
+
+              <div>
+                <span>
+                  CUENTA DE PAGO
+                </span>
+
+                <h2>
+                  Agregar cuenta
+                </h2>
+              </div>
+
+              <button
+                type="button"
+                className="withdraw-close"
+                disabled={
+                  savingAccount
+                }
+                onClick={
+                  closeAccountModal
+                }
+              >
+                ×
+              </button>
+
+            </div>
+
+            <p
+              style={{
+                margin:
+                  '8px 0 18px',
+                color:
+                  '#747b8a',
+                lineHeight:
+                  1.5,
+              }}
+            >
+              Elige dónde quieres recibir
+              tus transferencias.
+            </p>
+
+            {accountError && (
+              <div
+                className="earnings-error"
+                style={{
+                  marginBottom:
+                    '15px',
+                }}
+              >
+                {accountError}
+              </div>
+            )}
+
+            <div
+              style={{
+                display:
+                  'grid',
+                gridTemplateColumns:
+                  '1fr 1fr',
+                gap:
+                  '10px',
+                marginBottom:
+                  '18px',
+              }}
+            >
+              <button
+                type="button"
+                disabled={
+                  savingAccount
+                }
+                onClick={() =>
+                  setAccountType(
+                    'MERCADO_PAGO'
+                  )
+                }
+                style={{
+                  border:
+                    accountType ===
+                    'MERCADO_PAGO'
+                      ? '2px solid #5c7cff'
+                      : '1px solid #e2e5ec',
+                  background:
+                    accountType ===
+                    'MERCADO_PAGO'
+                      ? '#f3f6ff'
+                      : '#fff',
+                  borderRadius:
+                    '12px',
+                  padding:
+                    '14px',
+                  fontWeight:
+                    700,
+                  cursor:
+                    'pointer',
+                }}
+              >
+                Mercado Pago
+              </button>
+
+              <button
+                type="button"
+                disabled={
+                  savingAccount
+                }
+                onClick={() =>
+                  setAccountType(
+                    'BANK_ACCOUNT'
+                  )
+                }
+                style={{
+                  border:
+                    accountType ===
+                    'BANK_ACCOUNT'
+                      ? '2px solid #5c7cff'
+                      : '1px solid #e2e5ec',
+                  background:
+                    accountType ===
+                    'BANK_ACCOUNT'
+                      ? '#f3f6ff'
+                      : '#fff',
+                  borderRadius:
+                    '12px',
+                  padding:
+                    '14px',
+                  fontWeight:
+                    700,
+                  cursor:
+                    'pointer',
+                }}
+              >
+                Cuenta bancaria
+              </button>
+            </div>
+
+            {accountType ===
+            'MERCADO_PAGO' ? (
+              <>
+                <div className="withdraw-field">
+                  <label>
+                    Correo de Mercado Pago
+                  </label>
+
+                  <input
+                    type="email"
+                    placeholder="correo@ejemplo.com"
+                    value={
+                      mercadoPagoEmail
+                    }
+                    disabled={
+                      savingAccount
+                    }
+                    onChange={
+                      (
+                        event
+                      ) =>
+                        setMercadoPagoEmail(
+                          event
+                            .target
+                            .value
+                        )
+                    }
+                  />
+                </div>
+
+                <div className="withdraw-field">
+                  <label>
+                    ID de cuenta del proveedor
+                    (opcional)
+                  </label>
+
+                  <input
+                    type="text"
+                    placeholder="ID de Mercado Pago"
+                    value={
+                      providerAccountId
+                    }
+                    disabled={
+                      savingAccount
+                    }
+                    onChange={
+                      (
+                        event
+                      ) =>
+                        setProviderAccountId(
+                          event
+                            .target
+                            .value
+                        )
+                    }
+                  />
+                </div>
+
+                <div
+                  style={{
+                    padding:
+                      '12px',
+                    borderRadius:
+                      '10px',
+                    background:
+                      '#f6f7fb',
+                    color:
+                      '#6d7483',
+                    fontSize:
+                      '12px',
+                    lineHeight:
+                      1.5,
+                    marginBottom:
+                      '14px',
+                  }}
+                >
+                  Esta información identifica
+                  la cuenta destino. La transferencia
+                  real deberá ser validada y ejecutada
+                  por el backend con Mercado Pago.
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="withdraw-field">
+                  <label>
+                    Banco
+                  </label>
+
+                  <input
+                    type="text"
+                    placeholder="BBVA, Banorte, Santander..."
+                    value={
+                      bankName
+                    }
+                    disabled={
+                      savingAccount
+                    }
+                    onChange={
+                      (
+                        event
+                      ) =>
+                        setBankName(
+                          event
+                            .target
+                            .value
+                        )
+                    }
+                  />
+                </div>
+
+                <div className="withdraw-field">
+                  <label>
+                    Titular
+                  </label>
+
+                  <input
+                    type="text"
+                    placeholder="Nombre del titular"
+                    value={
+                      accountHolderName
+                    }
+                    disabled={
+                      savingAccount
+                    }
+                    onChange={
+                      (
+                        event
+                      ) =>
+                        setAccountHolderName(
+                          event
+                            .target
+                            .value
+                        )
+                    }
+                  />
+                </div>
+
+                <div className="withdraw-field">
+                  <label>
+                    Últimos 4 dígitos
+                  </label>
+
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={4}
+                    placeholder="1234"
+                    value={
+                      bankLast4
+                    }
+                    disabled={
+                      savingAccount
+                    }
+                    onChange={
+                      (
+                        event
+                      ) =>
+                        setBankLast4(
+                          event
+                            .target
+                            .value
+                            .replace(
+                              /\D/g,
+                              ''
+                            )
+                            .slice(
+                              0,
+                              4
+                            )
+                        )
+                    }
+                  />
+                </div>
+              </>
+            )}
+
+            <label
+              style={{
+                display:
+                  'flex',
+                alignItems:
+                  'center',
+                gap:
+                  '8px',
+                margin:
+                  '14px 0',
+                fontSize:
+                  '13px',
+                cursor:
+                  'pointer',
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={
+                  makeDefault
+                }
+                disabled={
+                  savingAccount
+                }
+                onChange={
+                  (
+                    event
+                  ) =>
+                    setMakeDefault(
+                      event
+                        .target
+                        .checked
+                    )
+                }
+              />
+
+              Usar como cuenta principal
+            </label>
+
+            <div className="withdraw-actions">
+
+              <button
+                type="button"
+                className="withdraw-cancel"
+                disabled={
+                  savingAccount
+                }
+                onClick={
+                  closeAccountModal
+                }
+              >
+                Cancelar
+              </button>
+
+              <button
+                type="button"
+                className="withdraw-confirm"
+                disabled={
+                  savingAccount
+                }
+                onClick={
+                  handleSaveAccount
+                }
+              >
+                {
+                  savingAccount
+                    ? 'Guardando...'
+                    : 'Guardar cuenta'
+                }
+              </button>
+
+            </div>
+
+          </div>
+        </div>
       )}
 
     </div>
