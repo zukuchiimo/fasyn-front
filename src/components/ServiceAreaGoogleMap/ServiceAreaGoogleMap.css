@@ -1,0 +1,192 @@
+.service-map-wrapper {
+  width: 100%;
+  min-width: 0;
+}
+
+.service-map-limit {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin: 0 0 16px;
+  padding: 16px 18px;
+  border: 1px solid #bfdbfe;
+  border-radius: 16px;
+  background: #eff6ff;
+}
+
+.service-map-limit > div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.service-map-limit span {
+  color: #2563eb;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.service-map-limit strong {
+  color: #172554;
+  font-size: 19px;
+}
+
+.service-map-limit p {
+  max-width: 500px;
+  margin: 0;
+  color: #475569;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.service-map-container {
+  position: relative;
+
+  /*
+    Altura fija. Esto evita que el mapa se
+    comprima cuando cambia serviceAreas.
+  */
+  width: 100%;
+  height: 560px;
+  min-height: 560px;
+
+  overflow: hidden;
+  border: 1px solid #dbe3ef;
+  border-radius: 18px;
+  background: #f8fafc;
+
+  box-shadow:
+    0 12px 30px
+    rgba(15, 23, 42, 0.08);
+}
+
+/*
+  @react-google-maps/api crea un div interno.
+  Le obligamos a conservar siempre el alto.
+*/
+.service-map-container > div {
+  width: 100% !important;
+  height: 560px !important;
+  min-height: 560px !important;
+}
+
+.service-map-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 320px;
+  padding: 32px;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  background: #f8fafc;
+  color: #64748b;
+  text-align: center;
+}
+
+.service-map-state.error {
+  flex-direction: column;
+  gap: 8px;
+  border-color: #fecaca;
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.service-map-state.error p {
+  margin: 0;
+  font-size: 13px;
+}
+
+.service-map-warning {
+  margin-bottom: 12px;
+  padding: 12px 14px;
+  border: 1px solid #fde68a;
+  border-radius: 12px;
+  background: #fffbeb;
+  color: #92400e;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.service-map-warning.error {
+  border-color: #fecaca;
+  background: #fef2f2;
+  color: #991b1b;
+}
+
+.service-map-loading-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.58);
+  color: #334155;
+  font-size: 14px;
+  font-weight: 800;
+  pointer-events: none;
+  backdrop-filter: blur(1px);
+}
+
+.service-map-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  margin-top: 14px;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.service-map-legend > div {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.service-map-color {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+}
+
+.service-map-color.available {
+  background: #4f6df5;
+}
+
+.service-map-color.selected {
+  background: #22c55e;
+}
+
+.service-map-color.blocked {
+  background: #cbd5e1;
+}
+
+.service-map-tip {
+  margin: 12px 0 0;
+  padding: 11px 13px;
+  border-radius: 12px;
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+@media (max-width: 700px) {
+  .service-map-limit {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .service-map-container,
+  .service-map-container > div {
+    height: 480px !important;
+    min-height: 480px !important;
+  }
+
+  .service-map-container {
+    border-radius: 14px;
+  }
+}

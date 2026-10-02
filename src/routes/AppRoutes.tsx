@@ -17,9 +17,12 @@ import CreateService from '../pages/CreateService/CreateService';
 import MyProfile from '../pages/MyProfile/MyProfile';
 import SpecialistEarnings
   from '../pages/SpecialistEarnings/SpecialistEarnings';
-  import AdminPayouts from '../pages/admin/AdminPayouts';
-  import PaymentSuccess from '../pages/payment/PaymentSuccess';
-  import ClientFavorites from '../pages/client/Favorites/ClientFavorites';
+import AdminPayouts from '../pages/admin/AdminPayouts';
+import PaymentSuccess from '../pages/payment/PaymentSuccess';
+import ClientFavorites from '../pages/client/Favorites/ClientFavorites';
+import VerifyEmail from '../pages/VerifyEmail/VerifyEmail';
+import AdminSpecialistCertificates
+  from '../pages/AdminSpecialistCertificates/AdminSpecialistCertificates';
 /*
   NUEVA PANTALLA:
   DETALLE DE SOLICITUD DEL ESPECIALISTA
@@ -35,6 +38,7 @@ import AdminDashboard from '../pages/AdminDashboard/AdminDashboard';
 import AdminSpecialists from '../pages/admin/AdminSpecialists';
 import AdminClients from '../pages/admin/AdminClients';
 import AdminCategories from '../pages/admin/AdminCategories';
+import SpecialistCertificates from '../pages/SpecialistCertificates/SpecialistCertificates';
 
 const AppRoutes = () => {
   return (
@@ -59,7 +63,11 @@ const AppRoutes = () => {
             <Login />
           }
         />
-
+ 
+        <Route
+          path="/verify-email"
+          element={<VerifyEmail />}
+        />
         <Route
           path="/register"
           element={
@@ -77,16 +85,26 @@ const AppRoutes = () => {
             <Specialists />
           }
         />
-<Route
-  path="/payment/success"
-  element={<PaymentSuccess />}
-/>
+        <Route
+          path="/admin/specialists"
+          element={<AdminSpecialists />}
+        />
+        <Route
+          path="/payment/success"
+          element={<PaymentSuccess />}
+        />
         <Route
           path="/specialists/:id"
           element={
             <SpecialistProfile />
           }
         />
+        <Route
+  path="/admin/specialists/:specialistId/certificates"
+  element={
+    <AdminSpecialistCertificates />
+  }
+/>
 
         {/* =====================================
             PANEL ESPECIALISTA
@@ -105,16 +123,16 @@ const AppRoutes = () => {
             <MyProfile />
           }
         />
-<Route
-  path="/specialist/earnings"
-  element={<SpecialistEarnings />}
-/>
-<Route
-  path="/client/favorites"
-  element={
-    <ClientFavorites />
-  }
-/>
+        <Route
+          path="/specialist/earnings"
+          element={<SpecialistEarnings />}
+        />
+        <Route
+          path="/client/favorites"
+          element={
+            <ClientFavorites />
+          }
+        />
         <Route
           path="/specialist/setup"
           element={
@@ -148,12 +166,12 @@ const AppRoutes = () => {
             <ClientDashboard />
           }
         />
-<Route
-  path="/client/history"
-  element={
-    <ClientHistory />
-  }
-/>
+        <Route
+          path="/client/history"
+          element={
+            <ClientHistory />
+          }
+        />
         <Route
           path="/client/profile"
           element={
@@ -186,9 +204,9 @@ const AppRoutes = () => {
           }
         />
         <Route
-  path="/admin/payouts"
-  element={<AdminPayouts />}
-/>
+          path="/admin/payouts"
+          element={<AdminPayouts />}
+        />
 
         <Route
           path="/admin/clients"

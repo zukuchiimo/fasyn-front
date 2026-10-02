@@ -699,39 +699,70 @@ const handleTransfer = async (
   earning: Earning
 ) => {
   try {
+
+    if (!token) {
+      navigate(
+        '/login'
+      );
+
+      return;
+    }
+
     setTransferringId(
       earning.id
     );
 
     setError('');
 
+    const response =
+      await api.post(
+
+        `/admin/payouts/${earning.id}/transfer`,
+
+        {},
+
+        {
+          headers: {
+            Authorization:
+              `Bearer ${token}`,
+          },
+        }
+
+      );
+
     console.log(
-      'TRANSFERIR EARNING:',
-      earning
+      'TRANSFERENCIA:',
+      response.data
     );
 
-    /*
-      Por ahora solo dejamos listo el botón.
-      La transferencia real se conectará
-      con el endpoint del backend.
-    */
+    await loadPayouts();
 
-  } catch (error) {
+  } catch (
+    error:
+      any
+  ) {
+
     console.error(
       'ERROR TRANSFIRIENDO:',
+      error?.response?.data ||
       error
     );
 
     setError(
+      error
+        ?.response
+        ?.data
+        ?.message ||
       'No fue posible procesar la transferencia.'
     );
+
   } finally {
+
     setTransferringId(
       null
     );
   }
 };
-
   return (
 
 

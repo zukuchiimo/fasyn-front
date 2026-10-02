@@ -1,0 +1,725 @@
+.credentials-page {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 10% 0%, rgba(92, 124, 255, 0.06), transparent 25%),
+    #f6f7fb;
+  color: #182033;
+}
+
+.credentials-nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  min-height: 66px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 24px;
+  background: rgba(255, 255, 255, 0.96);
+  border-bottom: 1px solid #e9ebf2;
+  backdrop-filter: blur(12px);
+}
+
+.credentials-nav button {
+  min-height: 40px;
+  padding: 0 16px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: #747a89;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.credentials-nav button:hover,
+.credentials-nav button.active {
+  color: #5c7cff;
+  background: #eef1ff;
+  border-color: #dfe5ff;
+}
+
+.credentials-shell {
+  max-width: 1220px;
+  margin: 0 auto;
+  padding: 52px 36px 90px;
+}
+
+.credentials-hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 30px;
+  margin-bottom: 28px;
+}
+
+.credentials-eyebrow,
+.credentials-help-kicker {
+  color: #5c7cff;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 1.5px;
+}
+
+.credentials-hero h1 {
+  margin: 9px 0 10px;
+  font-size: 40px;
+  line-height: 1.1;
+  letter-spacing: -1px;
+}
+
+.credentials-hero p {
+  max-width: 690px;
+  margin: 0;
+  color: #73798a;
+  font-size: 15px;
+  line-height: 1.65;
+}
+
+.credentials-hero-badge {
+  min-width: 210px;
+  padding: 16px 18px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #fff;
+  border: 1px solid #e9ebf2;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(24, 32, 51, 0.05);
+}
+
+.credentials-hero-badge > span {
+  width: 46px;
+  height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 13px;
+  background: #eef1ff;
+  color: #5c7cff;
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.credentials-hero-badge strong,
+.credentials-hero-badge small {
+  display: block;
+}
+
+.credentials-hero-badge strong {
+  font-size: 12px;
+}
+
+.credentials-hero-badge small {
+  margin-top: 3px;
+  color: #9499a6;
+  font-size: 10px;
+}
+
+.credentials-required-banner {
+  margin-bottom: 24px;
+  padding: 14px 16px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  border: 1px solid #f5dda8;
+  border-radius: 14px;
+  background: #fffaf0;
+}
+
+.credentials-required-icon {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: #fff0c7;
+  color: #b87500;
+  font-weight: 900;
+}
+
+.credentials-required-banner strong {
+  display: block;
+  color: #6f5221;
+  font-size: 12px;
+}
+
+.credentials-required-banner p {
+  margin: 3px 0 0;
+  color: #8b6d39;
+  font-size: 11px;
+}
+
+.credentials-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 350px;
+  gap: 24px;
+  align-items: start;
+}
+
+.credentials-main-card,
+.credentials-help-card,
+.credentials-status-card {
+  background: #fff;
+  border: 1px solid #e9ebf2;
+  border-radius: 22px;
+  box-shadow: 0 14px 36px rgba(24, 32, 51, 0.05);
+}
+
+.credentials-main-card {
+  padding: 30px;
+}
+
+.credentials-card-heading > div {
+  display: flex;
+  gap: 14px;
+}
+
+.credentials-card-heading > div > span {
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  border-radius: 10px;
+  background: #eef1ff;
+  color: #5c7cff;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.credentials-card-heading h2 {
+  margin: 0 0 4px;
+  font-size: 20px;
+}
+
+.credentials-card-heading p {
+  margin: 0;
+  color: #8a8f9d;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.credentials-fields-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.credentials-field {
+  margin-top: 20px;
+}
+
+.credentials-field label:first-child {
+  display: block;
+  margin-bottom: 8px;
+  color: #303748;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.credentials-field input:not(.credentials-file-input),
+.credentials-field select {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 13px 14px;
+  border: 1px solid #dde1e9;
+  border-radius: 12px;
+  background: #fff;
+  color: #252b3a;
+  font-family: inherit;
+  font-size: 13px;
+  outline: none;
+  transition: 0.2s ease;
+}
+
+.credentials-field input:focus,
+.credentials-field select:focus {
+  border-color: #5c7cff;
+  box-shadow: 0 0 0 4px rgba(92, 124, 255, 0.08);
+}
+
+.credentials-current {
+  margin-top: 16px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border-radius: 12px;
+}
+
+.credentials-current span {
+  display: block;
+  margin-bottom: 3px;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 1px;
+}
+
+.credentials-current strong {
+  font-size: 12px;
+}
+
+.credentials-current button {
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.credentials-current-approved {
+  background: #eefaf3;
+  color: #287a4e;
+}
+
+.credentials-current-pending {
+  background: #fff9ea;
+  color: #9c6c11;
+}
+
+.credentials-current-rejected {
+  background: #fff2f2;
+  color: #b84444;
+}
+
+.credentials-upload-box {
+  min-height: 92px;
+  display: flex !important;
+  align-items: center;
+  gap: 14px;
+  padding: 15px;
+  border: 1.5px dashed #cfd5e2;
+  border-radius: 14px;
+  background: #fafbfe;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.credentials-upload-box:hover {
+  border-color: #9badff;
+  background: #f7f8ff;
+}
+
+.credentials-upload-box.has-file {
+  border-style: solid;
+  border-color: #bde3ca;
+  background: #f3fbf6;
+}
+
+.credentials-upload-icon {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: #edf0ff;
+  color: #5c7cff;
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.credentials-upload-box.has-file .credentials-upload-icon {
+  background: #dff4e7;
+  color: #27844f;
+}
+
+.credentials-upload-box strong,
+.credentials-upload-box span {
+  display: block;
+}
+
+.credentials-upload-box strong {
+  color: #343b4c;
+  font-size: 12px;
+}
+
+.credentials-upload-box span {
+  margin-top: 4px;
+  color: #9297a4;
+  font-size: 10px;
+}
+
+.credentials-file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.credentials-message {
+  margin-top: 17px;
+  padding: 12px 14px;
+  border-radius: 11px;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.credentials-message.error {
+  background: #fff2f2;
+  border: 1px solid #ffd8d8;
+  color: #bf4141;
+}
+
+.credentials-message.success {
+  background: #effaf4;
+  border: 1px solid #ccebd9;
+  color: #287a4e;
+}
+
+.credentials-actions {
+  margin-top: 24px;
+  padding-top: 20px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  border-top: 1px solid #eef0f4;
+}
+
+.credentials-actions button {
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: 11px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.credentials-secondary {
+  border: 1px solid #dde1e9;
+  background: #fff;
+  color: #626878;
+}
+
+.credentials-primary {
+  border: none;
+  background: #5c7cff;
+  color: #fff;
+  box-shadow: 0 8px 18px rgba(92, 124, 255, 0.19);
+}
+
+.credentials-primary:disabled,
+.credentials-secondary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.credentials-help-card {
+  position: sticky;
+  top: 88px;
+  padding: 28px;
+  overflow: hidden;
+}
+
+.credentials-help-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, #5c7cff, #91a5ff);
+}
+
+.credentials-help-icon {
+  width: 48px;
+  height: 48px;
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  background: #eef1ff;
+  color: #5c7cff;
+  font-size: 20px;
+  font-weight: 900;
+}
+
+.credentials-help-card h2 {
+  margin: 8px 0 10px;
+  font-size: 23px;
+  line-height: 1.25;
+}
+
+.credentials-help-card > p {
+  margin: 0;
+  color: #7e8492;
+  font-size: 12px;
+  line-height: 1.65;
+}
+
+.credentials-help-card > button {
+  width: 100%;
+  min-height: 46px;
+  margin-top: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid #dfe5ff;
+  border-radius: 12px;
+  background: #eef1ff;
+  color: #4f70f1;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.credentials-help-note {
+  margin-top: 18px;
+  padding: 14px;
+  border: 1px solid #f1e7c6;
+  border-radius: 12px;
+  background: #fffbeb;
+}
+
+.credentials-help-note strong {
+  color: #8f6517;
+  font-size: 11px;
+}
+
+.credentials-help-note p {
+  margin: 5px 0 0;
+  color: #7f6a42;
+  font-size: 10px;
+  line-height: 1.55;
+}
+
+.credentials-help-card > small {
+  display: block;
+  margin-top: 14px;
+  color: #9a9eaa;
+  font-size: 9px;
+  line-height: 1.5;
+}
+
+.credentials-loading {
+  min-height: 280px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #8a8f9d;
+}
+
+.credentials-spinner {
+  width: 30px;
+  height: 30px;
+  border: 3px solid #e7eaff;
+  border-top-color: #5c7cff;
+  border-radius: 50%;
+  animation: credentials-spin 0.8s linear infinite;
+}
+
+@keyframes credentials-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.credentials-status-card {
+  margin-top: 24px;
+  overflow: hidden;
+}
+
+.credentials-status-heading {
+  padding: 23px 26px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #eceef3;
+}
+
+.credentials-status-heading h2 {
+  margin: 5px 0 0;
+  font-size: 20px;
+}
+
+.credentials-status-heading > button {
+  min-height: 38px;
+  padding: 0 14px;
+  border: 1px solid #dde1e9;
+  border-radius: 10px;
+  background: #fff;
+  color: #626878;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.credentials-status-grid {
+  padding: 20px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.credentials-specialty-card {
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid #eceef3;
+  border-radius: 15px;
+  background: #fff;
+}
+
+.credentials-specialty-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.credentials-specialty-letter {
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: #f0f2ff;
+  color: #5c7cff;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.credentials-status-pill {
+  padding: 6px 8px;
+  border-radius: 999px;
+  font-size: 8px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.credentials-status-pill.approved {
+  background: #eaf8f0;
+  color: #27844f;
+}
+
+.credentials-status-pill.pending {
+  background: #fff7e5;
+  color: #b87808;
+}
+
+.credentials-status-pill.rejected {
+  background: #fff0f0;
+  color: #c24444;
+}
+
+.credentials-status-pill.missing {
+  background: #f1f3f6;
+  color: #7c8290;
+}
+
+.credentials-specialty-card h3 {
+  margin: 14px 0 6px;
+  overflow: hidden;
+  color: #303748;
+  font-size: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.credentials-specialty-card p {
+  min-height: 34px;
+  margin: 0;
+  color: #8b909e;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.credentials-specialty-card > button {
+  margin-top: 12px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #5c7cff;
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.credentials-empty {
+  padding: 40px;
+  text-align: center;
+  color: #9296a3;
+  font-size: 12px;
+}
+
+@media (max-width: 980px) {
+  .credentials-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .credentials-help-card {
+    position: static;
+  }
+
+  .credentials-status-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .credentials-nav {
+    justify-content: flex-start;
+    overflow-x: auto;
+  }
+
+  .credentials-nav button {
+    flex: 0 0 auto;
+  }
+
+  .credentials-shell {
+    padding: 34px 16px 60px;
+  }
+
+  .credentials-hero {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .credentials-hero h1 {
+    font-size: 32px;
+  }
+
+  .credentials-hero-badge {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .credentials-main-card {
+    padding: 22px 18px;
+  }
+
+  .credentials-fields-grid {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .credentials-status-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .credentials-actions {
+    flex-direction: column-reverse;
+  }
+
+  .credentials-actions button {
+    width: 100%;
+  }
+}

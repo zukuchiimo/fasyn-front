@@ -1,0 +1,171 @@
+.admin-certificates-page {
+  min-height: 100vh;
+  background: #f6f7f8;
+  padding: 40px;
+}
+
+.admin-certificates-top {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.back-button {
+  width: fit-content;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.section-label {
+  font-size: 12px;
+  letter-spacing: 1.5px;
+  font-weight: 700;
+  opacity: 0.6;
+}
+
+.admin-certificates-top h1 {
+  margin: 6px 0;
+  font-size: 34px;
+}
+
+.admin-certificates-top p {
+  margin: 0;
+  opacity: 0.7;
+}
+
+.admin-certificates-list {
+  display: grid;
+  gap: 18px;
+}
+
+.admin-certificate-card {
+  background: white;
+  border-radius: 18px;
+  padding: 24px;
+  box-shadow:
+    0 8px 30px
+    rgba(0, 0, 0, 0.06);
+}
+
+.certificate-card-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.certificate-category {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  opacity: 0.6;
+  margin-bottom: 6px;
+}
+
+.certificate-card-header h3 {
+  margin: 0 0 6px;
+}
+
+.certificate-card-header p {
+  margin: 0;
+  opacity: 0.7;
+}
+
+.certificate-status {
+  height: fit-content;
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.certificate-status.pending {
+  background: #fff4d7;
+  color: #8a6500;
+}
+
+.certificate-status.approved {
+  background: #def7e8;
+  color: #166534;
+}
+
+.certificate-status.rejected {
+  background: #fde4e4;
+  color: #b42318;
+}
+
+.certificate-meta {
+  margin-top: 18px;
+  font-size: 13px;
+  opacity: 0.6;
+}
+
+.certificate-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.certificate-actions button,
+.certificate-document-button {
+  border: none;
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.certificate-document-button {
+  background: #eceff3;
+  color: #222;
+}
+
+.approve-button {
+  background: #178344;
+  color: white;
+}
+
+.reject-button {
+  background: #c88000;
+  color: white;
+}
+
+.delete-button {
+  background: #b42318;
+  color: white;
+}
+
+.certificate-actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.admin-certificates-error {
+  background: #fdecec;
+  color: #b42318;
+  padding: 14px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+
+.admin-certificates-success {
+  background: #e7f8ee;
+  color: #166534;
+  padding: 14px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+
+.admin-certificates-empty {
+  background: white;
+  padding: 40px;
+  border-radius: 18px;
+  text-align: center;
+}

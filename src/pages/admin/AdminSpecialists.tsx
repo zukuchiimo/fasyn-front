@@ -67,6 +67,8 @@ interface SpecialistProfile {
 
   specialties: Specialty[];
   services: Service[];
+
+  certificateCount?: number;
 }
 
 interface Specialist {
@@ -562,7 +564,7 @@ const AdminSpecialists = () => {
         setActionLoading(false);
       }
     };
-
+const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const handleDelete =
     async () => {
       if (!deletingSpecialist) {
@@ -1204,7 +1206,20 @@ const AdminSpecialists = () => {
                           >
                             Ver
                           </button>
-
+{profile &&
+  (profile.certificateCount ?? 0) > 0 && (
+    <button
+      type="button"
+      className="specialist-action view"
+      onClick={() =>
+        navigate(
+          `/admin/specialists/${profile.id}/certificates`
+        )
+      }
+    >
+      Constancias
+    </button>
+  )}
                           <button
                             type="button"
                             className="specialist-action edit"
@@ -2043,6 +2058,42 @@ const AdminSpecialists = () => {
           </div>
         </div>
       )}
+      {previewUrl && (
+  <div
+    className="certificate-modal-backdrop"
+    onClick={() => setPreviewUrl(null)}
+  >
+    <div
+      className="certificate-modal"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <div className="certificate-modal-header">
+        <h3>Vista previa de constancia</h3>
+
+        <button
+          type="button"
+          onClick={() => setPreviewUrl(null)}
+        >
+          ×
+        </button>
+      </div>
+
+      <div className="certificate-modal-body">
+        {previewUrl.toLowerCase().endsWith('.pdf') ? (
+          <iframe
+            src={previewUrl}
+            title="Constancia PDF"
+          />
+        ) : (
+          <img
+            src={previewUrl}
+            alt="Constancia"
+          />
+        )}
+      </div>
+    </div>
+  </div>
+)}
     </div>
   );
 };

@@ -59,10 +59,8 @@ type PayoutAccount = {
 
   bankName?: string | null;
   accountHolderName?: string | null;
+  clabe?: string | null;
   last4?: string | null;
-
-  providerAccountId?: string | null;
-  mercadoPagoEmail?: string | null;
 
   isDefault?: boolean;
   active?: boolean;
@@ -142,16 +140,6 @@ const SpecialistEarnings = () => {
     );
 
   const [
-    mercadoPagoEmail,
-    setMercadoPagoEmail,
-  ] = useState('');
-
-  const [
-    providerAccountId,
-    setProviderAccountId,
-  ] = useState('');
-
-  const [
     bankName,
     setBankName,
   ] = useState('');
@@ -162,8 +150,8 @@ const SpecialistEarnings = () => {
   ] = useState('');
 
   const [
-    bankLast4,
-    setBankLast4,
+    clabe,
+    setClabe,
   ] = useState('');
 
   const [
@@ -345,29 +333,22 @@ const SpecialistEarnings = () => {
     account:
       PayoutAccount
   ) => {
-    if (
+    const institution =
       account.type ===
       'MERCADO_PAGO'
-    ) {
-      return [
-        'Mercado Pago',
-        account
-          .mercadoPagoEmail,
-        account.isDefault
-          ? 'Principal'
-          : '',
-      ]
-        .filter(Boolean)
-        .join(' · ');
-    }
+        ? 'Mercado Pago'
+        : account.bankName ||
+          'Cuenta bancaria';
 
     return [
-      account.bankName ||
-        'Cuenta bancaria',
+      institution,
 
       account.last4
-        ? `•••• ${account.last4}`
+        ? `CLABE •••• ${account.last4}`
         : '',
+
+      account.accountHolderName ||
+        '',
 
       account.isDefault
         ? 'Principal'
@@ -657,19 +638,13 @@ const SpecialistEarnings = () => {
         'MERCADO_PAGO'
       );
 
-      setMercadoPagoEmail(
-        ''
-      );
-
-      setProviderAccountId(
-        ''
-      );
-
       setBankName('');
+
       setAccountHolderName(
         ''
       );
-      setBankLast4('');
+
+      setClabe('');
 
       setMakeDefault(
         accounts.length ===
@@ -713,56 +688,45 @@ const SpecialistEarnings = () => {
 
       if (
         accountType ===
-        'MERCADO_PAGO'
+          'BANK_ACCOUNT' &&
+        !bankName.trim()
       ) {
-        if (
-          !mercadoPagoEmail
-            .trim()
-        ) {
-          setAccountError(
-            'Ingresa el correo asociado a Mercado Pago.'
-          );
+        setAccountError(
+          'Ingresa la institución bancaria.'
+        );
 
-          return;
-        }
+        return;
       }
 
       if (
-        accountType ===
-        'BANK_ACCOUNT'
+        !accountHolderName
+          .trim()
       ) {
-        if (
-          !bankName.trim()
-        ) {
-          setAccountError(
-            'Ingresa el nombre del banco.'
-          );
+        setAccountError(
+          'Ingresa el nombre del titular.'
+        );
 
-          return;
-        }
+        return;
+      }
 
-        if (
-          !accountHolderName
-            .trim()
-        ) {
-          setAccountError(
-            'Ingresa el nombre del titular.'
-          );
-
-          return;
-        }
-
-        if (
-          !/^\d{4}$/.test(
-            bankLast4.trim()
+      const normalizedClabe =
+        clabe
+          .replace(
+            /\D/g,
+            ''
           )
-        ) {
-          setAccountError(
-            'Ingresa los últimos 4 dígitos de la cuenta.'
-          );
+          .trim();
 
-          return;
-        }
+      if (
+        !/^\d{18}$/.test(
+          normalizedClabe
+        )
+      ) {
+        setAccountError(
+          'Ingresa una CLABE válida de 18 dígitos.'
+        );
+
+        return;
       }
 
       try {
@@ -774,45 +738,31 @@ const SpecialistEarnings = () => {
           ''
         );
 
-        const payload =
-          accountType ===
-          'MERCADO_PAGO'
-            ? {
-                type:
-                  'MERCADO_PAGO',
+        const payload = {
+          type:
+            accountType,
 
-                mercadoPagoEmail:
-                  mercadoPagoEmail
-                    .trim()
-                    .toLowerCase(),
+          bankName:
+            accountType ===
+            'MERCADO_PAGO'
+              ? 'Mercado Pago'
+              : bankName
+                  .trim(),
 
-                providerAccountId:
-                  providerAccountId
-                    .trim() ||
-                  undefined,
+          accountHolderName:
+            accountHolderName
+              .trim(),
 
-                isDefault:
-                  makeDefault,
-              }
-            : {
-                type:
-                  'BANK_ACCOUNT',
+          clabe:
+            normalizedClabe,
 
-                bankName:
-                  bankName
-                    .trim(),
+          last4:
+            normalizedClabe
+              .slice(-4),
 
-                accountHolderName:
-                  accountHolderName
-                    .trim(),
-
-                last4:
-                  bankLast4
-                    .trim(),
-
-                isDefault:
-                  makeDefault,
-              };
+          isDefault:
+            makeDefault,
+        };
 
         await api.post(
           '/wallet/accounts',
@@ -830,6 +780,7 @@ const SpecialistEarnings = () => {
         );
 
         await loadData();
+
       } catch (
         requestError:
           any
@@ -849,6 +800,7 @@ const SpecialistEarnings = () => {
             ?.message ||
           'No fue posible guardar la cuenta.'
         );
+
       } finally {
         setSavingAccount(
           false
@@ -1149,37 +1101,22 @@ const SpecialistEarnings = () => {
 
             </div>
 
-<button
-  type="button"
-  className="wallet-withdraw-button"
-  disabled={
-    accounts.length > 0 &&
-    availableBalance <= 0
-  }
-  onClick={() => {
-
-    if (
-      accounts.length === 0
-    ) {
-
-      openAccountModal();
-
-      return;
-    }
-
-    openWithdrawModal();
-  }}
->
-  {
-    accounts.length === 0
-      ? 'Agregar cuenta de pago'
-      : 'Retirar dinero'
-  }
-
-  <span>
-    →
-  </span>
-</button>
+            <button
+              type="button"
+              className="wallet-withdraw-button"
+              disabled={
+                availableBalance <=
+                0
+              }
+              onClick={
+                openWithdrawModal
+              }
+            >
+              Retirar dinero
+              <span>
+                →
+              </span>
+            </button>
 
           </div>
 
@@ -1280,8 +1217,8 @@ const SpecialistEarnings = () => {
               </strong>
 
               <p>
-                Agrega una cuenta de Mercado Pago
-                o una cuenta bancaria.
+                Agrega la CLABE de Mercado Pago
+                o de una cuenta bancaria.
               </p>
 
               <button
@@ -1885,8 +1822,8 @@ const SpecialistEarnings = () => {
                   1.5,
               }}
             >
-              Elige dónde quieres recibir
-              tus transferencias.
+              Elige la institución y registra
+              la CLABE donde quieres recibir tus transferencias.
             </p>
 
             {accountError && (
@@ -1983,181 +1920,118 @@ const SpecialistEarnings = () => {
             </div>
 
             {accountType ===
-            'MERCADO_PAGO' ? (
-              <>
-                <div className="withdraw-field">
-                  <label>
-                    Correo de Mercado Pago
-                  </label>
+            'BANK_ACCOUNT' && (
+              <div className="withdraw-field">
+                <label>
+                  Institución bancaria
+                </label>
 
-                  <input
-                    type="email"
-                    placeholder="correo@ejemplo.com"
-                    value={
-                      mercadoPagoEmail
-                    }
-                    disabled={
-                      savingAccount
-                    }
-                    onChange={
-                      (
+                <input
+                  type="text"
+                  placeholder="BBVA, Banorte, Santander..."
+                  value={
+                    bankName
+                  }
+                  disabled={
+                    savingAccount
+                  }
+                  onChange={
+                    (
+                      event
+                    ) =>
+                      setBankName(
                         event
-                      ) =>
-                        setMercadoPagoEmail(
-                          event
-                            .target
-                            .value
-                        )
-                    }
-                  />
-                </div>
-
-                <div className="withdraw-field">
-                  <label>
-                    ID de cuenta del proveedor
-                    (opcional)
-                  </label>
-
-                  <input
-                    type="text"
-                    placeholder="ID de Mercado Pago"
-                    value={
-                      providerAccountId
-                    }
-                    disabled={
-                      savingAccount
-                    }
-                    onChange={
-                      (
-                        event
-                      ) =>
-                        setProviderAccountId(
-                          event
-                            .target
-                            .value
-                        )
-                    }
-                  />
-                </div>
-
-                <div
-                  style={{
-                    padding:
-                      '12px',
-                    borderRadius:
-                      '10px',
-                    background:
-                      '#f6f7fb',
-                    color:
-                      '#6d7483',
-                    fontSize:
-                      '12px',
-                    lineHeight:
-                      1.5,
-                    marginBottom:
-                      '14px',
-                  }}
-                >
-                  Esta información identifica
-                  la cuenta destino. La transferencia
-                  real deberá ser validada y ejecutada
-                  por el backend con Mercado Pago.
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="withdraw-field">
-                  <label>
-                    Banco
-                  </label>
-
-                  <input
-                    type="text"
-                    placeholder="BBVA, Banorte, Santander..."
-                    value={
-                      bankName
-                    }
-                    disabled={
-                      savingAccount
-                    }
-                    onChange={
-                      (
-                        event
-                      ) =>
-                        setBankName(
-                          event
-                            .target
-                            .value
-                        )
-                    }
-                  />
-                </div>
-
-                <div className="withdraw-field">
-                  <label>
-                    Titular
-                  </label>
-
-                  <input
-                    type="text"
-                    placeholder="Nombre del titular"
-                    value={
-                      accountHolderName
-                    }
-                    disabled={
-                      savingAccount
-                    }
-                    onChange={
-                      (
-                        event
-                      ) =>
-                        setAccountHolderName(
-                          event
-                            .target
-                            .value
-                        )
-                    }
-                  />
-                </div>
-
-                <div className="withdraw-field">
-                  <label>
-                    Últimos 4 dígitos
-                  </label>
-
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    maxLength={4}
-                    placeholder="1234"
-                    value={
-                      bankLast4
-                    }
-                    disabled={
-                      savingAccount
-                    }
-                    onChange={
-                      (
-                        event
-                      ) =>
-                        setBankLast4(
-                          event
-                            .target
-                            .value
-                            .replace(
-                              /\D/g,
-                              ''
-                            )
-                            .slice(
-                              0,
-                              4
-                            )
-                        )
-                    }
-                  />
-                </div>
-              </>
+                          .target
+                          .value
+                      )
+                  }
+                />
+              </div>
             )}
+
+            <div className="withdraw-field">
+              <label>
+                Nombre del titular
+              </label>
+
+              <input
+                type="text"
+                placeholder="Nombre completo del titular"
+                value={
+                  accountHolderName
+                }
+                disabled={
+                  savingAccount
+                }
+                onChange={
+                  (
+                    event
+                  ) =>
+                    setAccountHolderName(
+                      event
+                        .target
+                        .value
+                    )
+                }
+              />
+            </div>
+
+            <div className="withdraw-field">
+              <label>
+                CLABE interbancaria
+              </label>
+
+              <input
+                type="text"
+                inputMode="numeric"
+                maxLength={18}
+                placeholder="18 dígitos"
+                value={
+                  clabe
+                }
+                disabled={
+                  savingAccount
+                }
+                onChange={
+                  (
+                    event
+                  ) =>
+                    setClabe(
+                      event
+                        .target
+                        .value
+                        .replace(
+                          /\D/g,
+                          ''
+                        )
+                        .slice(
+                          0,
+                          18
+                        )
+                    )
+                }
+              />
+
+              <small
+                style={{
+                  display:
+                    'block',
+                  marginTop:
+                    '6px',
+                  color:
+                    '#8b919e',
+                  lineHeight:
+                    1.4,
+                }}
+              >
+                {
+                  accountType ===
+                  'MERCADO_PAGO'
+                    ? 'Captura la CLABE de 18 dígitos de tu cuenta Mercado Pago.'
+                    : 'Captura la CLABE de 18 dígitos de la cuenta donde quieres recibir tus pagos.'
+                }
+              </small>
+            </div>
 
             <label
               style={{

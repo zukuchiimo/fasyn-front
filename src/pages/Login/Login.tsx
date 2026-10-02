@@ -32,7 +32,11 @@ const loginState =
 
   const [error, setError] =
     useState('');
+const [resending, setResending] =
+  useState(false);
 
+const [verificationSent, setVerificationSent] =
+  useState(false);
   const [
     specialistDisabled,
     setSpecialistDisabled,
@@ -297,22 +301,55 @@ const loginState =
       navigate('/');
 
     } catch (error: any) {
-      console.error(
-        'LOGIN ERROR:',
-        error.response?.data ||
-          error
-      );
 
-      setError(
-        error.response
-          ?.data?.message ||
-          'No fue posible iniciar sesión. Verifica tu correo y contraseña.'
-      );
-    } finally {
+  console.error(
+    'LOGIN ERROR:',
+    error.response?.data || error
+  );
+
+  if (
+    error.response?.data?.code ===
+    'EMAIL_NOT_VERIFIED'
+  ) {
+    setError(
+      'Este correo ya está registrado pero todavía no ha sido verificado.'
+    );
+
+    return;
+  }
+
+  setError(
+    error.response?.data?.message ||
+      'No fue posible iniciar sesión. Verifica tu correo y contraseña.'
+  );
+} finally {
       setLoading(false);
     }
   };
 
+  const handleResendVerification = async () => {
+  try {
+    setResending(true);
+    setVerificationSent(false);
+
+    await api.post(
+      '/auth/resend-verification',
+      {
+        email,
+      }
+    );
+
+    setVerificationSent(true);
+    setError('');
+  } catch (error: any) {
+    setError(
+      error.response?.data?.message ||
+        'No fue posible reenviar el correo.'
+    );
+  } finally {
+    setResending(false);
+  }
+};
   return (
     <div className="login-page">
 
@@ -533,11 +570,31 @@ const loginState =
 
             </div>
 
-            {error && (
-              <div className="login-error">
-                {error}
-              </div>
-            )}
+          {error && (
+  <div className="login-error">
+    <div>{error}</div>
+
+    {error.includes(
+      'todavía no ha sido verificado'
+    ) && (
+      <button
+        type="button"
+        onClick={handleResendVerification}
+        disabled={resending}
+      >
+        {resending
+          ? 'Reenviando...'
+          : 'Reenviar verificación'}
+      </button>
+    )}
+  </div>
+)}
+
+{verificationSent && (
+  <div className="login-success">
+    Te enviamos un nuevo correo de verificación.
+  </div>
+)}
 
             <button
               type="submit"
