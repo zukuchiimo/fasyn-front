@@ -58,7 +58,44 @@ type Specialist = {
 
 const Home = () => {
   const navigate = useNavigate();
+type UserRole =
+  | 'CLIENT'
+  | 'SPECIALIST'
+  | 'ADMIN';
 
+type SessionUser = {
+  id?: number;
+  name?: string;
+  email?: string;
+  role?: UserRole;
+};
+
+const token =
+  localStorage.getItem('token');
+
+const storedUser =
+  localStorage.getItem('user');
+
+const currentUser =
+  useMemo<SessionUser | null>(() => {
+    if (!storedUser) {
+      return null;
+    }
+
+    try {
+      return JSON.parse(storedUser);
+    } catch (error) {
+      console.error(
+        'ERROR LEYENDO USUARIO:',
+        error
+      );
+
+      return null;
+    }
+  }, [storedUser]);
+
+const isLoggedIn =
+  Boolean(token && currentUser);
   const [
     categories,
     setCategories,
@@ -389,6 +426,37 @@ const Home = () => {
       50
     );
   };
+  const goToPanel = () => {
+  if (!currentUser) {
+    navigate('/login');
+    return;
+  }
+
+  switch (currentUser.role) {
+    case 'CLIENT':
+      navigate('/client');
+      break;
+
+    case 'SPECIALIST':
+      navigate('/specialist');
+      break;
+
+    case 'ADMIN':
+      navigate('/admin');
+      break;
+
+    default:
+      navigate('/');
+  }
+};
+
+const handleLogout = () => {
+  localStorage.removeItem('token');
+  localStorage.removeItem('user');
+
+  navigate('/');
+  window.location.reload();
+};
 
   return (
     <div className="home-page">
@@ -443,26 +511,45 @@ const Home = () => {
               Especialistas
             </button>
 
-            <button
-              type="button"
-              onClick={() =>
-                navigate('/login')
-              }
-            >
-              Iniciar sesión
-            </button>
+{isLoggedIn ? (
+  <>
+    <button
+      type="button"
+      onClick={goToPanel}
+    >
+      Mi panel
+    </button>
 
-            <button
-              type="button"
-              className="home-register"
-              onClick={() =>
-                navigate(
-                  '/register'
-                )
-              }
-            >
-              Crear cuenta
-            </button>
+    <button
+      type="button"
+      className="home-register"
+      onClick={handleLogout}
+    >
+      Cerrar sesión
+    </button>
+  </>
+) : (
+  <>
+    <button
+      type="button"
+      onClick={() =>
+        navigate('/login')
+      }
+    >
+      Iniciar sesión
+    </button>
+
+    <button
+      type="button"
+      className="home-register"
+      onClick={() =>
+        navigate('/register')
+      }
+    >
+      Crear cuenta
+    </button>
+  </>
+)}
 
           </nav>
 

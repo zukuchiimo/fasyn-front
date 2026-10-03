@@ -607,17 +607,12 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
       }
     };
 
-  const handleLogout = () => {
-    localStorage.removeItem(
-      'token'
-    );
+ const handleLogout = () => {
+  localStorage.removeItem('token');
+  localStorage.removeItem('user');
 
-    localStorage.removeItem(
-      'user'
-    );
-
-    navigate('/login');
-  };
+  window.location.replace('/login');
+};
 
   const formatPriceType = (
     priceType: PriceType

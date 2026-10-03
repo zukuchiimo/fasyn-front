@@ -620,17 +620,12 @@ const AdminCategories = () => {
       }
     };
 
-  const handleLogout = () => {
-    localStorage.removeItem(
-      'token'
-    );
+const handleLogout = () => {
+  localStorage.removeItem('token');
+  localStorage.removeItem('user');
 
-    localStorage.removeItem(
-      'user'
-    );
-
-    navigate('/login');
-  };
+  window.location.replace('/login');
+};
 
   const formatDate = (
     date: string

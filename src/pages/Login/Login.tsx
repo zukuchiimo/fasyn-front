@@ -11,15 +11,15 @@ import './Login.css';
 
 const Login = () => {
   const navigate = useNavigate();
-const location = useLocation();
+  const location = useLocation();
 
-const loginState =
-  location.state as
+  const loginState =
+    location.state as
     | {
-        returnTo?: string;
-        action?: string;
-        serviceId?: number;
-      }
+      returnTo?: string;
+      action?: string;
+      serviceId?: number;
+    }
     | null;
   const [email, setEmail] =
     useState('');
@@ -32,11 +32,11 @@ const loginState =
 
   const [error, setError] =
     useState('');
-const [resending, setResending] =
-  useState(false);
+  const [resending, setResending] =
+    useState(false);
 
-const [verificationSent, setVerificationSent] =
-  useState(false);
+  const [verificationSent, setVerificationSent] =
+    useState(false);
   const [
     specialistDisabled,
     setSpecialistDisabled,
@@ -154,30 +154,30 @@ const [verificationSent, setVerificationSent] =
       /*
         3. CLIENTE
       */
- if (user.role === 'CLIENT') {
-  if (loginState?.returnTo) {
-    navigate(
-      loginState.returnTo,
-      {
-        replace: true,
-        state: {
-          action:
-            loginState.action,
-          serviceId:
-            loginState.serviceId,
-        },
+      if (user.role === 'CLIENT') {
+        if (loginState?.returnTo) {
+          navigate(
+            loginState.returnTo,
+            {
+              replace: true,
+              state: {
+                action:
+                  loginState.action,
+                serviceId:
+                  loginState.serviceId,
+              },
+            }
+          );
+
+          return;
+        }
+
+        navigate('/client', {
+          replace: true,
+        });
+
+        return;
       }
-    );
-
-    return;
-  }
-
-  navigate('/client', {
-    replace: true,
-  });
-
-  return;
-}
 
       /*
         4. ADMIN
@@ -268,13 +268,13 @@ const [verificationSent, setVerificationSent] =
           return;
 
         } catch (
-          profileError: any
+        profileError: any
         ) {
           console.log(
             'ERROR PERFIL:',
             profileError
               .response?.data ||
-              profileError
+            profileError
           );
 
           /*
@@ -302,54 +302,54 @@ const [verificationSent, setVerificationSent] =
 
     } catch (error: any) {
 
-  console.error(
-    'LOGIN ERROR:',
-    error.response?.data || error
-  );
+      console.error(
+        'LOGIN ERROR:',
+        error.response?.data || error
+      );
 
-  if (
-    error.response?.data?.code ===
-    'EMAIL_NOT_VERIFIED'
-  ) {
-    setError(
-      'Este correo ya está registrado pero todavía no ha sido verificado.'
-    );
+      if (
+        error.response?.data?.code ===
+        'EMAIL_NOT_VERIFIED'
+      ) {
+        setError(
+          'Este correo ya está registrado pero todavía no ha sido verificado.'
+        );
 
-    return;
-  }
+        return;
+      }
 
-  setError(
-    error.response?.data?.message ||
-      'No fue posible iniciar sesión. Verifica tu correo y contraseña.'
-  );
-} finally {
+      setError(
+        error.response?.data?.message ||
+        'No fue posible iniciar sesión. Verifica tu correo y contraseña.'
+      );
+    } finally {
       setLoading(false);
     }
   };
 
   const handleResendVerification = async () => {
-  try {
-    setResending(true);
-    setVerificationSent(false);
+    try {
+      setResending(true);
+      setVerificationSent(false);
 
-    await api.post(
-      '/auth/resend-verification',
-      {
-        email,
-      }
-    );
+      await api.post(
+        '/auth/resend-verification',
+        {
+          email,
+        }
+      );
 
-    setVerificationSent(true);
-    setError('');
-  } catch (error: any) {
-    setError(
-      error.response?.data?.message ||
+      setVerificationSent(true);
+      setError('');
+    } catch (error: any) {
+      setError(
+        error.response?.data?.message ||
         'No fue posible reenviar el correo.'
-    );
-  } finally {
-    setResending(false);
-  }
-};
+      );
+    } finally {
+      setResending(false);
+    }
+  };
   return (
     <div className="login-page">
 
@@ -547,11 +547,9 @@ const [verificationSent, setVerificationSent] =
                   Contraseña
                 </label>
 
-                <a href="#">
-                  ¿Olvidaste tu
-                  contraseña?
-                </a>
-
+                <Link to="/forgot-password">
+                  ¿Olvidaste tu contraseña?
+                </Link>
               </div>
 
               <input
@@ -570,31 +568,31 @@ const [verificationSent, setVerificationSent] =
 
             </div>
 
-          {error && (
-  <div className="login-error">
-    <div>{error}</div>
+            {error && (
+              <div className="login-error">
+                <div>{error}</div>
 
-    {error.includes(
-      'todavía no ha sido verificado'
-    ) && (
-      <button
-        type="button"
-        onClick={handleResendVerification}
-        disabled={resending}
-      >
-        {resending
-          ? 'Reenviando...'
-          : 'Reenviar verificación'}
-      </button>
-    )}
-  </div>
-)}
+                {error.includes(
+                  'todavía no ha sido verificado'
+                ) && (
+                    <button
+                      type="button"
+                      onClick={handleResendVerification}
+                      disabled={resending}
+                    >
+                      {resending
+                        ? 'Reenviando...'
+                        : 'Reenviar verificación'}
+                    </button>
+                  )}
+              </div>
+            )}
 
-{verificationSent && (
-  <div className="login-success">
-    Te enviamos un nuevo correo de verificación.
-  </div>
-)}
+            {verificationSent && (
+              <div className="login-success">
+                Te enviamos un nuevo correo de verificación.
+              </div>
+            )}
 
             <button
               type="submit"

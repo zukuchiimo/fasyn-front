@@ -247,13 +247,12 @@ const SpecialistDashboard = () => {
     setProfilePhotoError(false);
   }, [profile?.profilePhotoUrl]);
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+const handleLogout = () => {
+  localStorage.removeItem('token');
+  localStorage.removeItem('user');
 
-    navigate('/login');
-  };
-
+  window.location.replace('/login');
+};
   const loadProfile = async () => {
     try {
       const token =

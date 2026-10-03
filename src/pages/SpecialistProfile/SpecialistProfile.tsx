@@ -5,14 +5,10 @@ import {
 } from 'react';
 
 import {
-  MapContainer,
-  Marker,
-  TileLayer,
-  useMap,
-  useMapEvents,
-} from 'react-leaflet';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
+  GoogleMap,
+  MarkerF,
+  useJsApiLoader,
+} from '@react-google-maps/api';
 
 import {
   useNavigate,
@@ -196,17 +192,13 @@ const decodeJwtPayload = (
   }
 };
 
-const DEFAULT_MAP_POSITION: [number, number] = [
-  19.4326,
-  -99.1332,
-];
+const DEFAULT_MAP_POSITION = {
+  lat: 19.4326,
+  lng: -99.1332,
+};
 
-const mapMarkerIcon = L.divIcon({
-  className: 'service-map-marker-wrapper',
-  html: '<div class="service-map-marker">📍</div>',
-  iconSize: [38, 38],
-  iconAnchor: [19, 38],
-});
+const GOOGLE_MAPS_API_KEY =
+  import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '';
 
 type AddressLookup = {
   state?: string;
@@ -217,178 +209,100 @@ type AddressLookup = {
   exteriorNumber?: string;
 };
 
-type NominatimAddress = {
-  house_number?: string;
-  road?: string;
-  pedestrian?: string;
-  residential?: string;
-  footway?: string;
-
-  neighbourhood?: string;
-  suburb?: string;
-  quarter?: string;
-  village?: string;
-
-  city?: string;
-  town?: string;
-  municipality?: string;
-  county?: string;
-  city_district?: string;
-
-  state?: string;
-  region?: string;
-
-  postcode?: string;
+type GoogleAddressComponent = {
+  long_name: string;
+  short_name: string;
+  types: string[];
 };
 
-type NominatimPlace = {
-  lat: string;
-  lon: string;
-  display_name: string;
-  address?: NominatimAddress;
+type GooglePlaceResult = {
+  formatted_address: string;
+  geometry: {
+    location: google.maps.LatLng;
+  };
+  address_components?: GoogleAddressComponent[];
 };
 
-const normalizeMapAddress = (
-  address?: NominatimAddress
-): AddressLookup => {
-  if (!address) {
-    return {};
+const getGoogleAddressComponent = (
+  components: GoogleAddressComponent[] | undefined,
+  types: string[]
+) => {
+  if (!components) {
+    return '';
   }
 
+  for (const type of types) {
+    const component = components.find((item) =>
+      item.types.includes(type)
+    );
+
+    if (component) {
+      return component.long_name;
+    }
+  }
+
+  return '';
+};
+
+const normalizeGoogleAddress = (
+  components?: GoogleAddressComponent[]
+): AddressLookup => {
   return {
-    state:
-      address.state ||
-      address.region ||
-      '',
-
-    municipality:
-      address.city ||
-      address.town ||
-      address.municipality ||
-      address.city_district ||
-      address.county ||
-      '',
-
-    neighborhood:
-      address.neighbourhood ||
-      address.suburb ||
-      address.quarter ||
-      address.village ||
-      '',
-
-    postalCode:
-      address.postcode ||
-      '',
-
-    street:
-      address.road ||
-      address.pedestrian ||
-      address.residential ||
-      address.footway ||
-      '',
-
-    exteriorNumber:
-      address.house_number ||
-      '',
+    state: getGoogleAddressComponent(
+      components,
+      ['administrative_area_level_1']
+    ),
+    municipality: getGoogleAddressComponent(
+      components,
+      [
+        'locality',
+        'administrative_area_level_2',
+        'sublocality_level_1',
+      ]
+    ),
+    neighborhood: getGoogleAddressComponent(
+      components,
+      [
+        'neighborhood',
+        'sublocality_level_1',
+        'sublocality',
+      ]
+    ),
+    postalCode: getGoogleAddressComponent(
+      components,
+      ['postal_code']
+    ),
+    street: getGoogleAddressComponent(
+      components,
+      ['route']
+    ),
+    exteriorNumber: getGoogleAddressComponent(
+      components,
+      ['street_number']
+    ),
   };
 };
 
 const getTodayInputValue = () => {
-  const now =
-    new Date();
-
-  const year =
-    now.getFullYear();
-
-  const month =
-    String(
-      now.getMonth() + 1
-    ).padStart(
-      2,
-      '0'
-    );
-
-  const day =
-    String(
-      now.getDate()
-    ).padStart(
-      2,
-      '0'
-    );
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(
+    now.getMonth() + 1
+  ).padStart(2, '0');
+  const day = String(
+    now.getDate()
+  ).padStart(2, '0');
 
   return `${year}-${month}-${day}`;
-};
-
-type MapViewportSyncProps = {
-  latitude: number | null;
-  longitude: number | null;
-};
-
-const MapViewportSync = ({
-  latitude,
-  longitude,
-}: MapViewportSyncProps) => {
-  const map =
-    useMap();
-
-  useEffect(() => {
-    if (
-      latitude === null ||
-      longitude === null
-    ) {
-      return;
-    }
-
-    map.flyTo(
-      [
-        latitude,
-        longitude,
-      ],
-      17,
-      {
-        duration: 0.65,
-      }
-    );
-  }, [
-    latitude,
-    longitude,
-    map,
-  ]);
-
-  return null;
-};
-
-type MapClickHandlerProps = {
-  onPick: (
-    latitude: number,
-    longitude: number
-  ) => void;
-};
-
-const MapClickHandler = ({
-  onPick,
-}: MapClickHandlerProps) => {
-  useMapEvents({
-    click(event) {
-      onPick(
-        event.latlng.lat,
-        event.latlng.lng
-      );
-    },
-  });
-
-  return null;
 };
 
 type AddressMapPickerProps = {
   latitude: number | null;
   longitude: number | null;
-
   onChange: (
     latitude: number,
     longitude: number
   ) => void;
-
   onAddressResolved: (
     address: AddressLookup
   ) => void;
@@ -400,384 +314,314 @@ const AddressMapPicker = ({
   onChange,
   onAddressResolved,
 }: AddressMapPickerProps) => {
-  const [
-    searchText,
-    setSearchText,
-  ] = useState('');
+  const [searchText, setSearchText] =
+    useState('');
 
-  const [
-    searchResults,
-    setSearchResults,
-  ] = useState<
-    NominatimPlace[]
-  >([]);
+  const [searchResults, setSearchResults] =
+    useState<GooglePlaceResult[]>([]);
 
-  const [
-    searching,
-    setSearching,
-  ] = useState(false);
+  const [searching, setSearching] =
+    useState(false);
 
-  const [
-    locating,
-    setLocating,
-  ] = useState(false);
+  const [locating, setLocating] =
+    useState(false);
 
-  const [
-    resolvingAddress,
-    setResolvingAddress,
-  ] = useState(false);
+  const [resolvingAddress, setResolvingAddress] =
+    useState(false);
 
-  const [
-    mapMessage,
-    setMapMessage,
-  ] = useState('');
+  const [mapMessage, setMapMessage] =
+    useState('');
 
-  const [
-    resolvedAddress,
-    setResolvedAddress,
-  ] = useState('');
+  const [resolvedAddress, setResolvedAddress] =
+    useState('');
 
-  const position:
-    [number, number] = [
+  const [map, setMap] =
+    useState<google.maps.Map | null>(null);
+
+  const { isLoaded, loadError } =
+    useJsApiLoader({
+      id: 'fasyn-google-maps-script',
+      googleMapsApiKey:
+        GOOGLE_MAPS_API_KEY,
+      language: 'es',
+      region: 'MX',
+    });
+
+  const position = {
+    lat:
       latitude ??
-        DEFAULT_MAP_POSITION[0],
-
+      DEFAULT_MAP_POSITION.lat,
+    lng:
       longitude ??
-        DEFAULT_MAP_POSITION[1],
-    ];
+      DEFAULT_MAP_POSITION.lng,
+  };
 
-  const reverseGeocode =
-    async (
-      currentLatitude: number,
-      currentLongitude: number
-    ) => {
-      try {
-        setResolvingAddress(
-          true
-        );
+  useEffect(() => {
+    if (
+      !map ||
+      latitude === null ||
+      longitude === null
+    ) {
+      return;
+    }
 
-        const params =
-          new URLSearchParams({
-            format:
-              'jsonv2',
+    map.panTo({
+      lat: latitude,
+      lng: longitude,
+    });
 
-            lat:
-              String(
-                currentLatitude
-              ),
+    map.setZoom(17);
+  }, [
+    map,
+    latitude,
+    longitude,
+  ]);
 
-            lon:
-              String(
-                currentLongitude
-              ),
+  const reverseGeocode = async (
+    currentLatitude: number,
+    currentLongitude: number
+  ) => {
+    if (!isLoaded) {
+      return;
+    }
 
-            addressdetails:
-              '1',
+    try {
+      setResolvingAddress(true);
 
-            zoom:
-              '18',
-          });
+      const geocoder =
+        new google.maps.Geocoder();
 
-        const response =
-          await fetch(
-            `https://nominatim.openstreetmap.org/reverse?${params.toString()}`,
-            {
-              headers: {
-                Accept:
-                  'application/json',
-              },
-            }
-          );
+      const response =
+        await geocoder.geocode({
+          location: {
+            lat: currentLatitude,
+            lng: currentLongitude,
+          },
+          region: 'MX',
+        });
 
-        if (!response.ok) {
-          throw new Error(
-            'No fue posible consultar la dirección'
-          );
-        }
+      const result =
+        response.results[0];
 
-        const result =
-          (await response.json()) as
-            NominatimPlace;
-
-        setResolvedAddress(
-          result.display_name ||
-            ''
-        );
-
-        onAddressResolved(
-          normalizeMapAddress(
-            result.address
-          )
-        );
-
-        setMapMessage(
-          ''
-        );
-      } catch (error) {
-        console.error(
-          'REVERSE GEOCODING ERROR:',
-          error
-        );
-
-        /*
-          El pin sigue siendo válido aunque
-          el servicio de geocodificación no
-          pueda resolver el texto.
-        */
+      if (!result) {
         setMapMessage(
           'Ubicación seleccionada. Puedes completar la dirección manualmente.'
         );
-      } finally {
-        setResolvingAddress(
-          false
-        );
-      }
-    };
-
-  const selectCoordinates =
-    async (
-      currentLatitude: number,
-      currentLongitude: number
-    ) => {
-      onChange(
-        currentLatitude,
-        currentLongitude
-      );
-
-      setSearchResults(
-        []
-      );
-
-      await reverseGeocode(
-        currentLatitude,
-        currentLongitude
-      );
-    };
-
-  const handleSearch =
-    async (
-      event:
-        React.FormEvent<HTMLFormElement>
-    ) => {
-      event.preventDefault();
-
-      const query =
-        searchText.trim();
-
-      if (
-        query.length < 3
-      ) {
-        setMapMessage(
-          'Escribe al menos 3 caracteres para buscar.'
-        );
-
         return;
       }
-
-      try {
-        setSearching(
-          true
-        );
-
-        setMapMessage(
-          ''
-        );
-
-        const params =
-          new URLSearchParams({
-            format:
-              'jsonv2',
-
-            q:
-              query,
-
-            limit:
-              '6',
-
-            addressdetails:
-              '1',
-
-            countrycodes:
-              'mx',
-          });
-
-        const response =
-          await fetch(
-            `https://nominatim.openstreetmap.org/search?${params.toString()}`,
-            {
-              headers: {
-                Accept:
-                  'application/json',
-              },
-            }
-          );
-
-        if (!response.ok) {
-          throw new Error(
-            'No fue posible buscar la dirección'
-          );
-        }
-
-        const results =
-          (await response.json()) as
-            NominatimPlace[];
-
-        setSearchResults(
-          results
-        );
-
-        if (
-          results.length === 0
-        ) {
-          setMapMessage(
-            'No encontramos esa ubicación. Intenta con calle, colonia y municipio.'
-          );
-        }
-      } catch (error) {
-        console.error(
-          'MAP SEARCH ERROR:',
-          error
-        );
-
-        setMapMessage(
-          'No fue posible buscar la ubicación. Puedes colocar el pin manualmente.'
-        );
-      } finally {
-        setSearching(
-          false
-        );
-      }
-    };
-
-  const handleSelectSearchResult =
-    async (
-      result:
-        NominatimPlace
-    ) => {
-      const selectedLatitude =
-        Number(
-          result.lat
-        );
-
-      const selectedLongitude =
-        Number(
-          result.lon
-        );
-
-      if (
-        !Number.isFinite(
-          selectedLatitude
-        ) ||
-        !Number.isFinite(
-          selectedLongitude
-        )
-      ) {
-        return;
-      }
-
-      onChange(
-        selectedLatitude,
-        selectedLongitude
-      );
 
       setResolvedAddress(
-        result.display_name
+        result.formatted_address || ''
       );
 
       setSearchText(
-        result.display_name
-      );
-
-      setSearchResults(
-        []
+        result.formatted_address || ''
       );
 
       onAddressResolved(
-        normalizeMapAddress(
-          result.address
+        normalizeGoogleAddress(
+          result.address_components
         )
       );
-    };
 
-  const handleUseMyLocation =
-    () => {
-      if (
-        !navigator.geolocation
-      ) {
-        setMapMessage(
-          'Tu navegador no permite obtener la ubicación.'
-        );
-
-        return;
-      }
-
-      setLocating(
-        true
+      setMapMessage('');
+    } catch (error) {
+      console.error(
+        'GOOGLE REVERSE GEOCODING ERROR:',
+        error
       );
 
       setMapMessage(
-        ''
+        'Ubicación seleccionada. Puedes completar la dirección manualmente.'
+      );
+    } finally {
+      setResolvingAddress(false);
+    }
+  };
+
+  const selectCoordinates = async (
+    currentLatitude: number,
+    currentLongitude: number
+  ) => {
+    onChange(
+      currentLatitude,
+      currentLongitude
+    );
+
+    setSearchResults([]);
+
+    await reverseGeocode(
+      currentLatitude,
+      currentLongitude
+    );
+  };
+
+  const handleSearch = async (
+    event: React.FormEvent<HTMLFormElement>
+  ) => {
+    event.preventDefault();
+
+    const query = searchText.trim();
+
+    if (query.length < 3) {
+      setMapMessage(
+        'Escribe al menos 3 caracteres para buscar.'
+      );
+      return;
+    }
+
+    if (!isLoaded) {
+      setMapMessage(
+        'Google Maps todavía está cargando.'
+      );
+      return;
+    }
+
+    try {
+      setSearching(true);
+      setMapMessage('');
+
+      const geocoder =
+        new google.maps.Geocoder();
+
+      const response =
+        await geocoder.geocode({
+          address: query,
+          componentRestrictions: {
+            country: 'MX',
+          },
+          region: 'MX',
+        });
+
+      const results =
+        response.results as GooglePlaceResult[];
+
+      setSearchResults(
+        results.slice(0, 6)
       );
 
-      navigator.geolocation.getCurrentPosition(
-        async (
-          positionResult
-        ) => {
-          try {
-            await selectCoordinates(
-              positionResult.coords
-                .latitude,
+      if (results.length === 0) {
+        setMapMessage(
+          'No encontramos esa ubicación. Intenta con calle, colonia y municipio.'
+        );
+      }
+    } catch (error) {
+      console.error(
+        'GOOGLE MAP SEARCH ERROR:',
+        error
+      );
 
-              positionResult.coords
-                .longitude
-            );
-          } finally {
-            setLocating(
-              false
-            );
-          }
-        },
+      setSearchResults([]);
+      setMapMessage(
+        'No fue posible buscar la ubicación. Puedes colocar el pin manualmente.'
+      );
+    } finally {
+      setSearching(false);
+    }
+  };
 
-        (
-          error
-        ) => {
-          console.error(
-            'GEOLOCATION ERROR:',
-            error
+  const handleSelectSearchResult = async (
+    result: GooglePlaceResult
+  ) => {
+    const selectedLatitude =
+      result.geometry.location.lat();
+
+    const selectedLongitude =
+      result.geometry.location.lng();
+
+    onChange(
+      selectedLatitude,
+      selectedLongitude
+    );
+
+    setResolvedAddress(
+      result.formatted_address
+    );
+
+    setSearchText(
+      result.formatted_address
+    );
+
+    setSearchResults([]);
+
+    onAddressResolved(
+      normalizeGoogleAddress(
+        result.address_components
+      )
+    );
+
+    if (map) {
+      map.panTo({
+        lat: selectedLatitude,
+        lng: selectedLongitude,
+      });
+      map.setZoom(17);
+    }
+  };
+
+  const handleUseMyLocation = () => {
+    if (!navigator.geolocation) {
+      setMapMessage(
+        'Tu navegador no permite obtener la ubicación.'
+      );
+      return;
+    }
+
+    setLocating(true);
+    setMapMessage('');
+
+    navigator.geolocation.getCurrentPosition(
+      async (positionResult) => {
+        try {
+          await selectCoordinates(
+            positionResult.coords.latitude,
+            positionResult.coords.longitude
           );
-
-          setLocating(
-            false
-          );
-
-          setMapMessage(
-            'No fue posible obtener tu ubicación. Revisa el permiso del navegador.'
-          );
-        },
-
-        {
-          enableHighAccuracy:
-            true,
-
-          timeout:
-            12000,
-
-          maximumAge:
-            30000,
+        } finally {
+          setLocating(false);
         }
-      );
-    };
+      },
+      (error) => {
+        console.error(
+          'GEOLOCATION ERROR:',
+          error
+        );
+
+        setLocating(false);
+        setMapMessage(
+          'No fue posible obtener tu ubicación. Revisa el permiso del navegador.'
+        );
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 12000,
+        maximumAge: 30000,
+      }
+    );
+  };
+
+  if (!GOOGLE_MAPS_API_KEY) {
+    return (
+      <div className="service-map-message">
+        Falta configurar VITE_GOOGLE_MAPS_API_KEY.
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="service-map-message">
+        No fue posible cargar Google Maps. Revisa la API key y sus restricciones.
+      </div>
+    );
+  }
 
   return (
     <div className="service-map-picker">
-
       <div className="service-map-toolbar">
-
         <form
           className="service-map-search"
-          onSubmit={
-            handleSearch
-          }
+          onSubmit={handleSearch}
         >
           <span className="service-map-search-icon">
             ⌕
@@ -785,23 +629,16 @@ const AddressMapPicker = ({
 
           <input
             type="text"
-            value={
-              searchText
-            }
-            onChange={(
-              event
-            ) => {
+            value={searchText}
+            onChange={(event) => {
               setSearchText(
                 event.target.value
               );
 
               if (
-                searchResults.length >
-                0
+                searchResults.length > 0
               ) {
-                setSearchResults(
-                  []
-                );
+                setSearchResults([]);
               }
             }}
             placeholder="Buscar calle, colonia o lugar"
@@ -811,167 +648,134 @@ const AddressMapPicker = ({
           <button
             type="submit"
             disabled={
-              searching
+              searching || !isLoaded
             }
           >
-            {
-              searching
-                ? 'Buscando...'
-                : 'Buscar'
-            }
+            {searching
+              ? 'Buscando...'
+              : 'Buscar'}
           </button>
-
         </form>
 
         <button
           type="button"
           className="service-map-location-button"
-          onClick={
-            handleUseMyLocation
-          }
-          disabled={
-            locating
-          }
+          onClick={handleUseMyLocation}
+          disabled={locating}
         >
-          <span>
-            ◎
-          </span>
+          <span>◎</span>
 
-          {
-            locating
-              ? 'Ubicando...'
-              : 'Usar mi ubicación'
-          }
+          {locating
+            ? 'Ubicando...'
+            : 'Usar mi ubicación'}
         </button>
-
       </div>
 
-      {searchResults.length >
-        0 && (
-
+      {searchResults.length > 0 && (
         <div className="service-map-results">
-
           {searchResults.map(
-            (
-              result,
-              index
-            ) => (
-
+            (result, index) => (
               <button
-                key={
-                  `${result.lat}-${result.lon}-${index}`
-                }
+                key={`${result.formatted_address}-${index}`}
                 type="button"
                 onClick={() =>
-                  handleSelectSearchResult(
+                  void handleSelectSearchResult(
                     result
                   )
                 }
               >
-                <span>
-                  📍
-                </span>
-
+                <span>📍</span>
                 <p>
-                  {
-                    result.display_name
-                  }
+                  {result.formatted_address}
                 </p>
               </button>
-
             )
           )}
-
         </div>
       )}
 
       <div className="service-map-canvas">
-
-        <MapContainer
-          center={
-            position
-          }
-          zoom={
-            latitude !== null
-              ? 17
-              : 11
-          }
-          className="service-address-map"
-          scrollWheelZoom
-        >
-
-          <TileLayer
-            attribution='&copy; OpenStreetMap contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
-
-          <MapViewportSync
-            latitude={
-              latitude
+        {!isLoaded ? (
+          <div className="service-map-status">
+            Cargando Google Maps...
+          </div>
+        ) : (
+          <GoogleMap
+            center={position}
+            zoom={
+              latitude !== null
+                ? 17
+                : 11
             }
-            longitude={
-              longitude
+            mapContainerClassName="service-address-map"
+            onLoad={(loadedMap) =>
+              setMap(loadedMap)
             }
-          />
+            onUnmount={() =>
+              setMap(null)
+            }
+            onClick={(event) => {
+              const clickedLatitude =
+                event.latLng?.lat();
+              const clickedLongitude =
+                event.latLng?.lng();
 
-          <MapClickHandler
-            onPick={(
-              currentLatitude,
-              currentLongitude
-            ) => {
+              if (
+                clickedLatitude === undefined ||
+                clickedLongitude === undefined
+              ) {
+                return;
+              }
+
               void selectCoordinates(
-                currentLatitude,
-                currentLongitude
+                clickedLatitude,
+                clickedLongitude
               );
             }}
-          />
+            options={{
+              streetViewControl: false,
+              mapTypeControl: false,
+              fullscreenControl: true,
+              clickableIcons: false,
+            }}
+          >
+            {latitude !== null &&
+              longitude !== null && (
+                <MarkerF
+                  position={{
+                    lat: latitude,
+                    lng: longitude,
+                  }}
+                  draggable
+                  onDragEnd={(event) => {
+                    const markerLatitude =
+                      event.latLng?.lat();
+                    const markerLongitude =
+                      event.latLng?.lng();
 
-          {latitude !== null &&
-            longitude !== null && (
+                    if (
+                      markerLatitude === undefined ||
+                      markerLongitude === undefined
+                    ) {
+                      return;
+                    }
 
-            <Marker
-              position={[
-                latitude,
-                longitude,
-              ]}
-              icon={
-                mapMarkerIcon
-              }
-              draggable
-              eventHandlers={{
-                dragend(
-                  event
-                ) {
-                  const marker =
-                    event.target as
-                      L.Marker;
-
-                  const location =
-                    marker.getLatLng();
-
-                  void selectCoordinates(
-                    location.lat,
-                    location.lng
-                  );
-                },
-              }}
-            />
-
-          )}
-
-        </MapContainer>
+                    void selectCoordinates(
+                      markerLatitude,
+                      markerLongitude
+                    );
+                  }}
+                />
+              )}
+          </GoogleMap>
+        )}
 
         <div className="service-map-tip">
-          <span>
-            📍
-          </span>
-
+          <span>📍</span>
           <p>
-            Haz clic en el mapa o arrastra
-            el pin hasta la entrada exacta.
+            Haz clic en el mapa o arrastra el pin hasta la entrada exacta.
           </p>
         </div>
-
       </div>
 
       {resolvingAddress && (
@@ -982,23 +786,15 @@ const AddressMapPicker = ({
 
       {resolvedAddress && (
         <div className="service-map-resolved">
-
-          <span>
-            ✓
-          </span>
-
+          <span>✓</span>
           <div>
             <small>
               UBICACIÓN SELECCIONADA
             </small>
-
             <strong>
-              {
-                resolvedAddress
-              }
+              {resolvedAddress}
             </strong>
           </div>
-
         </div>
       )}
 
@@ -1007,7 +803,6 @@ const AddressMapPicker = ({
           {mapMessage}
         </div>
       )}
-
     </div>
   );
 };
@@ -1117,18 +912,12 @@ const SpecialistProfile = () => {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem(
-      'token'
-    );
+const handleLogout = () => {
+  localStorage.removeItem('token');
+  localStorage.removeItem('user');
 
-    localStorage.removeItem(
-      'user'
-    );
-
-    navigate('/');
-  };
-
+  window.location.replace('/login');
+};
   const [
     specialist,
     setSpecialist,

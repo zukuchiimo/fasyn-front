@@ -2,6 +2,7 @@ import {
   BrowserRouter,
   Routes,
   Route,
+  Navigate,
 } from 'react-router-dom';
 
 import Home from '../pages/Home/Home';
@@ -10,35 +11,109 @@ import Register from '../pages/Register/Register';
 
 import Specialists from '../pages/Specialists/Specialists';
 import SpecialistProfile from '../pages/SpecialistProfile/SpecialistProfile';
+
 import ClientHistory from '../pages/client/History/ClientHistory';
+import ClientFavorites from '../pages/client/Favorites/ClientFavorites';
+import ClientProfile from '../pages/client/ClientProfile';
+import MyRequests from '../pages/client/MyRequests/MyRequests';
+import ClientDashboard from '../pages/ClientDashboard/ClientDashboard';
+
 import SpecialistDashboard from '../pages/SpecialistDashboard/SpecialistDashboard';
 import SpecialistSetup from '../pages/SpecialistSetup/SpecialistSetup';
 import CreateService from '../pages/CreateService/CreateService';
 import MyProfile from '../pages/MyProfile/MyProfile';
 import SpecialistEarnings
   from '../pages/SpecialistEarnings/SpecialistEarnings';
-import AdminPayouts from '../pages/admin/AdminPayouts';
-import PaymentSuccess from '../pages/payment/PaymentSuccess';
-import ClientFavorites from '../pages/client/Favorites/ClientFavorites';
-import VerifyEmail from '../pages/VerifyEmail/VerifyEmail';
-import AdminSpecialistCertificates
-  from '../pages/AdminSpecialistCertificates/AdminSpecialistCertificates';
-/*
-  NUEVA PANTALLA:
-  DETALLE DE SOLICITUD DEL ESPECIALISTA
-*/
 import SpecialistRequestDetail
   from '../pages/SpecialistRequestDetail/SpecialistRequestDetail';
-
-import ClientDashboard from '../pages/ClientDashboard/ClientDashboard';
-import ClientProfile from '../pages/client/ClientProfile';
-import MyRequests from '../pages/client/MyRequests/MyRequests';
+import SpecialistCertificates
+  from '../pages/SpecialistCertificates/SpecialistCertificates';
 
 import AdminDashboard from '../pages/AdminDashboard/AdminDashboard';
 import AdminSpecialists from '../pages/admin/AdminSpecialists';
 import AdminClients from '../pages/admin/AdminClients';
 import AdminCategories from '../pages/admin/AdminCategories';
-import SpecialistCertificates from '../pages/SpecialistCertificates/SpecialistCertificates';
+import AdminPayouts from '../pages/admin/AdminPayouts';
+import AdminSpecialistCertificates
+  from '../pages/AdminSpecialistCertificates/AdminSpecialistCertificates';
+
+import PaymentSuccess from '../pages/payment/PaymentSuccess';
+import VerifyEmail from '../pages/VerifyEmail/VerifyEmail';
+import ForgotPassword
+  from '../pages/ForgotPassword/ForgotPassword';
+
+import ResetPassword
+  from '../pages/ResetPassword/ResetPassword';
+type UserRole =
+  | 'CLIENT'
+  | 'SPECIALIST'
+  | 'ADMIN';
+
+type ProtectedRouteProps = {
+  children: React.ReactNode;
+  allowedRoles?: UserRole[];
+};
+
+const ProtectedRoute = ({
+  children,
+  allowedRoles,
+}: ProtectedRouteProps) => {
+  const token =
+    localStorage.getItem('token');
+
+  const storedUser =
+    localStorage.getItem('user');
+
+  if (!token || !storedUser) {
+    return (
+      <Navigate
+        to="/login"
+        replace
+      />
+    );
+  }
+
+  try {
+    const user =
+      JSON.parse(storedUser);
+
+    if (
+      allowedRoles &&
+      !allowedRoles.includes(
+        user.role
+      )
+    ) {
+      return (
+        <Navigate
+          to="/"
+          replace
+        />
+      );
+    }
+
+    return children;
+  } catch (error) {
+    console.error(
+      'ERROR LEYENDO SESIÓN:',
+      error
+    );
+
+    localStorage.removeItem(
+      'token'
+    );
+
+    localStorage.removeItem(
+      'user'
+    );
+
+    return (
+      <Navigate
+        to="/login"
+        replace
+      />
+    );
+  }
+};
 
 const AppRoutes = () => {
   return (
@@ -63,17 +138,36 @@ const AppRoutes = () => {
             <Login />
           }
         />
- 
-        <Route
-          path="/verify-email"
-          element={<VerifyEmail />}
-        />
+
         <Route
           path="/register"
           element={
             <Register />
           }
         />
+
+        <Route
+          path="/verify-email"
+          element={
+            <VerifyEmail />
+          }
+        />
+
+        <Route
+          path="/payment/success"
+          element={
+            <PaymentSuccess />
+          }
+        />
+<Route
+  path="/forgot-password"
+  element={<ForgotPassword />}
+/>
+
+<Route
+  path="/reset-password"
+  element={<ResetPassword />}
+/>
 
         {/* =====================================
             ESPECIALISTAS PÚBLICOS
@@ -85,26 +179,13 @@ const AppRoutes = () => {
             <Specialists />
           }
         />
-        <Route
-          path="/admin/specialists"
-          element={<AdminSpecialists />}
-        />
-        <Route
-          path="/payment/success"
-          element={<PaymentSuccess />}
-        />
+
         <Route
           path="/specialists/:id"
           element={
             <SpecialistProfile />
           }
         />
-        <Route
-  path="/admin/specialists/:specialistId/certificates"
-  element={
-    <AdminSpecialistCertificates />
-  }
-/>
 
         {/* =====================================
             PANEL ESPECIALISTA
@@ -113,46 +194,91 @@ const AppRoutes = () => {
         <Route
           path="/specialist"
           element={
-            <SpecialistDashboard />
+            <ProtectedRoute
+              allowedRoles={[
+                'SPECIALIST',
+              ]}
+            >
+              <SpecialistDashboard />
+            </ProtectedRoute>
           }
         />
 
         <Route
           path="/specialist/profile"
           element={
-            <MyProfile />
+            <ProtectedRoute
+              allowedRoles={[
+                'SPECIALIST',
+              ]}
+            >
+              <MyProfile />
+            </ProtectedRoute>
           }
         />
+
         <Route
           path="/specialist/earnings"
-          element={<SpecialistEarnings />}
-        />
-        <Route
-          path="/client/favorites"
           element={
-            <ClientFavorites />
+            <ProtectedRoute
+              allowedRoles={[
+                'SPECIALIST',
+              ]}
+            >
+              <SpecialistEarnings />
+            </ProtectedRoute>
           }
         />
+
         <Route
           path="/specialist/setup"
           element={
-            <SpecialistSetup />
+            <ProtectedRoute
+              allowedRoles={[
+                'SPECIALIST',
+              ]}
+            >
+              <SpecialistSetup />
+            </ProtectedRoute>
           }
         />
 
         <Route
           path="/specialist/services/new"
           element={
-            <CreateService />
+            <ProtectedRoute
+              allowedRoles={[
+                'SPECIALIST',
+              ]}
+            >
+              <CreateService />
+            </ProtectedRoute>
           }
         />
-
-        {/* DETALLE DE SOLICITUD */}
 
         <Route
           path="/specialist/requests/:id"
           element={
-            <SpecialistRequestDetail />
+            <ProtectedRoute
+              allowedRoles={[
+                'SPECIALIST',
+              ]}
+            >
+              <SpecialistRequestDetail />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/specialist/certificates"
+          element={
+            <ProtectedRoute
+              allowedRoles={[
+                'SPECIALIST',
+              ]}
+            >
+              <SpecialistCertificates />
+            </ProtectedRoute>
           }
         />
 
@@ -163,26 +289,65 @@ const AppRoutes = () => {
         <Route
           path="/client"
           element={
-            <ClientDashboard />
+            <ProtectedRoute
+              allowedRoles={[
+                'CLIENT',
+              ]}
+            >
+              <ClientDashboard />
+            </ProtectedRoute>
           }
         />
+
         <Route
           path="/client/history"
           element={
-            <ClientHistory />
+            <ProtectedRoute
+              allowedRoles={[
+                'CLIENT',
+              ]}
+            >
+              <ClientHistory />
+            </ProtectedRoute>
           }
         />
+
         <Route
           path="/client/profile"
           element={
-            <ClientProfile />
+            <ProtectedRoute
+              allowedRoles={[
+                'CLIENT',
+              ]}
+            >
+              <ClientProfile />
+            </ProtectedRoute>
           }
         />
 
         <Route
           path="/client/requests"
           element={
-            <MyRequests />
+            <ProtectedRoute
+              allowedRoles={[
+                'CLIENT',
+              ]}
+            >
+              <MyRequests />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/client/favorites"
+          element={
+            <ProtectedRoute
+              allowedRoles={[
+                'CLIENT',
+              ]}
+            >
+              <ClientFavorites />
+            </ProtectedRoute>
           }
         />
 
@@ -193,32 +358,92 @@ const AppRoutes = () => {
         <Route
           path="/admin"
           element={
-            <AdminDashboard />
+            <ProtectedRoute
+              allowedRoles={[
+                'ADMIN',
+              ]}
+            >
+              <AdminDashboard />
+            </ProtectedRoute>
           }
         />
 
         <Route
           path="/admin/specialists"
           element={
-            <AdminSpecialists />
+            <ProtectedRoute
+              allowedRoles={[
+                'ADMIN',
+              ]}
+            >
+              <AdminSpecialists />
+            </ProtectedRoute>
           }
         />
+
+        <Route
+          path="/admin/specialists/:specialistId/certificates"
+          element={
+            <ProtectedRoute
+              allowedRoles={[
+                'ADMIN',
+              ]}
+            >
+              <AdminSpecialistCertificates />
+            </ProtectedRoute>
+          }
+        />
+
         <Route
           path="/admin/payouts"
-          element={<AdminPayouts />}
+          element={
+            <ProtectedRoute
+              allowedRoles={[
+                'ADMIN',
+              ]}
+            >
+              <AdminPayouts />
+            </ProtectedRoute>
+          }
         />
 
         <Route
           path="/admin/clients"
           element={
-            <AdminClients />
+            <ProtectedRoute
+              allowedRoles={[
+                'ADMIN',
+              ]}
+            >
+              <AdminClients />
+            </ProtectedRoute>
           }
         />
 
         <Route
           path="/admin/categories"
           element={
-            <AdminCategories />
+            <ProtectedRoute
+              allowedRoles={[
+                'ADMIN',
+              ]}
+            >
+              <AdminCategories />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* =====================================
+            RUTA NO ENCONTRADA
+        ====================================== */}
+
+        <Route
+          path="*"
+          element={
+            <Navigate
+              to="/"
+              replace
+            />
           }
         />
 
