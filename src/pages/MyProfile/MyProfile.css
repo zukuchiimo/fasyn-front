@@ -640,7 +640,276 @@
 
   border-top: 1px solid #edf0f5;
 }
+/* =========================================
+   CONTROL DE COBERTURA
+========================================= */
 
+.coverage-control-card {
+  margin-bottom: 22px;
+  padding: 22px;
+  background: #ffffff;
+  border: 1px solid #e7eaf0;
+  border-radius: 20px;
+  box-shadow:
+    0 8px 28px rgba(15, 23, 42, 0.06);
+}
+
+.coverage-control-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.coverage-control-icon {
+  width: 46px;
+  height: 46px;
+  min-width: 46px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #eef2ff;
+  border-radius: 14px;
+
+  font-size: 21px;
+}
+
+.coverage-control-label {
+  display: block;
+  margin-bottom: 4px;
+
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+
+  color: #4f6df5;
+}
+
+.coverage-control-info h3 {
+  margin: 0;
+
+  font-size: 19px;
+  line-height: 1.25;
+
+  color: #172033;
+}
+
+.coverage-control-info p {
+  margin: 7px 0 0;
+
+  max-width: 650px;
+
+  color: #6b7280;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+
+/* =========================================
+   BOTONES DE UBICACIÓN
+========================================= */
+
+.coverage-location-actions {
+  display: grid;
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 12px;
+
+  margin-top: 20px;
+}
+
+.coverage-location-btn {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+
+  width: 100%;
+  min-height: 72px;
+
+  padding: 13px 16px;
+
+  border-radius: 15px;
+
+  cursor: pointer;
+
+  text-align: left;
+
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    border-color 0.18s ease,
+    background 0.18s ease;
+}
+
+.coverage-location-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.coverage-location-btn.primary {
+  color: #ffffff;
+
+  background:
+    linear-gradient(
+      135deg,
+      #4f6df5,
+      #3157d5
+    );
+
+  border: 1px solid #3157d5;
+
+  box-shadow:
+    0 8px 18px
+    rgba(49, 87, 213, 0.18);
+}
+
+.coverage-location-btn.primary:hover:not(:disabled) {
+  box-shadow:
+    0 10px 24px
+    rgba(49, 87, 213, 0.25);
+}
+
+.coverage-location-btn.secondary {
+  color: #172033;
+
+  background: #f8fafc;
+
+  border: 1px solid #dce2ea;
+}
+
+.coverage-location-btn.secondary:hover:not(:disabled) {
+  background: #f1f5f9;
+  border-color: #b8c2d1;
+}
+
+.coverage-location-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+
+/* =========================================
+   ICONO
+========================================= */
+
+.coverage-btn-icon {
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 11px;
+
+  font-size: 21px;
+  font-weight: 700;
+}
+
+.coverage-location-btn.primary
+.coverage-btn-icon {
+  background:
+    rgba(255, 255, 255, 0.17);
+}
+
+.coverage-location-btn.secondary
+.coverage-btn-icon {
+  background: #e9eefc;
+  color: #3157d5;
+}
+
+
+/* =========================================
+   TEXTO BOTONES
+========================================= */
+
+.coverage-btn-content {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.coverage-btn-content strong {
+  font-size: 14px;
+  font-weight: 750;
+}
+
+.coverage-btn-content small {
+  font-size: 11px;
+  line-height: 1.3;
+}
+
+.coverage-location-btn.primary
+.coverage-btn-content small {
+  color:
+    rgba(255, 255, 255, 0.78);
+}
+
+.coverage-location-btn.secondary
+.coverage-btn-content small {
+  color: #778196;
+}
+
+
+/* =========================================
+   ESTADO UBICACIÓN
+========================================= */
+
+.coverage-location-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  margin-top: 14px;
+
+  padding: 10px 13px;
+
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 11px;
+
+  color: #166534;
+
+  font-size: 12px;
+}
+
+.coverage-status-dot {
+  width: 8px;
+  height: 8px;
+
+  flex-shrink: 0;
+
+  border-radius: 50%;
+
+  background: #22c55e;
+
+  box-shadow:
+    0 0 0 4px
+    rgba(34, 197, 94, 0.12);
+}
+
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media (max-width: 720px) {
+  .coverage-control-card {
+    padding: 17px;
+    border-radius: 16px;
+  }
+
+  .coverage-location-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .coverage-control-info h3 {
+    font-size: 17px;
+  }
+}
 .my-profile-cancel,
 .my-profile-save {
   height: 46px;

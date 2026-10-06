@@ -29,6 +29,9 @@ type RequestStatus =
   | 'PENDING_PAYMENT'
   | 'PENDING_ADMIN'
   | 'APPROVED'
+  | 'ACKNOWLEDGED'
+  | 'ON_THE_WAY'
+  | 'ARRIVED'
   | 'REJECTED'
   | 'IN_PROGRESS'
   | 'COMPLETED'
@@ -63,8 +66,23 @@ type Service = {
   description?: string | null;
   price: number;
   priceType: PriceType;
+  durationMinutes: number;
   category: Category;
 };
+
+type BusySlot = {
+  start: string;
+  end: string;
+};
+
+type ScheduleOption = {
+  time: string;
+  available: boolean;
+  reason?: 'PAST' | 'BUSY';
+};
+
+const TRAVEL_BUFFER_MINUTES = 60;
+const SCHEDULE_STEP_MINUTES = 15;
 
 type Specialist = {
   id: number;
@@ -111,6 +129,7 @@ type ClientServiceRequest = {
   id: number;
   clientId?: number;
   serviceId: number;
+  quantity?: number;
   status: RequestStatus;
   message?: string | null;
   scheduledAt?: string | null;
@@ -283,6 +302,96 @@ const normalizeGoogleAddress = (
   };
 };
 
+type NominatimAddress = {
+  state?: string;
+  municipality?: string;
+  city_district?: string;
+  borough?: string;
+  city?: string;
+  town?: string;
+  village?: string;
+  county?: string;
+  neighbourhood?: string;
+  suburb?: string;
+  quarter?: string;
+  postcode?: string;
+  road?: string;
+  pedestrian?: string;
+  residential?: string;
+  house_number?: string;
+};
+
+type NominatimReverseResult = {
+  display_name?: string;
+  address?: NominatimAddress;
+};
+
+const reverseGeocodeNominatim = async (
+  latitude: number,
+  longitude: number
+): Promise<{
+  formattedAddress: string;
+  address: AddressLookup;
+}> => {
+  const response = await fetch(
+    `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1&accept-language=es`
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      'No fue posible identificar la ubicación.'
+    );
+  }
+
+  const data:
+    NominatimReverseResult =
+      await response.json();
+
+  const address =
+    data.address || {};
+
+  const municipality =
+    address.municipality ||
+    address.city_district ||
+    address.borough ||
+    address.city ||
+    address.town ||
+    address.village ||
+    address.county ||
+    '';
+
+  return {
+    formattedAddress:
+      data.display_name || '',
+
+    address: {
+      state:
+        address.state || '',
+
+      municipality,
+
+      neighborhood:
+        address.neighbourhood ||
+        address.suburb ||
+        address.quarter ||
+        '',
+
+      postalCode:
+        address.postcode || '',
+
+      street:
+        address.road ||
+        address.pedestrian ||
+        address.residential ||
+        '',
+
+      exteriorNumber:
+        address.house_number ||
+        '',
+    },
+  };
+};
+
 const getTodayInputValue = () => {
   const now = new Date();
   const year = now.getFullYear();
@@ -335,6 +444,7 @@ const AddressMapPicker = ({
   const [resolvedAddress, setResolvedAddress] =
     useState('');
 
+
   const [map, setMap] =
     useState<google.maps.Map | null>(null);
 
@@ -381,59 +491,177 @@ const AddressMapPicker = ({
     currentLatitude: number,
     currentLongitude: number
   ) => {
-    if (!isLoaded) {
-      return;
-    }
-
     try {
       setResolvingAddress(true);
+      setMapMessage('');
 
-      const geocoder =
-        new google.maps.Geocoder();
+      let googleResolved:
+        AddressLookup = {};
 
-      const response =
-        await geocoder.geocode({
-          location: {
-            lat: currentLatitude,
-            lng: currentLongitude,
-          },
-          region: 'MX',
-        });
+      let googleFormattedAddress = '';
 
-      const result =
-        response.results[0];
+      /*
+        1. Intentamos con Google si está cargado.
+      */
+      if (isLoaded) {
+        try {
+          const geocoder =
+            new google.maps.Geocoder();
 
-      if (!result) {
-        setMapMessage(
-          'Ubicación seleccionada. Puedes completar la dirección manualmente.'
-        );
-        return;
+          const response =
+            await geocoder.geocode({
+              location: {
+                lat: currentLatitude,
+                lng: currentLongitude,
+              },
+              region: 'MX',
+            });
+
+          const result =
+            response.results[0];
+
+          if (result) {
+            googleFormattedAddress =
+              result.formatted_address ||
+              '';
+
+            googleResolved =
+              normalizeGoogleAddress(
+                result.address_components
+              );
+          }
+        } catch (googleError) {
+          console.warn(
+            'GOOGLE REVERSE GEOCODING FALLÓ:',
+            googleError
+          );
+        }
       }
 
-      setResolvedAddress(
-        result.formatted_address || ''
+      /*
+        2. Consultamos Nominatim.
+        Este suele regresar mejor colonia,
+        municipio/alcaldía y código postal.
+      */
+      let nominatimResolved:
+        AddressLookup = {};
+
+      let nominatimFormattedAddress =
+        '';
+
+      try {
+        const nominatim =
+          await reverseGeocodeNominatim(
+            currentLatitude,
+            currentLongitude
+          );
+
+        nominatimResolved =
+          nominatim.address;
+
+        nominatimFormattedAddress =
+          nominatim.formattedAddress;
+      } catch (nominatimError) {
+        console.warn(
+          'NOMINATIM REVERSE GEOCODING FALLÓ:',
+          nominatimError
+        );
+      }
+
+      /*
+        3. Combinamos ambos.
+        Nominatim tiene prioridad en los
+        campos donde Google suele fallar.
+      */
+      const resolved:
+        AddressLookup = {
+        state:
+          nominatimResolved.state ||
+          googleResolved.state ||
+          '',
+
+        municipality:
+          nominatimResolved.municipality ||
+          googleResolved.municipality ||
+          '',
+
+        neighborhood:
+          nominatimResolved.neighborhood ||
+          googleResolved.neighborhood ||
+          '',
+
+        postalCode:
+          nominatimResolved.postalCode ||
+          googleResolved.postalCode ||
+          '',
+
+        street:
+          nominatimResolved.street ||
+          googleResolved.street ||
+          '',
+
+        exteriorNumber:
+          googleResolved.exteriorNumber ||
+          nominatimResolved.exteriorNumber ||
+          '',
+      };
+
+      const formattedAddress =
+        googleFormattedAddress ||
+        nominatimFormattedAddress;
+
+      console.log(
+        'UBICACIÓN RESUELTA:',
+        {
+          latitude:
+            currentLatitude,
+          longitude:
+            currentLongitude,
+          googleResolved,
+          nominatimResolved,
+          resolved,
+        }
       );
 
-      setSearchText(
-        result.formatted_address || ''
-      );
+      if (formattedAddress) {
+        setResolvedAddress(
+          formattedAddress
+        );
+
+        setSearchText(
+          formattedAddress
+        );
+      }
 
       onAddressResolved(
-        normalizeGoogleAddress(
-          result.address_components
-        )
+        resolved
       );
 
-      setMapMessage('');
+      const hasAddress =
+        Boolean(
+          resolved.state ||
+          resolved.municipality ||
+          resolved.neighborhood ||
+          resolved.postalCode ||
+          resolved.street
+        );
+
+      if (!hasAddress) {
+        setMapMessage(
+          'Se obtuvo tu ubicación, pero no fue posible identificar el domicilio. Completa los campos manualmente.'
+        );
+      }
+
     } catch (error) {
       console.error(
-        'GOOGLE REVERSE GEOCODING ERROR:',
+        'REVERSE GEOCODING ERROR:',
         error
       );
 
       setMapMessage(
-        'Ubicación seleccionada. Puedes completar la dirección manualmente.'
+        'Se obtuvo tu ubicación, pero no fue posible identificar el domicilio.'
       );
+
     } finally {
       setResolvingAddress(false);
     }
@@ -810,7 +1038,26 @@ const AddressMapPicker = ({
 const SpecialistProfile = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+const [
+  paymentCoverageError,
+  setPaymentCoverageError,
+] = useState<{
+  requestId: number;
+  code?: string;
+  message: string;
+  municipality?: string;
+  state?: string;
+} | null>(null);
 
+const [
+  requestCoverageError,
+  setRequestCoverageError,
+] = useState<{
+  code?: string;
+  message: string;
+  municipality?: string;
+  state?: string;
+} | null>(null);
   /*
     =====================================
     SESIÓN
@@ -1021,6 +1268,33 @@ const [
   const [
     serviceTime,
     setServiceTime,
+  ] = useState('');
+
+  /*
+    CANTIDAD CONTRATADA
+
+    HOUR     -> número de horas
+    DAY      -> por ahora 1 día
+    ACTIVITY -> 1 servicio
+  */
+  const [
+    serviceQuantity,
+    setServiceQuantity,
+  ] = useState(1);
+
+  const [
+    busySlots,
+    setBusySlots,
+  ] = useState<BusySlot[]>([]);
+
+  const [
+    loadingAvailability,
+    setLoadingAvailability,
+  ] = useState(false);
+
+  const [
+    availabilityError,
+    setAvailabilityError,
   ] = useState('');
 
   const [
@@ -1288,6 +1562,183 @@ const [
       }
     };
 
+/*
+  DISPONIBILIDAD DEL ESPECIALISTA
+
+  El backend debe regresar busySlots con intervalos ISO:
+  { start: string, end: string }
+
+  La validación definitiva de conflictos sigue siendo
+  responsabilidad del backend al crear la solicitud.
+*/
+const loadAvailability = async (
+  date: string,
+  service: Service | null = selectedService
+) => {
+  if (
+    !specialist ||
+    !service ||
+    !date
+  ) {
+    setBusySlots([]);
+    setAvailabilityError('');
+    return;
+  }
+
+  try {
+    setLoadingAvailability(true);
+    setAvailabilityError('');
+
+    const response =
+      await api.get(
+        `/specialists/${specialist.id}/availability`,
+        {
+          params: {
+            date,
+            serviceId: service.id,
+          },
+        }
+      );
+
+    setBusySlots(
+      Array.isArray(
+        response.data?.busySlots
+      )
+        ? response.data.busySlots
+        : []
+    );
+  } catch (availabilityRequestError: any) {
+    console.error(
+      'ERROR CARGANDO DISPONIBILIDAD:',
+      availabilityRequestError.response?.data ||
+        availabilityRequestError
+    );
+
+    setBusySlots([]);
+
+    setAvailabilityError(
+      availabilityRequestError.response
+        ?.data?.message ||
+        'No fue posible consultar los horarios disponibles.'
+    );
+  } finally {
+    setLoadingAvailability(false);
+  }
+};
+
+const scheduleOptions =
+  useMemo<ScheduleOption[]>(() => {
+    if (
+      !serviceDate ||
+      !selectedService
+    ) {
+      return [];
+    }
+
+    const result: ScheduleOption[] = [];
+
+    const durationMinutes =
+      selectedService.priceType === 'HOUR'
+        ? serviceQuantity * 60
+        : Number(
+            selectedService.durationMinutes
+          ) || 60;
+
+    for (
+      let minuteOfDay = 0;
+      minuteOfDay < 24 * 60;
+      minuteOfDay += SCHEDULE_STEP_MINUTES
+    ) {
+      const hour = Math.floor(
+        minuteOfDay / 60
+      );
+
+      const minute =
+        minuteOfDay % 60;
+
+      const time =
+        `${String(hour).padStart(2, '0')}:${String(
+          minute
+        ).padStart(2, '0')}`;
+
+      const proposedStart =
+        new Date(
+          `${serviceDate}T${time}:00`
+        );
+
+      if (
+        Number.isNaN(
+          proposedStart.getTime()
+        )
+      ) {
+        continue;
+      }
+
+      if (
+        proposedStart.getTime() <=
+        Date.now()
+      ) {
+        result.push({
+          time,
+          available: false,
+          reason: 'PAST',
+        });
+
+        continue;
+      }
+
+      const proposedEnd =
+        new Date(
+          proposedStart.getTime() +
+            (
+              durationMinutes +
+              TRAVEL_BUFFER_MINUTES
+            ) *
+              60_000
+        );
+
+      const hasConflict =
+        busySlots.some((slot) => {
+          const busyStart =
+            new Date(slot.start);
+
+          const busyEnd =
+            new Date(slot.end);
+
+          if (
+            Number.isNaN(
+              busyStart.getTime()
+            ) ||
+            Number.isNaN(
+              busyEnd.getTime()
+            )
+          ) {
+            return false;
+          }
+
+          return (
+            proposedStart < busyEnd &&
+            proposedEnd > busyStart
+          );
+        });
+
+      result.push({
+        time,
+        available: !hasConflict,
+        reason: hasConflict
+          ? 'BUSY'
+          : undefined,
+      });
+    }
+
+    return result;
+  }, [
+    serviceDate,
+    selectedService,
+    busySlots,
+    serviceQuantity,
+  ]);
+
 const openRequestModal = async (
   service: Service
 ) => {
@@ -1322,12 +1773,16 @@ if (
 
 setRequestMessage('');
 setRequestError('');
+setRequestCoverageError(null);
 setCreatedRequestId(null);
 
 setSelectedService(service);
   setServiceMessage('');
   setServiceDate('');
   setServiceTime('');
+  setServiceQuantity(1);
+  setBusySlots([]);
+  setAvailabilityError('');
   setShowNewAddressForm(false);
   setSelectedAddressId(null);
 
@@ -1365,8 +1820,12 @@ setSelectedService(service);
       setServiceMessage('');
       setServiceDate('');
       setServiceTime('');
+      setServiceQuantity(1);
+      setBusySlots([]);
+      setAvailabilityError('');
       setShowNewAddressForm(false);
       setRequestError('');
+      setRequestCoverageError(null);
     };
 
   const handleNewAddressChange = (
@@ -1649,6 +2108,37 @@ setSelectedService(service);
   };
 
   /*
+    RESUMEN DE CONTRATACIÓN
+
+    El frontend solo muestra una estimación.
+    El backend sigue siendo la fuente de verdad
+    para calcular el monto que se cobrará.
+  */
+  const contractedQuantity =
+    selectedService?.priceType === 'HOUR'
+      ? serviceQuantity
+      : 1;
+
+  const contractedDurationMinutes =
+    selectedService
+      ? selectedService.priceType === 'HOUR'
+        ? serviceQuantity * 60
+        : Number(
+            selectedService.durationMinutes
+          ) || 60
+      : 0;
+
+  const baseSubtotal =
+    selectedService
+      ? Number(
+          selectedService.price
+        ) * contractedQuantity
+      : 0;
+
+  const estimatedClientTotal =
+    baseSubtotal * 1.15;
+
+  /*
     UBICACIÓN
   */
   const location =
@@ -1721,6 +2211,22 @@ const getActiveRequest = (
       if (!selectedAddressId) {
         setRequestError(
           'Selecciona una dirección para realizar el servicio.'
+        );
+        return;
+      }
+
+      if (
+        selectedService.priceType === 'HOUR' &&
+        (
+          !Number.isInteger(
+            serviceQuantity
+          ) ||
+          serviceQuantity < 1 ||
+          serviceQuantity > 24
+        )
+      ) {
+        setRequestError(
+          'Selecciona una cantidad de horas válida.'
         );
         return;
       }
@@ -1806,6 +2312,11 @@ const getActiveRequest = (
               addressId:
                 selectedAddressId,
 
+              quantity:
+                selectedService.priceType === 'HOUR'
+                  ? serviceQuantity
+                  : 1,
+
               scheduledAt,
 
               scheduledTimeZone,
@@ -1870,9 +2381,69 @@ setRequestMessage(
           return;
         }
 
+        const data =
+          requestError.response?.data;
+
+        if (
+          data?.code ===
+          'SCHEDULE_CONFLICT'
+        ) {
+          setServiceTime('');
+
+          setRequestError(
+            data?.message ||
+              'Ese horario acaba de ser ocupado. Selecciona otra hora disponible.'
+          );
+
+          if (serviceDate) {
+            await loadAvailability(
+              serviceDate,
+              selectedService
+            );
+          }
+
+          return;
+        }
+
+        const isOutsideServiceArea =
+          data?.code ===
+            'OUTSIDE_SERVICE_AREA' ||
+          (
+            requestError.response
+              ?.status === 409 &&
+            /no presta servicio|fuera de cobertura|fuera de la zona/i.test(
+              String(
+                data?.message || ''
+              )
+            )
+          );
+
+        if (
+          isOutsideServiceArea
+        ) {
+          setRequestCoverageError({
+            code:
+              data?.code ||
+              'OUTSIDE_SERVICE_AREA',
+
+            message:
+              data?.message ||
+              'El especialista no presta servicio en la ubicación seleccionada.',
+
+            municipality:
+              data?.location?.municipality,
+
+            state:
+              data?.location?.state,
+          });
+
+          setRequestError('');
+
+          return;
+        }
+
         setRequestError(
-          requestError.response
-            ?.data?.message ||
+          data?.message ||
             'No fue posible enviar la solicitud.'
         );
       } finally {
@@ -2037,23 +2608,51 @@ setRequestMessage(
         window.location.assign(
           checkoutUrl
         );
-      } catch (
-        paymentError: any
-      ) {
-        console.error(
-          'ERROR CREANDO PAGO:',
-          paymentError.response
-            ?.data ||
-            paymentError
-        );
+   } catch (
+  paymentError: any
+) {
+  console.error(
+    'ERROR CREANDO PAGO:',
+    paymentError.response?.data ||
+      paymentError
+  );
 
-        setRequestError(
-          paymentError.response
-            ?.data?.message ||
-            paymentError.message ||
-            'No fue posible iniciar el pago.'
-        );
-      } finally {
+  const data =
+    paymentError.response?.data;
+
+if (
+  data?.code ===
+  'OUTSIDE_SERVICE_AREA'
+) {
+  setPaymentCoverageError({
+    requestId,
+
+    code:
+      data.code,
+
+    message:
+      data.message ||
+      'La ubicación está fuera de cobertura.',
+
+    municipality:
+      data.location?.municipality,
+
+    state:
+      data.location?.state,
+  });
+
+  setRequestError('');
+
+  return;
+}
+
+  setRequestError(
+    data?.message ||
+      paymentError.message ||
+      'No fue posible iniciar el pago.'
+  );
+}
+      finally {
         setCreatingPaymentId(
           null
         );
@@ -2069,6 +2668,82 @@ setRequestMessage(
 ] = useState<ClientServiceRequest | null>(
   null
 );
+
+const handleChangeCoverageAddress =
+  async () => {
+    if (!paymentCoverageError) {
+      return;
+    }
+
+    const requestId =
+      paymentCoverageError.requestId;
+
+    const currentRequest =
+      myRequests.find(
+        (request) =>
+          request.id === requestId
+      );
+
+    if (!currentRequest) {
+      setPaymentCoverageError(null);
+      return;
+    }
+
+    const service =
+      specialist?.services.find(
+        (item) =>
+          item.id ===
+          currentRequest.serviceId
+      );
+
+    if (!service) {
+      setPaymentCoverageError(null);
+      return;
+    }
+
+    try {
+      const token =
+        localStorage.getItem('token');
+
+      if (!token) {
+        navigate('/login');
+        return;
+      }
+
+      await api.patch(
+        `/requests/${requestId}/cancel`,
+        {},
+        {
+          headers: {
+            Authorization:
+              `Bearer ${token}`,
+          },
+        }
+      );
+
+      await loadMyRequests();
+
+      setPaymentCoverageError(null);
+
+      await openRequestModal(
+        service
+      );
+
+    } catch (error: any) {
+      console.error(
+        'ERROR CAMBIANDO DIRECCIÓN:',
+        error.response?.data ||
+          error
+      );
+
+      setPaymentCoverageError(null);
+
+      setRequestError(
+        error.response?.data?.message ||
+          'No fue posible cambiar la dirección.'
+      );
+    }
+  };
 const renderRequestButton = (
   service: Service
 ) => {
@@ -2679,7 +3354,7 @@ if (
                 </div>
 
               )}
-
+ 
               {requestError && (
 
                 <div className="public-request-error">
@@ -3017,6 +3692,182 @@ if (
         </div>
 
       </main>
+      {requestCoverageError && (
+  <div
+    className="coverage-modal-overlay"
+    role="dialog"
+    aria-modal="true"
+  >
+    <div className="coverage-modal">
+
+      <button
+        type="button"
+        className="coverage-modal-close"
+        onClick={() =>
+          setRequestCoverageError(null)
+        }
+      >
+        ×
+      </button>
+
+      <div className="coverage-modal-icon">
+        📍
+      </div>
+
+      <span className="coverage-modal-eyebrow">
+        COBERTURA NO DISPONIBLE
+      </span>
+
+      <h2>
+        Esta dirección está fuera
+        de la zona de atención
+      </h2>
+
+      <p className="coverage-modal-description">
+        {requestCoverageError.message}
+      </p>
+
+      {(requestCoverageError.municipality ||
+        requestCoverageError.state) && (
+        <div className="coverage-modal-location">
+          <small>
+            UBICACIÓN SELECCIONADA
+          </small>
+
+          <strong>
+            {[
+              requestCoverageError.municipality,
+              requestCoverageError.state,
+            ]
+              .filter(Boolean)
+              .join(', ')}
+          </strong>
+        </div>
+      )}
+
+      <p className="coverage-modal-help">
+        Selecciona otra dirección para
+        continuar con la solicitud.
+      </p>
+
+      <div className="coverage-modal-actions">
+        <button
+          type="button"
+          className="coverage-modal-secondary"
+          onClick={() =>
+            setRequestCoverageError(null)
+          }
+        >
+          Cerrar
+        </button>
+
+        <button
+          type="button"
+          className="coverage-modal-primary"
+          onClick={() => {
+            setRequestCoverageError(null);
+            setSelectedAddressId(null);
+            setServiceTime('');
+            setRequestError('');
+          }}
+        >
+          Cambiar dirección
+          <span>→</span>
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
+{paymentCoverageError && (
+  <div
+    className="coverage-modal-overlay"
+    role="dialog"
+    aria-modal="true"
+  >
+    <div className="coverage-modal">
+
+      <button
+        type="button"
+        className="coverage-modal-close"
+        onClick={() =>
+          setPaymentCoverageError(null)
+        }
+      >
+        ×
+      </button>
+
+      <div className="coverage-modal-icon">
+        📍
+      </div>
+
+      <span className="coverage-modal-eyebrow">
+        COBERTURA NO DISPONIBLE
+      </span>
+
+      <h2>
+        Esta dirección está fuera
+        de la zona de atención
+      </h2>
+
+      <p className="coverage-modal-description">
+        El especialista no presta servicios
+        actualmente en esta ubicación.
+      </p>
+
+      {(paymentCoverageError.municipality ||
+        paymentCoverageError.state) && (
+        <div className="coverage-modal-location">
+
+          <small>
+            UBICACIÓN DETECTADA
+          </small>
+
+          <strong>
+            {[
+              paymentCoverageError.municipality,
+              paymentCoverageError.state,
+            ]
+              .filter(Boolean)
+              .join(', ')}
+          </strong>
+
+        </div>
+      )}
+
+      <p className="coverage-modal-help">
+        Selecciona otra dirección para
+        continuar con el pago.
+      </p>
+
+      <div className="coverage-modal-actions">
+
+        <button
+          type="button"
+          className="coverage-modal-secondary"
+          onClick={() =>
+            setPaymentCoverageError(null)
+          }
+        >
+          Cerrar
+        </button>
+
+        <button
+          type="button"
+          className="coverage-modal-primary"
+          onClick={() =>
+            void handleChangeCoverageAddress()
+          }
+        >
+          Cambiar dirección
+          <span>→</span>
+        </button>
+
+      </div>
+
+    </div>
+  </div>
+)} 
 
       {/* MODAL SOLICITAR SERVICIO */}
 
@@ -3278,6 +4129,71 @@ if (
                         </div>
                       </div>
 
+                      {selectedService.priceType === 'HOUR' && (
+                        <div className="service-time-block">
+                          <div className="service-time-block-header">
+                            <div>
+                              <label>
+                                ¿Cuántas horas necesitas? *
+                              </label>
+
+                              <small>
+                                El precio se calcula por las horas
+                                seleccionadas.
+                              </small>
+                            </div>
+
+                            <strong>
+                              {serviceQuantity}{' '}
+                              {serviceQuantity === 1
+                                ? 'hora'
+                                : 'horas'}
+                            </strong>
+                          </div>
+
+                          <div className="service-quantity-options">
+                            {Array.from(
+                              {
+                                length: 8,
+                              },
+                              (
+                                _,
+                                index
+                              ) =>
+                                index + 1
+                            ).map(
+                              (hours) => (
+                                <button
+                                  key={hours}
+                                  type="button"
+                                  className={
+                                    serviceQuantity ===
+                                    hours
+                                      ? 'service-quantity-option active'
+                                      : 'service-quantity-option'
+                                  }
+                                  onClick={() => {
+                                    setServiceQuantity(
+                                      hours
+                                    );
+
+                                    setServiceTime(
+                                      ''
+                                    );
+
+                                    setRequestError(
+                                      ''
+                                    );
+                                  }}
+                                >
+                                  {hours}h
+                                </button>
+                              )
+                            )}
+                          </div>
+                        </div>
+                      )}
+
                       <div className="service-schedule-grid">
 
                         <div className="service-form-field">
@@ -3289,6 +4205,7 @@ if (
 
                           <input
                             id="serviceDate"
+                            className="service-date-input"
                             type="date"
                             value={
                               serviceDate
@@ -3308,14 +4225,36 @@ if (
                             onChange={(
                               event
                             ) => {
-                              setServiceDate(
+                              const value =
                                 event.target
-                                  .value
+                                  .value;
+
+                              setServiceDate(
+                                value
+                              );
+
+                              setServiceTime(
+                                ''
+                              );
+
+                              setBusySlots(
+                                []
                               );
 
                               setRequestError(
                                 ''
                               );
+
+                              setAvailabilityError(
+                                ''
+                              );
+
+                              if (value) {
+                                void loadAvailability(
+                                  value,
+                                  selectedService
+                                );
+                              }
                             }}
                           />
                         </div>
@@ -3327,42 +4266,138 @@ if (
                             Hora *
                           </label>
 
-                          <input
-                            id="serviceTime"
-                            type="time"
-                            value={
-                              serviceTime
+                          <div
+                            className={
+                              !serviceDate ||
+                              loadingAvailability ||
+                              Boolean(availabilityError)
+                                ? 'service-time-options disabled'
+                                : 'service-time-options'
                             }
-                            step={900}
-                            onClick={(event) => {
-                              try {
-                                event.currentTarget
-                                  .showPicker?.();
-                              } catch {
-                                // Algunos navegadores abren
-                                // el selector de forma nativa.
-                              }
-                            }}
-                            onChange={(
-                              event
-                            ) => {
-                              setServiceTime(
-                                event.target
-                                  .value
-                              );
+                          >
+                            {!serviceDate && (
+                              <div className="service-time-empty">
+                                Selecciona primero una fecha.
+                              </div>
+                            )}
 
-                              setRequestError(
-                                ''
-                              );
-                            }}
-                          />
+                            {serviceDate &&
+                              loadingAvailability && (
+                                <div className="service-time-empty">
+                                  Consultando horarios...
+                                </div>
+                              )}
+
+                            {serviceDate &&
+                              !loadingAvailability &&
+                              !availabilityError &&
+                              scheduleOptions.map(
+                                (slot) => (
+                                  <button
+                                    key={slot.time}
+                                    type="button"
+                                    disabled={!slot.available}
+                                    className={[
+                                      'service-time-option',
+                                      serviceTime === slot.time
+                                        ? 'active'
+                                        : '',
+                                      !slot.available
+                                        ? 'unavailable'
+                                        : '',
+                                    ]
+                                      .filter(Boolean)
+                                      .join(' ')}
+                                    onClick={() => {
+                                      setServiceTime(
+                                        slot.time
+                                      );
+
+                                      setRequestError(
+                                        ''
+                                      );
+                                    }}
+                                  >
+                                    <span>
+                                      {slot.time}
+                                    </span>
+
+                                    {!slot.available && (
+                                      <small>
+                                        {slot.reason ===
+                                        'PAST'
+                                          ? 'Pasó'
+                                          : 'Ocupado'}
+                                      </small>
+                                    )}
+                                  </button>
+                                )
+                              )}
+                          </div>
+
+                          {availabilityError && (
+                            <small
+                              className="service-schedule-error"
+                            >
+                              {availabilityError}
+                            </small>
+                          )}
                         </div>
 
                       </div>
 
                       <small className="service-schedule-timezone">
                         La hora se enviará usando tu zona horaria actual.
+                        El horario considera{' '}
+                        {Math.max(
+                          1,
+                          Math.ceil(
+                            contractedDurationMinutes /
+                              60
+                          )
+                        )}{' '}
+                        hora(s) de servicio y 1 hora adicional
+                        de traslado.
                       </small>
+
+                      <div className="service-request-summary">
+                        <div>
+                          <small>
+                            RESUMEN
+                          </small>
+
+                          <strong>
+                            {selectedService.priceType === 'HOUR'
+                              ? `${serviceQuantity} ${
+                                  serviceQuantity === 1
+                                    ? 'hora'
+                                    : 'horas'
+                                }`
+                              : selectedService.priceType === 'DAY'
+                                ? '1 día'
+                                : '1 servicio'}
+                          </strong>
+
+                          <span>
+                            Base:{' '}
+                            {formatPrice(
+                              baseSubtotal
+                            )}
+                          </span>
+                        </div>
+
+                        <div className="service-request-summary-price">
+                          <strong>
+                            {formatPrice(
+                              estimatedClientTotal
+                            )}
+                          </strong>
+
+                          <span>
+                            total estimado
+                          </span>
+                        </div>
+                      </div>
 
                     </div>
 
@@ -3824,6 +4859,8 @@ if (
       !selectedAddressId ||
       !serviceDate ||
       !serviceTime ||
+      loadingAvailability ||
+      Boolean(availabilityError) ||
       requestingServiceId !==
         null
     }

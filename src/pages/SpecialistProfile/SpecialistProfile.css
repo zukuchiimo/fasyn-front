@@ -2986,7 +2986,155 @@
   border: 1px solid #e2e8f0;
   border-radius: 18px;
 }
+.coverage-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 24px;
+
+  background: rgba(10, 20, 45, 0.62);
+  backdrop-filter: blur(6px);
+}
+
+.coverage-modal {
+  position: relative;
+
+  width: 100%;
+  max-width: 430px;
+
+  padding: 36px 32px 30px;
+
+  border-radius: 22px;
+
+  background: white;
+
+  box-shadow:
+    0 30px 80px
+    rgba(8, 20, 45, 0.25);
+
+  text-align: center;
+}
+
+.coverage-modal-close {
+  position: absolute;
+  top: 15px;
+  right: 17px;
+
+  width: 34px;
+  height: 34px;
+
+  border: 0;
+  border-radius: 50%;
+
+  background: #f2f4f8;
+
+  cursor: pointer;
+}
+
+.coverage-modal-icon {
+  font-size: 34px;
+
+  margin-bottom: 14px;
+}
+
+.coverage-modal-eyebrow {
+  display: block;
+
+  margin-bottom: 9px;
+
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .14em;
+
+  color: #5b73ff;
+}
+
+.coverage-modal h2 {
+  margin: 0 0 12px;
+
+  font-size: 22px;
+  line-height: 1.3;
+
+  color: #14213d;
+}
+
+.coverage-modal-description,
+.coverage-modal-help {
+  font-size: 12px;
+  line-height: 1.6;
+
+  color: #7a869c;
+}
+
+.coverage-modal-location {
+  margin: 20px 0;
+  padding: 14px 16px;
+
+  border-radius: 12px;
+
+  background: #f7f8fb;
+
+  border: 1px solid #e6eaf0;
+}
+
+.coverage-modal-location small {
+  display: block;
+
+  margin-bottom: 5px;
+
+  font-size: 8px;
+  font-weight: 800;
+
+  color: #98a2b3;
+}
+
+.coverage-modal-location strong {
+  font-size: 12px;
+
+  color: #17213d;
+}
+
+.coverage-modal-actions {
+  display: flex;
+  gap: 10px;
+
+  margin-top: 22px;
+}
+
+.coverage-modal-actions button {
+  min-height: 44px;
+
+  border-radius: 11px;
+
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+.coverage-modal-secondary {
+  flex: 1;
+
+  border: 1px solid #dde2eb;
+
+  background: white;
+
+  color: #56637a;
+}
+
+.coverage-modal-primary {
+  flex: 1.5;
+
+  border: 0;
+
+  background: #14213d;
+
+  color: white;
+}
 .service-detail-service-copy {
   display: flex;
   flex-direction: column;
@@ -3386,6 +3534,235 @@
 
   backdrop-filter:
     blur(8px);
+}
+/* =======================================================
+   PATCH UI - COBERTURA + FECHA/HORAS
+   Agrega esto al final de SpecialistProfile.css
+   ======================================================= */
+
+.service-time-block {
+  margin-bottom: 18px;
+  padding: 18px;
+  border: 1px solid #e5e9f0;
+  border-radius: 16px;
+  background: #f8fafc;
+}
+
+.service-time-block-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.service-time-block-header label {
+  display: block;
+  margin-bottom: 5px;
+  color: #273142;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.service-time-block-header small {
+  color: #7c8799;
+  font-size: 9px;
+  line-height: 1.45;
+}
+
+.service-time-block-header > strong {
+  flex-shrink: 0;
+  padding: 7px 11px;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #4f67d8;
+  font-size: 11px;
+}
+
+.service-quantity-options {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.service-quantity-option {
+  min-height: 42px;
+  border: 1px solid #dfe5ed;
+  border-radius: 11px;
+  background: #fff;
+  color: #526071;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.18s ease;
+}
+
+.service-quantity-option:hover {
+  border-color: #9caeff;
+  background: #f4f6ff;
+}
+
+.service-quantity-option.active {
+  border-color: #5c7cff;
+  background: #5c7cff;
+  color: #fff;
+  box-shadow: 0 7px 16px rgba(92, 124, 255, 0.22);
+}
+
+.service-date-input {
+  width: 100%;
+  min-height: 52px !important;
+  padding: 0 14px !important;
+  border: 1px solid #dfe5ed !important;
+  border-radius: 13px !important;
+  background: #fff !important;
+  color: #273142 !important;
+  font: inherit;
+  font-size: 12px !important;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.service-date-input:focus {
+  border-color: #5c7cff !important;
+  box-shadow: 0 0 0 3px rgba(92, 124, 255, 0.12) !important;
+}
+
+.service-time-options {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  max-height: 240px;
+  overflow-y: auto;
+  padding: 4px 3px 4px 0;
+}
+
+.service-time-options::-webkit-scrollbar {
+  width: 6px;
+}
+
+.service-time-options::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: #d8dee8;
+}
+
+.service-time-option {
+  min-height: 48px;
+  padding: 7px 6px;
+  border: 1px solid #dfe5ed;
+  border-radius: 12px;
+  background: #fff;
+  color: #344054;
+  font: inherit;
+  cursor: pointer;
+  transition: 0.16s ease;
+}
+
+.service-time-option span {
+  display: block;
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.service-time-option small {
+  display: block;
+  margin-top: 3px;
+  font-size: 7px;
+}
+
+.service-time-option:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: #9caeff;
+  background: #f5f7ff;
+}
+
+.service-time-option.active {
+  border-color: #5c7cff;
+  background: #5c7cff;
+  color: #fff;
+  box-shadow: 0 7px 16px rgba(92, 124, 255, 0.2);
+}
+
+.service-time-option.unavailable,
+.service-time-option:disabled {
+  border-color: #edf0f4;
+  background: #f2f4f7;
+  color: #a3acb9;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.service-time-empty {
+  grid-column: 1 / -1;
+  padding: 16px;
+  border: 1px dashed #dce2ea;
+  border-radius: 12px;
+  background: #fafbfd;
+  color: #8b95a5;
+  font-size: 10px;
+  text-align: center;
+}
+
+.coverage-modal-overlay {
+  z-index: 9999;
+}
+/* FIX DEFINITIVO DEL MODAL DE COBERTURA */
+
+.coverage-modal-overlay {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 20050 !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  padding: 24px !important;
+
+  background: rgba(15, 27, 56, 0.66) !important;
+  backdrop-filter: blur(6px);
+
+  pointer-events: auto !important;
+}
+
+.coverage-modal {
+  position: relative;
+  z-index: 20051 !important;
+
+  width: min(92vw, 470px);
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+
+  background: #fff;
+  border-radius: 22px;
+  box-shadow: 0 28px 90px rgba(15, 27, 56, 0.32);
+
+  pointer-events: auto !important;
+}
+
+/*
+  El modal de solicitud queda debajo.
+  Antes ambos podían compartir z-index: 9999,
+  y como el modal de solicitud se renderiza después
+  podía tapar visualmente al de cobertura.
+*/
+.service-request-modal-overlay {
+  z-index: 9999 !important;
+}
+
+@media (max-width: 720px) {
+  .service-quantity-options {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .service-time-options {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .service-time-block-header {
+    align-items: center;
+  }
 }
 
 .service-map-tip p {

@@ -553,7 +553,7 @@ const getDocumentUrl = (certificateUrl: string) => {
               ¿NO TIENES CONSTANCIA?
             </span>
 
-            <h2>Puedes obtener capacitación en línea</h2>
+            <h2 color='#000'>Puedes obtener capacitación en línea</h2>
 
             <p>
               Una opción es TELMEX Educación / Fundación Carlos Slim.

@@ -178,19 +178,14 @@ const Specialists = () => {
 
   */
 
-  type RequestStatus =
-
-    | 'PENDING_ADMIN'
-
-    | 'APPROVED'
-
-    | 'REJECTED'
-
-    | 'IN_PROGRESS'
-
-    | 'COMPLETED'
-
-    | 'CANCELLED';
+type RequestStatus =
+  | 'PENDING_PAYMENT'
+  | 'PENDING_ADMIN'
+  | 'APPROVED'
+  | 'REJECTED'
+  | 'IN_PROGRESS'
+  | 'COMPLETED'
+  | 'CANCELLED';
 
 
 
@@ -1021,29 +1016,31 @@ useEffect(() => {
   }
 }, []);
 
-  const getSpecialistActiveRequest = (
+const getSpecialistActiveRequest = (
+  specialistId: number
+) => {
+  return myRequests.find(
+    (request) =>
+      Number(
+        request.service?.specialist?.id
+      ) === Number(specialistId) &&
+      request.status !== 'CANCELLED' &&
+      request.status !== 'REJECTED' &&
+      request.status !== 'COMPLETED'
+  );
+};
 
-    specialistId: number
-
-  ) => {
-
-    return myRequests.find(
-
-      (request) =>
-
-        Number(
-
-          request.service?.specialist?.id
-
-        ) === Number(specialistId) &&
-
-        request.status !== 'CANCELLED' &&
-
-        request.status !== 'REJECTED'
-
-    );
-
-  };
+const hasCompletedRequest = (
+  specialistId: number
+) => {
+  return myRequests.some(
+    (request) =>
+      Number(
+        request.service?.specialist?.id
+      ) === Number(specialistId) &&
+      request.status === 'COMPLETED'
+  );
+};
 
   const getRequestStatusLabel = (
     status: RequestStatus
@@ -1261,17 +1258,14 @@ const toggleFavorite = async (
 
 
 
-              if (
-
-                !specialist.available ||
-
-                !specialist.profileCompleted
-
-              ) {
-
-                return false;
-
-              }
+    if (
+  !specialist.available ||
+  !specialist.profileCompleted ||
+  !specialist.services ||
+  specialist.services.length === 0
+) {
+  return false;
+}
 
 
 
@@ -1669,36 +1663,17 @@ const toggleFavorite = async (
 
 
 
-  const availableSpecialists =
-
-    useMemo(
-
-      () =>
-
-        specialists.filter(
-
-          (
-
-            specialist
-
-          ) =>
-
-            specialist.available &&
-
-            specialist.profileCompleted
-
-        ).length,
-
-
-
-      [
-
-        specialists,
-
-      ]
-
-    );
-
+const availableSpecialists =
+  useMemo(
+    () =>
+      specialists.filter(
+        (specialist) =>
+          specialist.available &&
+          specialist.profileCompleted &&
+          specialist.services.length > 0
+      ).length,
+    [specialists]
+  );
 
 
   /*

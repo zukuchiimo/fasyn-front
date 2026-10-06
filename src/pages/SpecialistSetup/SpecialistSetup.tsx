@@ -5812,18 +5812,9 @@ const removeServiceArea = (index: number) => {
                 </div>
 
                 <div className="legal-summary-card">
-                  <div className="legal-summary-icon">%</div>
-
+ 
                   <div>
-                    <span>COMISIÓN DE LA PLATAFORMA</span>
-                    <strong>15% por servicio completado</strong>
-
-                    <p>
-                      Esta condición forma parte de los Términos y
-                      Condiciones de Uso. Puedes revisar cómo se calcula
-                      la comisión, cuándo se aplica y cómo afecta el monto
-                      neto del especialista.
-                    </p>
+              
 
                     <button
                       type="button"
