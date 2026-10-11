@@ -4,16 +4,13 @@ import {
   useMemo,
   useState,
 } from 'react';
-
  import {
   useLocation,
   useNavigate,
 } from 'react-router-dom';
 import { api } from '../../api/api';
 import logo from '../../assets/logo.png';
-
 import './AdminClients.css';
-
 type RequestStatus =
   | 'PENDING_ADMIN'
   | 'APPROVED'
@@ -21,184 +18,143 @@ type RequestStatus =
   | 'IN_PROGRESS'
   | 'COMPLETED'
   | 'CANCELLED';
-
 interface Category {
   id: number;
   name: string;
   description?: string | null;
 }
-
 interface SpecialistUser {
   id: number;
   name: string;
   email?: string;
 }
-
 interface SpecialistProfile {
   id: number;
   userId: number;
   user: SpecialistUser;
 }
-
 interface Service {
   id: number;
   name: string;
   description?: string | null;
   price: string;
   priceType: string;
-
   category: Category;
   specialist: SpecialistProfile;
 }
-
 interface ClientRequest {
   id: number;
   clientId: number;
   serviceId: number;
-
   status: RequestStatus;
-
   message?: string | null;
-
   reviewedById?: number | null;
   reviewedAt?: string | null;
-
   createdAt: string;
   updatedAt: string;
-
   service: Service;
 }
-
 interface Client {
   id: number;
   name: string;
   email: string;
   profilePhotoUrl?: string | null;
-
   active: boolean;
-
   createdAt: string;
   updatedAt: string;
-
   clientRequests: ClientRequest[];
 }
-
 type FilterType =
   | 'ALL'
   | 'ACTIVE'
   | 'INACTIVE';
-
 interface EditForm {
   name: string;
   email: string;
 }
-
 const EMPTY_FORM: EditForm = {
   name: '',
   email: '',
 };
-
 const getPhotoUrl = (
   photoUrl?: string | null
 ) => {
   if (!photoUrl) {
     return null;
   }
-
   if (/^https?:\/\//i.test(photoUrl)) {
     return photoUrl;
   }
-
   const apiBaseUrl =
     api.defaults.baseURL ||
     'http://localhost:3000/api';
-
   const apiOrigin = apiBaseUrl
     .replace(/\/api\/?$/, '')
     .replace(/\/$/, '');
-
   const normalizedPath =
     photoUrl.startsWith('/')
       ? photoUrl
       : `/${photoUrl}`;
-
   return `${apiOrigin}${normalizedPath}`;
 };
-
 const AdminClients = () => {
  const navigate = useNavigate();
 const location = useLocation();
   const token =
     localStorage.getItem('token');
-
   const userRaw =
     localStorage.getItem('user');
-
   const [clients, setClients] =
     useState<Client[]>([]);
-
   const [loading, setLoading] =
     useState(true);
-
   const [error, setError] =
     useState('');
-
   const [
     successMessage,
     setSuccessMessage,
   ] = useState('');
-
   const [search, setSearch] =
     useState('');
-
   const [filter, setFilter] =
     useState<FilterType>('ALL');
-
   const [
     selectedClient,
     setSelectedClient,
   ] = useState<Client | null>(
     null
   );
-
   const [
     editingClient,
     setEditingClient,
   ] = useState<Client | null>(
     null
   );
-
   const [
     statusClient,
     setStatusClient,
   ] = useState<Client | null>(
     null
   );
-
   const [
     deletingClient,
     setDeletingClient,
   ] = useState<Client | null>(
     null
   );
-
   const [editForm, setEditForm] =
     useState<EditForm>(
       EMPTY_FORM
     );
-
   const [saving, setSaving] =
     useState(false);
-
   const [
     actionLoading,
     setActionLoading,
   ] = useState(false);
-
   /*
     USUARIO ADMINISTRADOR
   */
-
   const currentUser =
     useMemo(() => {
       try {
@@ -209,22 +165,18 @@ const location = useLocation();
         return null;
       }
     }, [userRaw]);
-
   /*
     CARGAR CLIENTES
   */
-
   const loadClients =
     useCallback(async () => {
       try {
         setLoading(true);
         setError('');
-
         if (!token) {
           navigate('/login');
           return;
         }
-
         const response =
           await api.get(
             '/admin/clients',
@@ -235,7 +187,6 @@ const location = useLocation();
               },
             }
           );
-
         setClients(
           response.data.clients ??
             []
@@ -245,7 +196,6 @@ const location = useLocation();
           'GET ADMIN CLIENTS ERROR:',
           err
         );
-
         if (
           err?.response?.status ===
             401 ||
@@ -255,10 +205,8 @@ const location = useLocation();
           setError(
             'No tienes permisos para consultar los clientes.'
           );
-
           return;
         }
-
         setError(
           err?.response?.data
             ?.message ||
@@ -268,20 +216,16 @@ const location = useLocation();
         setLoading(false);
       }
     }, [navigate, token]);
-
   useEffect(() => {
     loadClients();
   }, [loadClients]);
-
   /*
     OCULTAR MENSAJE DE ÉXITO
   */
-
   useEffect(() => {
     if (!successMessage) {
       return;
     }
-
     const timer =
       window.setTimeout(
         () => {
@@ -289,33 +233,27 @@ const location = useLocation();
         },
         3500
       );
-
     return () =>
       window.clearTimeout(
         timer
       );
   }, [successMessage]);
-
   /*
     ESTADÍSTICAS
   */
-
   const stats = useMemo(() => {
     const total =
       clients.length;
-
     const active =
       clients.filter(
         (client) =>
           client.active
       ).length;
-
     const inactive =
       clients.filter(
         (client) =>
           !client.active
       ).length;
-
     const requests =
       clients.reduce(
         (
@@ -329,7 +267,6 @@ const location = useLocation();
           ).length,
         0
       );
-
     return {
       total,
       active,
@@ -337,24 +274,20 @@ const location = useLocation();
       requests,
     };
   }, [clients]);
-
   /*
     FILTROS
   */
-
   const filteredClients =
     useMemo(() => {
       const value =
         search
           .trim()
           .toLowerCase();
-
       return clients.filter(
         (client) => {
           /*
             FILTRO POR ESTADO
           */
-
           if (
             filter ===
               'ACTIVE' &&
@@ -362,7 +295,6 @@ const location = useLocation();
           ) {
             return false;
           }
-
           if (
             filter ===
               'INACTIVE' &&
@@ -370,22 +302,18 @@ const location = useLocation();
           ) {
             return false;
           }
-
           /*
             SIN BÚSQUEDA
           */
-
           if (!value) {
             return true;
           }
-
           /*
             TAMBIÉN BUSCAMOS
             POR SERVICIOS,
             ESPECIALISTAS
             Y CATEGORÍAS
           */
-
           const requestData =
             (
               client.clientRequests ??
@@ -396,11 +324,9 @@ const location = useLocation();
                   [
                     request.service
                       ?.name,
-
                     request.service
                       ?.category
                       ?.name,
-
                     request.service
                       ?.specialist
                       ?.user
@@ -412,7 +338,6 @@ const location = useLocation();
                     .join(' ')
               )
               .join(' ');
-
           const searchable = [
             client.name,
             client.email,
@@ -421,7 +346,6 @@ const location = useLocation();
             .filter(Boolean)
             .join(' ')
             .toLowerCase();
-
           return searchable.includes(
             value
           );
@@ -432,11 +356,9 @@ const location = useLocation();
       search,
       filter,
     ]);
-
   /*
     ABRIR EDICIÓN
   */
-
   const openEdit = (
     client: Client
   ) => {
@@ -445,16 +367,13 @@ const location = useLocation();
       email:
         client.email ?? '',
     });
-
     setEditingClient(
       client
     );
   };
-
   /*
     INPUTS
   */
-
   const handleInputChange = (
     event:
       React.ChangeEvent<HTMLInputElement>
@@ -463,7 +382,6 @@ const location = useLocation();
       name,
       value,
     } = event.target;
-
     setEditForm(
       (current) => ({
         ...current,
@@ -471,50 +389,40 @@ const location = useLocation();
       })
     );
   };
-
   /*
     GUARDAR EDICIÓN
   */
-
   const handleSave = async (
     event: React.FormEvent
   ) => {
     event.preventDefault();
-
     if (!editingClient) {
       return;
     }
-
     if (
       !editForm.name.trim()
     ) {
       setError(
         'El nombre del cliente es obligatorio.'
       );
-
       return;
     }
-
     if (
       !editForm.email.trim()
     ) {
       setError(
         'El correo electrónico es obligatorio.'
       );
-
       return;
     }
-
     try {
       setSaving(true);
       setError('');
-
       await api.patch(
         `/admin/clients/${editingClient.id}`,
         {
           name:
             editForm.name.trim(),
-
           email:
             editForm.email
               .trim()
@@ -527,24 +435,19 @@ const location = useLocation();
           },
         }
       );
-
       setEditingClient(null);
-
       setEditForm(
         EMPTY_FORM
       );
-
       setSuccessMessage(
         'Cliente actualizado correctamente.'
       );
-
       await loadClients();
     } catch (err: any) {
       console.error(
         'UPDATE CLIENT ERROR:',
         err
       );
-
       setError(
         err?.response?.data
           ?.message ||
@@ -554,27 +457,21 @@ const location = useLocation();
       setSaving(false);
     }
   };
-
   /*
     ACTIVAR / DAR DE BAJA
   */
-
   const handleChangeStatus =
     async () => {
       if (!statusClient) {
         return;
       }
-
       const currentStatus =
         statusClient.active;
-
       try {
         setActionLoading(
           true
         );
-
         setError('');
-
         await api.patch(
           `/admin/clients/${statusClient.id}/status`,
           {
@@ -588,22 +485,18 @@ const location = useLocation();
             },
           }
         );
-
         setStatusClient(null);
-
         setSuccessMessage(
           currentStatus
             ? 'Cliente dado de baja correctamente.'
             : 'Cliente reactivado correctamente.'
         );
-
         await loadClients();
       } catch (err: any) {
         console.error(
           'STATUS CLIENT ERROR:',
           err
         );
-
         setError(
           err?.response?.data
             ?.message ||
@@ -615,24 +508,19 @@ const location = useLocation();
         );
       }
     };
-
   /*
     ELIMINAR
   */
-
   const handleDelete =
     async () => {
       if (!deletingClient) {
         return;
       }
-
       try {
         setActionLoading(
           true
         );
-
         setError('');
-
         await api.delete(
           `/admin/clients/${deletingClient.id}`,
           {
@@ -642,22 +530,18 @@ const location = useLocation();
             },
           }
         );
-
         setDeletingClient(
           null
         );
-
         setSuccessMessage(
           'Cliente eliminado correctamente.'
         );
-
         await loadClients();
       } catch (err: any) {
         console.error(
           'DELETE CLIENT ERROR:',
           err
         );
-
         setError(
           err?.response?.data
             ?.message ||
@@ -669,30 +553,23 @@ const location = useLocation();
         );
       }
     };
-
   /*
     LOGOUT
   */
-
- 
 const handleLogout = () => {
   localStorage.removeItem('token');
   localStorage.removeItem('user');
-
   window.location.replace('/login');
 };
-
   /*
     FECHA
   */
-
   const formatDate = (
     date: string
   ) => {
     if (!date) {
       return '--';
     }
-
     return new Intl.DateTimeFormat(
       'es-MX',
       {
@@ -704,17 +581,14 @@ const handleLogout = () => {
       new Date(date)
     );
   };
-
   /*
     DINERO
   */
-
   const formatMoney = (
     value?: string
   ) => {
     const amount =
       Number(value ?? 0);
-
     return new Intl.NumberFormat(
       'es-MX',
       {
@@ -727,68 +601,51 @@ const handleLogout = () => {
         : amount
     );
   };
-
   /*
     STATUS
   */
-
   const getStatusLabel = (
     status: RequestStatus
   ) => {
     switch (status) {
       case 'PENDING_ADMIN':
         return 'Pendiente';
-
       case 'APPROVED':
         return 'Aprobada';
-
       case 'REJECTED':
         return 'Rechazada';
-
       case 'IN_PROGRESS':
         return 'En proceso';
-
       case 'COMPLETED':
         return 'Completada';
-
       case 'CANCELLED':
         return 'Cancelada';
-
       default:
         return status;
     }
   };
-
   return (
     <div className="admin-page">
-
       {/* ============================
           SIDEBAR
       ============================ */}
-
       <aside className="admin-sidebar">
         <div>
-
           <div className="admin-brand">
             <img
               src={logo}
               alt="FASYN"
             />
-
             <div>
               <strong>
                 FASYN
               </strong>
-
               <span>
                 ADMIN
               </span>
             </div>
           </div>
-
-
 <nav className="admin-menu">
-
   <button
     type="button"
     className={
@@ -803,8 +660,6 @@ const handleLogout = () => {
     <span>◫</span>
     Solicitudes
   </button>
-
- 
   <button
     type="button"
     className={
@@ -819,7 +674,6 @@ const handleLogout = () => {
     <span>♙</span>
     Especialistas
   </button>
-
   <button
     type="button"
     className={
@@ -834,7 +688,6 @@ const handleLogout = () => {
     <span>♧</span>
     Clientes
   </button>
-
   <button
     type="button"
     className={
@@ -849,7 +702,6 @@ const handleLogout = () => {
     <span>◇</span>
     Categorías
   </button>
-
   <button
     type="button"
     className={
@@ -864,10 +716,8 @@ const handleLogout = () => {
     <span>$</span>
     Pagos
   </button>
-
 </nav>
         </div>
-
         <div className="admin-sidebar-bottom">
           <button
             type="button"
@@ -880,34 +730,25 @@ const handleLogout = () => {
           </button>
         </div>
       </aside>
-
       {/* ============================
           CONTENIDO
       ============================ */}
-
       <main className="admin-content">
-
         {/* HEADER */}
-
         <header className="admin-header">
-
           <div>
             <span className="admin-eyebrow">
               PANEL DE CONTROL
             </span>
-
             <h1>
               Clientes
             </h1>
-
             <p>
               Administra los clientes
               registrados en FASYN.
             </p>
           </div>
-
           <div className="admin-user">
-
             <div
               className="admin-user-avatar"
               style={{ overflow: 'hidden' }}
@@ -939,126 +780,96 @@ const handleLogout = () => {
                 'A'
               )}
             </div>
-
             <div>
               <strong>
                 {currentUser?.name ||
                   'Administrador'}
               </strong>
-
               <span>
                 Administrador
               </span>
             </div>
-
           </div>
-
         </header>
-
         {/* ============================
             ESTADÍSTICAS
         ============================ */}
-
         <section className="client-stats">
-
           <article>
             <span>
               CLIENTES
             </span>
-
             <strong>
               {stats.total}
             </strong>
-
             <small>
               Registrados
             </small>
           </article>
-
           <article>
             <span>
               ACTIVOS
             </span>
-
             <strong>
               {stats.active}
             </strong>
-
             <small>
               Cuentas activas
             </small>
           </article>
-
           <article>
             <span>
               INACTIVOS
             </span>
-
             <strong>
               {stats.inactive}
             </strong>
-
             <small>
               Dados de baja
             </small>
           </article>
-
           <article>
             <span>
               SOLICITUDES
             </span>
-
             <strong>
               {stats.requests}
             </strong>
-
             <small>
               Solicitudes realizadas
             </small>
           </article>
-
         </section>
-
         {/* MENSAJES */}
-
         {successMessage && (
           <div className="admin-success-message">
             <span>✓</span>
-
             {successMessage}
           </div>
         )}
-
         {error && (
           <div className="admin-error-message">
             {error}
           </div>
         )}
-
         {/* ============================
             PANEL CLIENTES
         ============================ */}
-
         <section className="clients-panel">
-
           <div className="clients-panel-header">
-
             <div>
               <span className="admin-eyebrow">
                 DIRECTORIO
               </span>
-
               <h2>
                 Clientes registrados
               </h2>
-
               <p>
                 Consulta, edita y
                 administra las cuentas
                 de los clientes.
               </p>
             </div>
-
             <span className="clients-result-count">
               {
                 filteredClients.length
@@ -1069,18 +880,13 @@ const handleLogout = () => {
                 ? 's'
                 : ''}
             </span>
-
           </div>
-
           {/* TOOLBAR */}
-
           <div className="clients-toolbar">
-
             <div className="clients-search">
               <span>
                 ⌕
               </span>
-
               <input
                 type="text"
                 value={search}
@@ -1095,9 +901,7 @@ const handleLogout = () => {
                 placeholder="Buscar por nombre, correo, servicio o especialista..."
               />
             </div>
-
             <div className="clients-filters">
-
               <button
                 type="button"
                 className={
@@ -1111,7 +915,6 @@ const handleLogout = () => {
               >
                 Todos
               </button>
-
               <button
                 type="button"
                 className={
@@ -1128,7 +931,6 @@ const handleLogout = () => {
               >
                 Activos
               </button>
-
               <button
                 type="button"
                 className={
@@ -1145,77 +947,58 @@ const handleLogout = () => {
               >
                 Inactivos
               </button>
-
             </div>
-
           </div>
-
           {/* ============================
               LOADING
           ============================ */}
-
           {loading ? (
             <div className="clients-state">
-
               <div className="admin-loader" />
-
               <h3>
                 Cargando clientes
               </h3>
-
               <p>
                 Estamos consultando
                 la información.
               </p>
-
             </div>
           ) : filteredClients.length ===
             0 ? (
             <div className="clients-state">
-
               <div className="clients-empty-icon">
                 ♧
               </div>
-
               <h3>
                 No encontramos clientes
               </h3>
-
               <p>
                 Intenta cambiar
                 la búsqueda o el filtro.
               </p>
-
             </div>
           ) : (
-
             /* ============================
                 LISTADO
             ============================ */
-
             <div className="clients-list">
-
               {filteredClients.map(
                 (client) => {
-
                   const requests =
                     client.clientRequests ??
                     [];
-
                   const completed =
                     requests.filter(
                       (request) =>
                         request.status ===
                         'COMPLETED'
                     ).length;
-
                   const pending =
                     requests.filter(
                       (request) =>
                         request.status ===
                         'PENDING_ADMIN'
                     ).length;
-
                   return (
                     <article
                       className="client-card"
@@ -1223,9 +1006,7 @@ const handleLogout = () => {
                         client.id
                       }
                     >
-
                       <div className="client-card-main">
-
                         <div
                           className="client-avatar"
                           style={{ overflow: 'hidden' }}
@@ -1254,25 +1035,20 @@ const handleLogout = () => {
                             'C'
                           )}
                         </div>
-
                         <div className="client-info">
-
                           <div className="client-title-row">
-
                             <div>
                               <h3>
                                 {
                                   client.name
                                 }
                               </h3>
-
                               <span className="client-email">
                                 {
                                   client.email
                                 }
                               </span>
                             </div>
-
                             <span
                               className={
                                 client.active
@@ -1281,27 +1057,21 @@ const handleLogout = () => {
                               }
                             >
                               <i />
-
                               {client.active
                                 ? 'Activo'
                                 : 'Inactivo'}
                             </span>
-
                           </div>
-
                           <div className="client-meta">
-
                             <span>
                               ID #{client.id}
                             </span>
-
                             <span>
                               Registrado el{' '}
                               {formatDate(
                                 client.createdAt
                               )}
                             </span>
-
                             <span>
                               {
                                 requests.length
@@ -1312,51 +1082,37 @@ const handleLogout = () => {
                                 ? 'es'
                                 : ''}
                             </span>
-
                           </div>
-
                         </div>
-
                       </div>
-
                       <div className="client-card-footer">
-
                         <div className="client-card-numbers">
-
                           <span>
                             <strong>
                               {
                                 requests.length
                               }
                             </strong>
-
                             Solicitudes
                           </span>
-
                           <span>
                             <strong>
                               {
                                 completed
                               }
                             </strong>
-
                             Completadas
                           </span>
-
                           <span>
                             <strong>
                               {
                                 pending
                               }
                             </strong>
-
                             Pendientes
                           </span>
-
                         </div>
-
                         <div className="client-actions">
-
                           <button
                             type="button"
                             className="client-action view"
@@ -1368,7 +1124,6 @@ const handleLogout = () => {
                           >
                             Ver
                           </button>
-
                           <button
                             type="button"
                             className="client-action edit"
@@ -1380,7 +1135,6 @@ const handleLogout = () => {
                           >
                             Editar
                           </button>
-
                           <button
                             type="button"
                             className={
@@ -1398,7 +1152,6 @@ const handleLogout = () => {
                               ? 'Dar de baja'
                               : 'Reactivar'}
                           </button>
-
                           <button
                             type="button"
                             className="client-action delete"
@@ -1410,27 +1163,19 @@ const handleLogout = () => {
                           >
                             Eliminar
                           </button>
-
                         </div>
-
                       </div>
-
                     </article>
                   );
                 }
               )}
-
             </div>
           )}
-
         </section>
-
       </main>
-
       {/* ============================
           MODAL VER CLIENTE
       ============================ */}
-
       {selectedClient && (
         <div
           className="admin-modal-backdrop"
@@ -1440,7 +1185,6 @@ const handleLogout = () => {
             )
           }
         >
-
           <div
             className="admin-modal client-detail-modal"
             onMouseDown={(
@@ -1449,27 +1193,22 @@ const handleLogout = () => {
               event.stopPropagation()
             }
           >
-
             <div className="admin-modal-header">
-
               <div>
                 <span className="admin-eyebrow">
                   INFORMACIÓN DEL CLIENTEcf
                 </span>
-
                 <h2>
                   {
                     selectedClient.name
                   }
                 </h2>
-
                 <p>
                   {
                     selectedClient.email
                   }
                 </p>
               </div>
-
               <button
                 type="button"
                 className="admin-modal-close"
@@ -1481,13 +1220,9 @@ const handleLogout = () => {
               >
                 ×
               </button>
-
             </div>
-
             <div className="admin-modal-body">
-
               <div className="client-detail-top">
-
                 <div
                   className="client-detail-avatar"
                   style={{ overflow: 'hidden' }}
@@ -1516,19 +1251,16 @@ const handleLogout = () => {
                     'C'
                   )}
                 </div>
-
                 <div>
                   <h3>
                     {
                       selectedClient.name
                     }
                   </h3>
-
                   <span>
                     Cliente #{selectedClient.id}
                   </span>
                 </div>
-
                 <span
                   className={
                     selectedClient.active
@@ -1537,45 +1269,36 @@ const handleLogout = () => {
                   }
                 >
                   <i />
-
                   {selectedClient.active
                     ? 'Activo'
                     : 'Inactivo'}
                 </span>
-
               </div>
-
               <div className="client-detail-grid">
-
                 <div>
                   <span>
                     CORREO
                   </span>
-
                   <strong>
                     {
                       selectedClient.email
                     }
                   </strong>
                 </div>
-
                 <div>
                   <span>
                     REGISTRO
                   </span>
-
                   <strong>
                     {formatDate(
                       selectedClient.createdAt
                     )}
                   </strong>
                 </div>
-
                 <div>
                   <span>
                     SOLICITUDES
                   </span>
-
                   <strong>
                     {
                       selectedClient
@@ -1584,36 +1307,28 @@ const handleLogout = () => {
                     }
                   </strong>
                 </div>
-
                 <div>
                   <span>
                     ESTADO
                   </span>
-
                   <strong>
                     {selectedClient.active
                       ? 'Cuenta activa'
                       : 'Cuenta inactiva'}
                   </strong>
                 </div>
-
               </div>
-
               {/* HISTORIAL */}
-
               <div className="client-detail-section">
-
                 <div className="client-section-title">
                   <div>
                     <span className="admin-eyebrow">
                       ACTIVIDAD
                     </span>
-
                     <h3>
                       Historial de solicitudes
                     </h3>
                   </div>
-
                   <span className="client-request-count">
                     {
                       selectedClient
@@ -1622,7 +1337,6 @@ const handleLogout = () => {
                     }
                   </span>
                 </div>
-
                 {!selectedClient
                   .clientRequests
                   ?.length ? (
@@ -1630,7 +1344,6 @@ const handleLogout = () => {
                     <span>
                       ▤
                     </span>
-
                     <p>
                       Este cliente todavía
                       no ha realizado
@@ -1639,7 +1352,6 @@ const handleLogout = () => {
                   </div>
                 ) : (
                   <div className="client-request-list">
-
                     {selectedClient.clientRequests.map(
                       (request) => (
                         <article
@@ -1648,22 +1360,18 @@ const handleLogout = () => {
                             request.id
                           }
                         >
-
                           <div className="client-request-main">
-
                             <div>
                               <span className="client-request-id">
                                 SOLICITUD #
                                 {request.id}
                               </span>
-
                               <h4>
                                 {request
                                   .service
                                   ?.name ||
                                   'Servicio'}
                               </h4>
-
                               <p>
                                 {request
                                   .service
@@ -1679,7 +1387,6 @@ const handleLogout = () => {
                                   'Sin especialista'}
                               </p>
                             </div>
-
                             <span
                               className={`request-status ${request.status.toLowerCase()}`}
                             >
@@ -1687,26 +1394,20 @@ const handleLogout = () => {
                                 request.status
                               )}
                             </span>
-
                           </div>
-
                           <div className="client-request-footer">
-
                             <span>
                               {formatDate(
                                 request.createdAt
                               )}
                             </span>
-
                             <strong>
                               {formatMoney(
                                 request.service
                                   ?.price
                               )}
                             </strong>
-
                           </div>
-
                           {request.message && (
                             <div className="client-request-message">
                               {
@@ -1714,20 +1415,14 @@ const handleLogout = () => {
                               }
                             </div>
                           )}
-
                         </article>
                       )
                     )}
-
                   </div>
                 )}
-
               </div>
-
             </div>
-
             <div className="admin-modal-footer">
-
               <button
                 type="button"
                 className="modal-secondary-button"
@@ -1739,18 +1434,15 @@ const handleLogout = () => {
               >
                 Cerrar
               </button>
-
               <button
                 type="button"
                 className="modal-primary-button"
                 onClick={() => {
                   const client =
                     selectedClient;
-
                   setSelectedClient(
                     null
                   );
-
                   openEdit(
                     client
                   );
@@ -1758,42 +1450,31 @@ const handleLogout = () => {
               >
                 Editar cliente
               </button>
-
             </div>
-
           </div>
-
         </div>
       )}
-
       {/* ============================
           MODAL EDITAR
       ============================ */}
-
       {editingClient && (
         <div className="admin-modal-backdrop">
-
           <div className="admin-modal client-edit-modal">
-
             <div className="admin-modal-header">
-
               <div>
                 <span className="admin-eyebrow">
                   EDITAR CLIENTE
                 </span>
-
                 <h2>
                   {
                     editingClient.name
                   }
                 </h2>
-
                 <p>
                   Actualiza la información
                   de la cuenta.
                 </p>
               </div>
-
               <button
                 type="button"
                 className="admin-modal-close"
@@ -1806,24 +1487,18 @@ const handleLogout = () => {
               >
                 ×
               </button>
-
             </div>
-
             <form
               onSubmit={
                 handleSave
               }
             >
-
               <div className="admin-modal-body">
-
                 <div className="client-form">
-
                   <label>
                     <span>
                       Nombre
                     </span>
-
                     <input
                       type="text"
                       name="name"
@@ -1836,12 +1511,10 @@ const handleLogout = () => {
                       required
                     />
                   </label>
-
                   <label>
                     <span>
                       Correo electrónico
                     </span>
-
                     <input
                       type="email"
                       name="email"
@@ -1854,13 +1527,9 @@ const handleLogout = () => {
                       required
                     />
                   </label>
-
                 </div>
-
               </div>
-
               <div className="admin-modal-footer">
-
                 <button
                   type="button"
                   className="modal-secondary-button"
@@ -1873,7 +1542,6 @@ const handleLogout = () => {
                 >
                   Cancelar
                 </button>
-
                 <button
                   type="submit"
                   className="modal-primary-button"
@@ -1883,45 +1551,33 @@ const handleLogout = () => {
                     ? 'Guardando...'
                     : 'Guardar cambios'}
                 </button>
-
               </div>
-
             </form>
-
           </div>
-
         </div>
       )}
-
       {/* ============================
           MODAL ESTADO
       ============================ */}
-
       {statusClient && (
         <div className="admin-modal-backdrop">
-
           <div className="admin-modal admin-confirm-modal">
-
             <div className="confirm-icon">
               {statusClient.active
                 ? '!'
                 : '✓'}
             </div>
-
             <h2>
               {statusClient.active
                 ? 'Dar de baja al cliente'
                 : 'Reactivar cliente'}
             </h2>
-
             <p>
               {statusClient.active
                 ? `${statusClient.name} quedará marcado como cliente inactivo. Su información y sus solicitudes se conservarán.`
                 : `${statusClient.name} volverá a tener su cuenta activa en FASYN.`}
             </p>
-
             <div className="confirm-actions">
-
               <button
                 type="button"
                 className="modal-secondary-button"
@@ -1936,7 +1592,6 @@ const handleLogout = () => {
               >
                 Cancelar
               </button>
-
               <button
                 type="button"
                 className={
@@ -1957,31 +1612,22 @@ const handleLogout = () => {
                     ? 'Sí, dar de baja'
                     : 'Sí, reactivar'}
               </button>
-
             </div>
-
           </div>
-
         </div>
       )}
-
       {/* ============================
           MODAL ELIMINAR
       ============================ */}
-
       {deletingClient && (
         <div className="admin-modal-backdrop">
-
           <div className="admin-modal admin-confirm-modal">
-
             <div className="confirm-icon danger">
               !
             </div>
-
             <h2>
               Eliminar cliente
             </h2>
-
             <p>
               Estás por eliminar
               definitivamente a{' '}
@@ -1995,14 +1641,11 @@ const handleLogout = () => {
               también pueden ser
               eliminadas.
             </p>
-
             <div className="delete-warning">
               Esta acción no se puede
               deshacer.
             </div>
-
             <div className="confirm-actions">
-
               <button
                 type="button"
                 className="modal-secondary-button"
@@ -2017,7 +1660,6 @@ const handleLogout = () => {
               >
                 Cancelar
               </button>
-
               <button
                 type="button"
                 className="modal-danger-button"
@@ -2032,16 +1674,11 @@ const handleLogout = () => {
                   ? 'Eliminando...'
                   : 'Eliminar definitivamente'}
               </button>
-
             </div>
-
           </div>
-
         </div>
       )}
-
     </div>
   );
 };
-
 export default AdminClients;

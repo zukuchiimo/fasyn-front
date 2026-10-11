@@ -66,65 +66,54 @@ const AdminCategories = () => {
     loading,
     setLoading,
   ] = useState(true);
-
   const [
     error,
     setError,
   ] = useState('');
-
   const [
     successMessage,
     setSuccessMessage,
   ] = useState('');
-
   const [
     search,
     setSearch,
   ] = useState('');
-
   const [
     selectedCategory,
     setSelectedCategory,
   ] = useState<Category | null>(
     null
   );
-
   const [
     editingCategory,
     setEditingCategory,
   ] = useState<Category | null>(
     null
   );
-
   const [
     deletingCategory,
     setDeletingCategory,
   ] = useState<Category | null>(
     null
   );
-
   const [
     showCreateModal,
     setShowCreateModal,
   ] = useState(false);
-
   const [
     form,
     setForm,
   ] = useState<CategoryForm>(
     EMPTY_FORM
   );
-
   const [
     saving,
     setSaving,
   ] = useState(false);
-
   const [
     deleting,
     setDeleting,
   ] = useState(false);
-
   const currentUser =
     useMemo(() => {
       try {
@@ -135,7 +124,6 @@ const AdminCategories = () => {
         return null;
       }
     }, [userRaw]);
-
   /*
     CARGAR CATEGORÍAS
   */
@@ -144,12 +132,10 @@ const AdminCategories = () => {
       try {
         setLoading(true);
         setError('');
-
         if (!token) {
           navigate('/login');
           return;
         }
-
         const response =
           await api.get(
             '/admin/categories',
@@ -160,12 +146,10 @@ const AdminCategories = () => {
               },
             }
           );
-
         console.log(
           'ADMIN CATEGORIES:',
           response.data
         );
-
         setCategories(
           response.data
             ?.categories || []
@@ -175,32 +159,26 @@ const AdminCategories = () => {
           'GET ADMIN CATEGORIES ERROR:',
           err
         );
-
         if (
           err?.response?.status === 401
         ) {
           localStorage.removeItem(
             'token'
           );
-
           localStorage.removeItem(
             'user'
           );
-
           navigate('/login');
           return;
         }
-
         if (
           err?.response?.status === 403
         ) {
           setError(
             'No tienes permisos para consultar las categorías.'
           );
-
           return;
         }
-
         setError(
           err?.response?.data
             ?.message ||
@@ -213,11 +191,9 @@ const AdminCategories = () => {
       navigate,
       token,
     ]);
-
   useEffect(() => {
     loadCategories();
   }, [loadCategories]);
-
   /*
     OCULTAR MENSAJE DE ÉXITO
   */
@@ -225,7 +201,6 @@ const AdminCategories = () => {
     if (!successMessage) {
       return;
     }
-
     const timer =
       window.setTimeout(
         () => {
@@ -233,13 +208,11 @@ const AdminCategories = () => {
         },
         3500
       );
-
     return () =>
       window.clearTimeout(
         timer
       );
   }, [successMessage]);
-
   /*
     ESTADÍSTICAS
   */
@@ -247,7 +220,6 @@ const AdminCategories = () => {
     useMemo(() => {
       const total =
         categories.length;
-
       const services =
         categories.reduce(
           (
@@ -261,7 +233,6 @@ const AdminCategories = () => {
             ).length,
           0
         );
-
       const activeServices =
         categories.reduce(
           (
@@ -278,7 +249,6 @@ const AdminCategories = () => {
             ).length,
           0
         );
-
       const specialists =
         new Set(
           categories.flatMap(
@@ -292,7 +262,6 @@ const AdminCategories = () => {
               )
           )
         ).size;
-
       return {
         total,
         services,
@@ -300,7 +269,6 @@ const AdminCategories = () => {
         specialists,
       };
     }, [categories]);
-
   /*
     FILTRO
   */
@@ -310,11 +278,9 @@ const AdminCategories = () => {
         search
           .trim()
           .toLowerCase();
-
       if (!value) {
         return categories;
       }
-
       return categories.filter(
         (category) => {
           const services =
@@ -327,7 +293,6 @@ const AdminCategories = () => {
                   service.name
               )
               .join(' ');
-
           const searchable = [
             category.name,
             category.description,
@@ -336,7 +301,6 @@ const AdminCategories = () => {
             .filter(Boolean)
             .join(' ')
             .toLowerCase();
-
           return searchable.includes(
             value
           );
@@ -346,22 +310,18 @@ const AdminCategories = () => {
       categories,
       search,
     ]);
-
   /*
     NUEVA CATEGORÍA
   */
   const openCreate = () => {
     setError('');
-
     setForm(
       EMPTY_FORM
     );
-
     setShowCreateModal(
       true
     );
   };
-
   /*
     EDITAR
   */
@@ -369,21 +329,17 @@ const AdminCategories = () => {
     category: Category
   ) => {
     setError('');
-
     setForm({
       name:
         category.name || '',
-
       description:
         category.description ||
         '',
     });
-
     setEditingCategory(
       category
     );
   };
-
   const handleInputChange = (
     event:
       React.ChangeEvent<
@@ -395,7 +351,6 @@ const AdminCategories = () => {
       name,
       value,
     } = event.target;
-
     setForm(
       (current) => ({
         ...current,
@@ -403,7 +358,6 @@ const AdminCategories = () => {
       })
     );
   };
-
   /*
     CREAR
   */
@@ -413,27 +367,22 @@ const AdminCategories = () => {
         React.FormEvent
     ) => {
       event.preventDefault();
-
       if (
         !form.name.trim()
       ) {
         setError(
           'El nombre de la categoría es obligatorio.'
         );
-
         return;
       }
-
       try {
         setSaving(true);
         setError('');
-
         await api.post(
           '/admin/categories',
           {
             name:
               form.name.trim(),
-
             description:
               form.description
                 .trim() ||
@@ -446,26 +395,21 @@ const AdminCategories = () => {
             },
           }
         );
-
         setShowCreateModal(
           false
         );
-
         setForm(
           EMPTY_FORM
         );
-
         setSuccessMessage(
           'Categoría creada correctamente.'
         );
-
         await loadCategories();
       } catch (err: any) {
         console.error(
           'CREATE CATEGORY ERROR:',
           err
         );
-
         setError(
           err?.response?.data
             ?.message ||
@@ -475,7 +419,6 @@ const AdminCategories = () => {
         setSaving(false);
       }
     };
-
   /*
     ACTUALIZAR
   */
@@ -485,33 +428,27 @@ const AdminCategories = () => {
         React.FormEvent
     ) => {
       event.preventDefault();
-
       if (
         !editingCategory
       ) {
         return;
       }
-
       if (
         !form.name.trim()
       ) {
         setError(
           'El nombre de la categoría es obligatorio.'
         );
-
         return;
       }
-
       try {
         setSaving(true);
         setError('');
-
         await api.patch(
           `/admin/categories/${editingCategory.id}`,
           {
             name:
               form.name.trim(),
-
             description:
               form.description
                 .trim() ||
@@ -524,26 +461,21 @@ const AdminCategories = () => {
             },
           }
         );
-
         setEditingCategory(
           null
         );
-
         setForm(
           EMPTY_FORM
         );
-
         setSuccessMessage(
           'Categoría actualizada correctamente.'
         );
-
         await loadCategories();
       } catch (err: any) {
         console.error(
           'UPDATE CATEGORY ERROR:',
           err
         );
-
         setError(
           err?.response?.data
             ?.message ||
@@ -553,7 +485,6 @@ const AdminCategories = () => {
         setSaving(false);
       }
     };
-
   /*
     ELIMINAR
   */
@@ -564,11 +495,9 @@ const AdminCategories = () => {
       ) {
         return;
       }
-
       try {
         setDeleting(true);
         setError('');
-
         await api.delete(
           `/admin/categories/${deletingCategory.id}`,
           {
@@ -578,22 +507,18 @@ const AdminCategories = () => {
             },
           }
         );
-
         setDeletingCategory(
           null
         );
-
         setSuccessMessage(
           'Categoría eliminada correctamente.'
         );
-
         await loadCategories();
       } catch (err: any) {
         console.error(
           'DELETE CATEGORY ERROR:',
           err
         );
-
         setError(
           err?.response?.data
             ?.message ||
@@ -603,21 +528,17 @@ const AdminCategories = () => {
         setDeleting(false);
       }
     };
-
 const handleLogout = () => {
   localStorage.removeItem('token');
   localStorage.removeItem('user');
-
   window.location.replace('/login');
 };
-
   const formatDate = (
     date: string
   ) => {
     if (!date) {
       return '--';
     }
-
     return new Intl.DateTimeFormat(
       'es-MX',
       {
@@ -629,13 +550,11 @@ const handleLogout = () => {
       new Date(date)
     );
   };
-
   const formatMoney = (
     value?: string
   ) => {
     const amount =
       Number(value ?? 0);
-
     return new Intl.NumberFormat(
       'es-MX',
       {
@@ -648,38 +567,26 @@ const handleLogout = () => {
         : amount
     );
   };
-
   return (
     <div className="admin-page">
-
       {/* SIDEBAR */}
-
       <aside className="admin-sidebar">
-
         <div>
-
           <div className="admin-brand">
-
             <img
               src={logo}
               alt="FASYN"
             />
-
             <div>
               <strong>
                 FASYN
               </strong>
-
               <span>
                 ADMIN
               </span>
             </div>
-
           </div>
-
-  
 <nav className="admin-menu">
-
   <button
     type="button"
     className={
@@ -694,8 +601,6 @@ const handleLogout = () => {
     <span>◫</span>
     Solicitudes
   </button>
-
-  
       <button
             type="button"
             onClick={() => navigate('/admin/specialists')}
@@ -703,7 +608,6 @@ const handleLogout = () => {
             <span>♙</span>
             Especialistas
           </button>
- 
   <button
     type="button"
     className={
@@ -718,7 +622,6 @@ const handleLogout = () => {
     <span>♧</span>
     Clientes
   </button>
-
   <button
     type="button"
     className={
@@ -733,7 +636,6 @@ const handleLogout = () => {
     <span>◇</span>
     Categorías
   </button>
-
   <button
     type="button"
     className={
@@ -748,13 +650,9 @@ const handleLogout = () => {
     <span>$</span>
     Pagos
   </button>
-
 </nav>
-
         </div>
-
         <div className="admin-sidebar-bottom">
-
           <button
             type="button"
             onClick={
@@ -764,37 +662,25 @@ const handleLogout = () => {
             <span>↪</span>
             Cerrar sesión
           </button>
-
         </div>
-
       </aside>
-
       {/* CONTENIDO */}
-
       <main className="admin-content">
-
         <header className="admin-header">
-
           <div>
-
             <span className="admin-eyebrow">
               PANEL DE CONTROL
             </span>
-
             <h1>
               Categorías
             </h1>
-
             <p>
               Administra las categorías
               de servicios disponibles
               en FASYN.
             </p>
-
           </div>
-
           <div className="admin-user">
-
             <div className="admin-user-avatar">
               {currentUser
                 ?.name
@@ -802,124 +688,92 @@ const handleLogout = () => {
                 ?.toUpperCase() ||
                 'A'}
             </div>
-
             <div>
-
               <strong>
                 {currentUser
                   ?.name ||
                   'Administrador'}
               </strong>
-
               <span>
                 Administrador
               </span>
-
             </div>
-
           </div>
-
         </header>
-
         {/* ESTADÍSTICAS */}
-
         <section className="category-stats">
-
           <article>
             <span>
               CATEGORÍAS
             </span>
-
             <strong>
               {stats.total}
             </strong>
-
             <small>
               Registradas
             </small>
           </article>
-
           <article>
             <span>
               SERVICIOS
             </span>
-
             <strong>
               {stats.services}
             </strong>
-
             <small>
               Asociados
             </small>
           </article>
-
           <article>
             <span>
               SERVICIOS ACTIVOS
             </span>
-
             <strong>
               {stats.activeServices}
             </strong>
-
             <small>
               Publicados
             </small>
           </article>
-
           <article>
             <span>
               ESPECIALISTAS
             </span>
-
             <strong>
               {stats.specialists}
             </strong>
-
             <small>
               Con especialidad
             </small>
           </article>
-
         </section>
-
         {successMessage && (
           <div className="admin-success-message">
             <span>✓</span>
             {successMessage}
           </div>
         )}
-
         {error && (
           <div className="admin-error-message">
             {error}
           </div>
         )}
-
         {/* PANEL */}
-
         <section className="categories-panel">
-
           <div className="categories-panel-header">
-
             <div>
-
               <span className="admin-eyebrow">
                 CATÁLOGO
               </span>
-
               <h2 style={{ marginTop: 0,color: '#333' }}>
                 Categorías registradas
               </h2>
-
               <p>
                 Consulta y administra
                 las categorías de
                 servicios.
               </p>
-
             </div>
-
             <button
               type="button"
               className="category-create-button"
@@ -927,15 +781,10 @@ const handleLogout = () => {
             >
               + Nueva categoría
             </button>
-
           </div>
-
           <div className="categories-toolbar">
-
             <div className="categories-search">
-
               <span>⌕</span>
-
               <input
                 type="text"
                 value={search}
@@ -946,9 +795,7 @@ const handleLogout = () => {
                 }
                 placeholder="Buscar categoría o servicio..."
               />
-
             </div>
-
             <span className="categories-result-count">
               {filteredCategories.length}{' '}
               resultado
@@ -957,65 +804,46 @@ const handleLogout = () => {
                 ? 's'
                 : ''}
             </span>
-
           </div>
-
           {loading ? (
-
             <div className="categories-state">
-
               <div className="admin-loader" />
-
               <h3>
                 Cargando categorías
               </h3>
-
               <p>
                 Estamos consultando
                 la información.
               </p>
-
             </div>
-
           ) : filteredCategories
               .length === 0 ? (
-
             <div className="categories-state">
-
               <div className="categories-empty-icon">
                 ▦
               </div>
-
               <h3>
                 No encontramos
                 categorías
               </h3>
-
               <p>
                 Crea una categoría
                 nueva o cambia tu
                 búsqueda.
               </p>
-
             </div>
-
           ) : (
-
             <div className="categories-grid">
-
               {filteredCategories.map(
                 (category) => {
-
                   const services =
                     category.services ||
                     [];
-
                   const activeServices =
                     services.filter(
                       (service) =>
                         service.active
                     ).length;
-
                   return (
                     <article
                       className="category-card"
@@ -1023,62 +851,48 @@ const handleLogout = () => {
                         category.id
                       }
                     >
-
                       <div className="category-card-header">
-
                         <div className="category-icon">
                           {category.name
                             ?.charAt(0)
                             ?.toUpperCase() ||
                             'C'}
                         </div>
-
                         <div className="category-card-title">
-
                           <span>
                             CATEGORÍA #
                             {category.id}
                           </span>
-
                           <h3>
                             {category.name}
                           </h3>
-
                         </div>
-
                       </div>
-
                       <p className="category-description">
                         {category.description ||
                           'Sin descripción registrada.'}
                       </p>
-
                       <div className="category-card-stats">
-
                         <div>
                           <strong>
                             {
                               services.length
                             }
                           </strong>
-
                           <span>
                             Servicios
                           </span>
                         </div>
-
                         <div>
                           <strong>
                             {
                               activeServices
                             }
                           </strong>
-
                           <span>
                             Activos
                           </span>
                         </div>
-
                         <div>
                           <strong>
                             {
@@ -1088,23 +902,18 @@ const handleLogout = () => {
                               ).length
                             }
                           </strong>
-
                           <span>
                             Especialistas
                           </span>
                         </div>
-
                       </div>
-
                       <div className="category-created">
                         Registrada el{' '}
                         {formatDate(
                           category.createdAt
                         )}
                       </div>
-
                       <div className="category-actions">
-
                         <button
                           type="button"
                           onClick={() =>
@@ -1115,7 +924,6 @@ const handleLogout = () => {
                         >
                           Ver
                         </button>
-
                         <button
                           type="button"
                           onClick={() =>
@@ -1126,7 +934,6 @@ const handleLogout = () => {
                         >
                           Editar
                         </button>
-
                         <button
                           type="button"
                           className="delete"
@@ -1138,26 +945,17 @@ const handleLogout = () => {
                         >
                           Eliminar
                         </button>
-
                       </div>
-
                     </article>
                   );
                 }
               )}
-
             </div>
-
           )}
-
         </section>
-
       </main>
-
       {/* DETALLE */}
-
       {selectedCategory && (
-
         <div
           className="admin-modal-backdrop"
           onMouseDown={() =>
@@ -1166,7 +964,6 @@ const handleLogout = () => {
             )
           }
         >
-
           <div
             className="admin-modal category-detail-modal"
             onMouseDown={(
@@ -1175,30 +972,23 @@ const handleLogout = () => {
               event.stopPropagation()
             }
           >
-
             <div className="admin-modal-header">
-
               <div>
-
                 <span className="admin-eyebrow">
                   DETALLE DE CATEGORÍA
                 </span>
-
                 <h2>
                   {
                     selectedCategory.name
                   }
                 </h2>
-
                 <p>
                   {
                     selectedCategory.description ||
                     'Sin descripción'
                   }
                 </p>
-
               </div>
-
               <button
                 type="button"
                 className="admin-modal-close"
@@ -1210,18 +1000,13 @@ const handleLogout = () => {
               >
                 ×
               </button>
-
             </div>
-
             <div className="admin-modal-body">
-
               <div className="category-detail-grid">
-
                 <div>
                   <span>
                     ID
                   </span>
-
                   <strong>
                     #
                     {
@@ -1229,24 +1014,20 @@ const handleLogout = () => {
                     }
                   </strong>
                 </div>
-
                 <div>
                   <span>
                     REGISTRO
                   </span>
-
                   <strong>
                     {formatDate(
                       selectedCategory.createdAt
                     )}
                   </strong>
                 </div>
-
                 <div>
                   <span>
                     SERVICIOS
                   </span>
-
                   <strong>
                     {
                       selectedCategory
@@ -1255,12 +1036,10 @@ const handleLogout = () => {
                     }
                   </strong>
                 </div>
-
                 <div>
                   <span>
                     ESPECIALISTAS
                   </span>
-
                   <strong>
                     {
                       selectedCategory
@@ -1269,51 +1048,38 @@ const handleLogout = () => {
                     }
                   </strong>
                 </div>
-
               </div>
-
               <div className="category-detail-section">
-
                 <span className="admin-eyebrow">
                   SERVICIOS
                 </span>
-
                 <h3>
                   Servicios asociados
                 </h3>
-
                 {!selectedCategory
                   .services?.length ? (
-
                   <div className="category-no-services">
                     No existen servicios
                     asociados a esta
                     categoría.
                   </div>
-
                 ) : (
-
                   <div className="category-services-list">
-
                     {selectedCategory
                       .services
                       .map(
                         (service) => (
-
                           <article
                             key={
                               service.id
                             }
                           >
-
                             <div>
-
                               <strong>
                                 {
                                   service.name
                                 }
                               </strong>
-
                               <span>
                                 {service
                                   .specialist
@@ -1321,40 +1087,27 @@ const handleLogout = () => {
                                   ?.name ||
                                   'Sin especialista'}
                               </span>
-
                             </div>
-
                             <div className="category-service-price">
-
                               <strong>
                                 {formatMoney(
                                   service.price
                                 )}
                               </strong>
-
                               <span>
                                 {
                                   service.priceType
                                 }
                               </span>
-
                             </div>
-
                           </article>
-
                         )
                       )}
-
                   </div>
-
                 )}
-
               </div>
-
             </div>
-
             <div className="admin-modal-footer">
-
               <button
                 type="button"
                 className="modal-secondary-button"
@@ -1366,18 +1119,15 @@ const handleLogout = () => {
               >
                 Cerrar
               </button>
-
               <button
                 type="button"
                 className="modal-primary-button"
                 onClick={() => {
                   const category =
                     selectedCategory;
-
                   setSelectedCategory(
                     null
                   );
-
                   openEdit(
                     category
                   );
@@ -1385,42 +1135,27 @@ const handleLogout = () => {
               >
                 Editar categoría
               </button>
-
             </div>
-
           </div>
-
         </div>
-
       )}
-
       {/* CREAR */}
-
       {showCreateModal && (
-
         <div className="admin-modal-backdrop">
-
           <div className="admin-modal category-form-modal">
-
             <div className="admin-modal-header">
-
               <div>
-
                 <span className="admin-eyebrow">
                   NUEVA CATEGORÍA
                 </span>
-
                 <h2>
                   Crear categoría
                 </h2>
-
                 <p>
                   Registra una nueva
                   categoría de servicio.
                 </p>
-
               </div>
-
               <button
                 type="button"
                 className="admin-modal-close"
@@ -1433,25 +1168,18 @@ const handleLogout = () => {
               >
                 ×
               </button>
-
             </div>
-
             <form
               onSubmit={
                 handleCreate
               }
             >
-
               <div className="admin-modal-body">
-
                 <div className="category-form">
-
                   <label>
-
                     <span>
                       Nombre
                     </span>
-
                     <input
                       type="text"
                       name="name"
@@ -1464,15 +1192,11 @@ const handleLogout = () => {
                       placeholder="Ej. Carpintería"
                       required
                     />
-
                   </label>
-
                   <label>
-
                     <span>
                       Descripción
                     </span>
-
                     <textarea
                       name="description"
                       value={
@@ -1484,15 +1208,10 @@ const handleLogout = () => {
                       placeholder="Descripción de la categoría..."
                       rows={4}
                     />
-
                   </label>
-
                 </div>
-
               </div>
-
               <div className="admin-modal-footer">
-
                 <button
                   type="button"
                   className="modal-secondary-button"
@@ -1505,7 +1224,6 @@ const handleLogout = () => {
                 >
                   Cancelar
                 </button>
-
                 <button
                   type="submit"
                   className="modal-primary-button"
@@ -1515,41 +1233,26 @@ const handleLogout = () => {
                     ? 'Guardando...'
                     : 'Crear categoría'}
                 </button>
-
               </div>
-
             </form>
-
           </div>
-
         </div>
-
       )}
-
       {/* EDITAR */}
-
       {editingCategory && (
-
         <div className="admin-modal-backdrop">
-
           <div className="admin-modal category-form-modal">
-
             <div className="admin-modal-header">
-
               <div>
-
                 <span className="admin-eyebrow">
                   EDITAR CATEGORÍA
                 </span>
-
                 <h2>
                   {
                     editingCategory.name
                   }
                 </h2>
-
               </div>
-
               <button
                 type="button"
                 className="admin-modal-close"
@@ -1562,25 +1265,18 @@ const handleLogout = () => {
               >
                 ×
               </button>
-
             </div>
-
             <form
               onSubmit={
                 handleUpdate
               }
             >
-
               <div className="admin-modal-body">
-
                 <div className="category-form">
-
                   <label>
-
                     <span>
                       Nombre
                     </span>
-
                     <input
                       type="text"
                       name="name"
@@ -1592,15 +1288,11 @@ const handleLogout = () => {
                       }
                       required
                     />
-
                   </label>
-
                   <label>
-
                     <span>
                       Descripción
                     </span>
-
                     <textarea
                       name="description"
                       value={
@@ -1611,15 +1303,10 @@ const handleLogout = () => {
                       }
                       rows={4}
                     />
-
                   </label>
-
                 </div>
-
               </div>
-
               <div className="admin-modal-footer">
-
                 <button
                   type="button"
                   className="modal-secondary-button"
@@ -1632,7 +1319,6 @@ const handleLogout = () => {
                 >
                   Cancelar
                 </button>
-
                 <button
                   type="submit"
                   className="modal-primary-button"
@@ -1642,33 +1328,21 @@ const handleLogout = () => {
                     ? 'Guardando...'
                     : 'Guardar cambios'}
                 </button>
-
               </div>
-
             </form>
-
           </div>
-
         </div>
-
       )}
-
       {/* ELIMINAR */}
-
       {deletingCategory && (
-
         <div className="admin-modal-backdrop">
-
           <div className="admin-modal admin-confirm-modal">
-
             <div className="confirm-icon danger">
               !
             </div>
-
             <h2>
               Eliminar categoría
             </h2>
-
             <p>
               Estás por eliminar{' '}
               <strong>
@@ -1677,7 +1351,6 @@ const handleLogout = () => {
                 }
               </strong>.
             </p>
-
             {(deletingCategory
               .services?.length >
               0 ||
@@ -1685,7 +1358,6 @@ const handleLogout = () => {
                 .specialists
                 ?.length >
               0) && (
-
               <div className="delete-warning">
                 Esta categoría tiene
                 servicios o especialistas
@@ -1693,11 +1365,8 @@ const handleLogout = () => {
                 puede impedir su
                 eliminación.
               </div>
-
             )}
-
             <div className="confirm-actions">
-
               <button
                 type="button"
                 className="modal-secondary-button"
@@ -1710,7 +1379,6 @@ const handleLogout = () => {
               >
                 Cancelar
               </button>
-
               <button
                 type="button"
                 className="modal-danger-button"
@@ -1723,17 +1391,11 @@ const handleLogout = () => {
                   ? 'Eliminando...'
                   : 'Eliminar'}
               </button>
-
             </div>
-
           </div>
-
         </div>
-
       )}
-
     </div>
   );
 };
-
 export default AdminCategories;

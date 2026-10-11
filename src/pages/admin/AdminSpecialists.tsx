@@ -4,31 +4,24 @@ import {
   useMemo,
   useState,
 } from 'react';
-
 import { useNavigate } from 'react-router-dom';
-
 import { api } from '../../api/api';
 import logo from '../../assets/logo.png';
-
 import './AdminSpecialists.css';
-
 type PriceType =
   | 'HOUR'
   | 'DAY'
   | 'ACTIVITY';
-
 interface Category {
   id: number;
   name: string;
   description?: string | null;
 }
-
 interface Specialty {
   specialistId: number;
   categoryId: number;
   category: Category;
 }
-
 interface Service {
   id: number;
   specialistId: number;
@@ -40,54 +33,42 @@ interface Service {
   active: boolean;
   category: Category;
 }
-
 interface SpecialistProfile {
   id: number;
   userId: number;
-
   phone?: string | null;
   description?: string | null;
   experience?: number | null;
-
   state?: string | null;
   municipality?: string | null;
   neighborhood?: string | null;
   postalCode?: string | null;
   address?: string | null;
-
   profilePhotoUrl?: string | null;
   idFrontUrl?: string | null;
   idBackUrl?: string | null;
-
   available: boolean;
   profileCompleted: boolean;
-
   createdAt: string;
   updatedAt: string;
-
   specialties: Specialty[];
   services: Service[];
-
   certificateCount?: number;
 }
-
 interface Specialist {
   id: number;
   name: string;
   email: string;
   active: boolean;
   createdAt: string;
-
   specialistProfile:
   | SpecialistProfile
   | null;
 }
-
 type FilterType =
   | 'ALL'
   | 'ACTIVE'
   | 'INACTIVE';
-
 interface EditForm {
   name: string;
   phone: string;
@@ -99,7 +80,6 @@ interface EditForm {
   postalCode: string;
   address: string;
 }
-
 const EMPTY_FORM: EditForm = {
   name: '',
   phone: '',
@@ -111,98 +91,75 @@ const EMPTY_FORM: EditForm = {
   postalCode: '',
   address: '',
 };
-
 const resolveStoredFileUrl = (
   fileUrl?: string | null
 ) => {
   if (!fileUrl) {
     return '';
   }
-
   if (/^https?:\/\//i.test(fileUrl)) {
     return fileUrl;
   }
-
   const apiBaseUrl =
     api.defaults.baseURL ||
     'http://localhost:3000/api';
-
   const apiOrigin = apiBaseUrl
     .replace(/\/api\/?$/, '')
     .replace(/\/$/, '');
-
   const normalizedPath =
     fileUrl.startsWith('/')
       ? fileUrl
       : `/${fileUrl}`;
-
   return `${apiOrigin}${normalizedPath}`;
 };
-
 const AdminSpecialists = () => {
   const navigate = useNavigate();
-
   const [specialists, setSpecialists] =
     useState<Specialist[]>([]);
-
   const [loading, setLoading] =
     useState(true);
-
   const [error, setError] =
     useState('');
-
   const [search, setSearch] =
     useState('');
-
   const [filter, setFilter] =
     useState<FilterType>('ALL');
-
   const [
     selectedSpecialist,
     setSelectedSpecialist,
   ] = useState<Specialist | null>(
     null
   );
-
   const [
     editingSpecialist,
     setEditingSpecialist,
   ] = useState<Specialist | null>(
     null
   );
-
   const [
     deletingSpecialist,
     setDeletingSpecialist,
   ] = useState<Specialist | null>(
     null
   );
-
   const [
     statusSpecialist,
     setStatusSpecialist,
   ] = useState<Specialist | null>(
     null
   );
-
   const [editForm, setEditForm] =
     useState<EditForm>(EMPTY_FORM);
-
   const [saving, setSaving] =
     useState(false);
-
   const [actionLoading, setActionLoading] =
     useState(false);
-
   const [successMessage, setSuccessMessage] =
     useState('');
-
   const token =
     localStorage.getItem('token');
-
   const userRaw =
     localStorage.getItem('user');
-
   const currentUser = useMemo(() => {
     try {
       return userRaw
@@ -212,18 +169,15 @@ const AdminSpecialists = () => {
       return null;
     }
   }, [userRaw]);
-
   const loadSpecialists =
     useCallback(async () => {
       try {
         setLoading(true);
         setError('');
-
         if (!token) {
           navigate('/login');
           return;
         }
-
         const response =
           await api.get(
             '/admin/specialists',
@@ -234,7 +188,6 @@ const AdminSpecialists = () => {
               },
             }
           );
-
         setSpecialists(
           response.data.specialists ?? []
         );
@@ -243,7 +196,6 @@ const AdminSpecialists = () => {
           'GET ADMIN SPECIALISTS ERROR:',
           err
         );
-
         if (
           err?.response?.status === 401 ||
           err?.response?.status === 403
@@ -251,10 +203,8 @@ const AdminSpecialists = () => {
           setError(
             'No tienes permisos para consultar los especialistas.'
           );
-
           return;
         }
-
         setError(
           err?.response?.data?.message ||
           'No fue posible consultar los especialistas.'
@@ -263,58 +213,47 @@ const AdminSpecialists = () => {
         setLoading(false);
       }
     }, [navigate, token]);
-
   useEffect(() => {
     loadSpecialists();
   }, [loadSpecialists]);
-
   useEffect(() => {
     if (!successMessage) {
       return;
     }
-
     const timer = window.setTimeout(
       () => {
         setSuccessMessage('');
       },
       3500
     );
-
     return () =>
       window.clearTimeout(timer);
   }, [successMessage]);
-
   const filteredSpecialists =
     useMemo(() => {
       const value =
         search.trim().toLowerCase();
-
       return specialists.filter(
         (specialist) => {
           const profile =
             specialist.specialistProfile;
-
           const accountActive =
             specialist.active;
-
           if (
             filter === 'ACTIVE' &&
             !accountActive
           ) {
             return false;
           }
-
           if (
             filter === 'INACTIVE' &&
             accountActive
           ) {
             return false;
           }
-
           if (!value) {
             return true;
           }
-
           const specialties =
             profile?.specialties
               ?.map(
@@ -322,7 +261,6 @@ const AdminSpecialists = () => {
                   item.category.name
               )
               .join(' ') ?? '';
-
           const services =
             profile?.services
               ?.map(
@@ -330,7 +268,6 @@ const AdminSpecialists = () => {
                   service.name
               )
               .join(' ') ?? '';
-
           const location = [
             profile?.state,
             profile?.municipality,
@@ -338,7 +275,6 @@ const AdminSpecialists = () => {
           ]
             .filter(Boolean)
             .join(' ');
-
           const searchable = [
             specialist.name,
             specialist.email,
@@ -350,27 +286,22 @@ const AdminSpecialists = () => {
             .filter(Boolean)
             .join(' ')
             .toLowerCase();
-
           return searchable.includes(
             value
           );
         }
       );
     }, [specialists, search, filter]);
-
   const stats = useMemo(() => {
     const total =
       specialists.length;
-
     const active =
       specialists.filter(
         (specialist) =>
           specialist.active
       ).length;
-
     const inactive =
       total - active;
-
     const services =
       specialists.reduce(
         (totalServices, specialist) =>
@@ -385,7 +316,6 @@ const AdminSpecialists = () => {
           ).length,
         0
       );
-
     return {
       total,
       active,
@@ -393,13 +323,11 @@ const AdminSpecialists = () => {
       services,
     };
   }, [specialists]);
-
   const openEdit = (
     specialist: Specialist
   ) => {
     const profile =
       specialist.specialistProfile;
-
     setEditForm({
       name: specialist.name ?? '',
       phone: profile?.phone ?? '',
@@ -422,12 +350,10 @@ const AdminSpecialists = () => {
       address:
         profile?.address ?? '',
     });
-
     setEditingSpecialist(
       specialist
     );
   };
-
   const handleInputChange = (
     event:
       | React.ChangeEvent<HTMLInputElement>
@@ -437,26 +363,21 @@ const AdminSpecialists = () => {
       name,
       value,
     } = event.target;
-
     setEditForm((current) => ({
       ...current,
       [name]: value,
     }));
   };
-
   const handleSave = async (
     event: React.FormEvent
   ) => {
     event.preventDefault();
-
     if (!editingSpecialist) {
       return;
     }
-
     try {
       setSaving(true);
       setError('');
-
       await api.patch(
         `/admin/specialists/${editingSpecialist.id}`,
         {
@@ -490,21 +411,17 @@ const AdminSpecialists = () => {
           },
         }
       );
-
       setEditingSpecialist(null);
       setEditForm(EMPTY_FORM);
-
       setSuccessMessage(
         'Especialista actualizado correctamente.'
       );
-
       await loadSpecialists();
     } catch (err: any) {
       console.error(
         'UPDATE SPECIALIST ERROR:',
         err
       );
-
       setError(
         err?.response?.data?.message ||
         'No fue posible actualizar el especialista.'
@@ -513,20 +430,16 @@ const AdminSpecialists = () => {
       setSaving(false);
     }
   };
-
   const handleChangeStatus =
     async () => {
       if (!statusSpecialist) {
         return;
       }
-
       const currentStatus =
         statusSpecialist.active;
-
       try {
         setActionLoading(true);
         setError('');
-
         await api.patch(
           `/admin/specialists/${statusSpecialist.id}/status`,
           {
@@ -540,22 +453,18 @@ const AdminSpecialists = () => {
             },
           }
         );
-
         setStatusSpecialist(null);
-
         setSuccessMessage(
           currentStatus
             ? 'Especialista dado de baja correctamente.'
             : 'Especialista reactivado correctamente.'
         );
-
         await loadSpecialists();
       } catch (err: any) {
         console.error(
           'STATUS SPECIALIST ERROR:',
           err
         );
-
         setError(
           err?.response?.data?.message ||
           'No fue posible cambiar el estado del especialista.'
@@ -570,11 +479,9 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
       if (!deletingSpecialist) {
         return;
       }
-
       try {
         setActionLoading(true);
         setError('');
-
         await api.delete(
           `/admin/specialists/${deletingSpecialist.id}`,
           {
@@ -584,20 +491,16 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
             },
           }
         );
-
         setDeletingSpecialist(null);
-
         setSuccessMessage(
           'Especialista eliminado correctamente.'
         );
-
         await loadSpecialists();
       } catch (err: any) {
         console.error(
           'DELETE SPECIALIST ERROR:',
           err
         );
-
         setError(
           err?.response?.data?.message ||
           'No fue posible eliminar el especialista.'
@@ -606,44 +509,35 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
         setActionLoading(false);
       }
     };
-
  const handleLogout = () => {
   localStorage.removeItem('token');
   localStorage.removeItem('user');
-
   window.location.replace('/login');
 };
-
   const formatPriceType = (
     priceType: PriceType
   ) => {
     switch (priceType) {
       case 'HOUR':
         return 'por hora';
-
       case 'DAY':
         return 'por día';
-
       case 'ACTIVITY':
         return 'por actividad';
-
       default:
         return '';
     }
   };
-
   const formatMoney = (
     value: string
   ) => {
     const amount =
       Number(value);
-
     if (
       Number.isNaN(amount)
     ) {
       return `$${value}`;
     }
-
     return new Intl.NumberFormat(
       'es-MX',
       {
@@ -652,7 +546,6 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
       }
     ).format(amount);
   };
-
   return (
     <div className="admin-page">
       <aside className="admin-sidebar">
@@ -662,21 +555,16 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
               src={logo}
               alt="FASYN"
             />
-
             <div>
               <strong>
                 FASYN
               </strong>
-
               <span>
                 ADMIN
               </span>
             </div>
           </div>
-
-       
 <nav className="admin-menu">
-
   <button
     type="button"
     className={
@@ -691,8 +579,6 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     <span>◫</span>
     Solicitudes
   </button>
-
-   
   <button
     type="button"
     className={
@@ -707,7 +593,6 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     <span>♙</span>
     Especialistas
   </button>
-
   <button
     type="button"
     className={
@@ -722,7 +607,6 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     <span>♧</span>
     Clientes
   </button>
-
   <button
     type="button"
     className={
@@ -737,7 +621,6 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     <span>◇</span>
     Categorías
   </button>
-
   <button
     type="button"
     className={
@@ -752,10 +635,8 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     <span>$</span>
     Pagos
   </button>
-
 </nav>
         </div>
-
         <div className="admin-sidebar-bottom">
           <button
             type="button"
@@ -768,24 +649,20 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
           </button>
         </div>
       </aside>
-
       <main className="admin-content">
         <header className="admin-header">
           <div>
             <span className="admin-eyebrow">
               PANEL DE CONTROL
             </span>
-
             <h1>
               Especialistas
             </h1>
-
             <p>
               Administra los especialistas
               registrados en FASYN.
             </p>
           </div>
-
           <div className="admin-user">
             <div className="admin-user-avatar">
               {currentUser?.name
@@ -793,109 +670,88 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
                 ?.toUpperCase() ||
                 'A'}
             </div>
-
             <div>
               <strong>
                 {currentUser?.name ||
                   'Administrador'}
               </strong>
-
               <span>
                 Administrador
               </span>
             </div>
           </div>
         </header>
-
         <section className="specialist-stats">
           <article>
             <span>
               ESPECIALISTAS
             </span>
-
             <strong>
               {stats.total}
             </strong>
-
             <small>
               Registrados
             </small>
           </article>
-
           <article>
             <span>
               ACTIVOS
             </span>
-
             <strong>
               {stats.active}
             </strong>
-
             <small>
               Disponibles
             </small>
           </article>
-
           <article>
             <span>
               INACTIVOS
             </span>
-
             <strong>
               {stats.inactive}
             </strong>
-
             <small>
               Dados de baja
             </small>
           </article>
-
           <article>
             <span>
               SERVICIOS
             </span>
-
             <strong>
               {stats.services}
             </strong>
-
             <small>
               Servicios activos
             </small>
           </article>
         </section>
-
         {successMessage && (
           <div className="admin-success-message">
             <span>✓</span>
-
             {successMessage}
           </div>
         )}
-
         {error && (
           <div className="admin-error-message">
             {error}
           </div>
         )}
-
         <section className="specialists-panel">
           <div className="specialists-panel-header">
             <div>
               <span className="admin-eyebrow">
                 DIRECTORIO
               </span>
-
               <h2>
                 Especialistas registrados
               </h2>
-
               <p>
                 Consulta, edita y administra
                 el estado de cada especialista.
               </p>
             </div>
-
             <span className="specialists-result-count">
               {
                 filteredSpecialists.length
@@ -907,13 +763,11 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
                 : ''}
             </span>
           </div>
-
           <div className="specialists-toolbar">
             <div className="specialists-search">
               <span>
                 ⌕
               </span>
-
               <input
                 type="text"
                 value={search}
@@ -926,7 +780,6 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
                 placeholder="Buscar por nombre, correo, especialidad o ubicación..."
               />
             </div>
-
             <div className="specialists-filters">
               <button
                 type="button"
@@ -943,7 +796,6 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
               >
                 Todos
               </button>
-
               <button
                 type="button"
                 className={
@@ -960,7 +812,6 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
               >
                 Activos
               </button>
-
               <button
                 type="button"
                 className={
@@ -979,15 +830,12 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
               </button>
             </div>
           </div>
-
           {loading ? (
             <div className="specialists-state">
               <div className="admin-loader" />
-
               <h3>
                 Cargando especialistas
               </h3>
-
               <p>
                 Estamos consultando
                 la información.
@@ -999,11 +847,9 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
               <div className="specialists-empty-icon">
                 ♙
               </div>
-
               <h3>
                 No encontramos especialistas
               </h3>
-
               <p>
                 Intenta cambiar
                 la búsqueda o el filtro.
@@ -1015,24 +861,19 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
                 (specialist) => {
                   const profile =
                     specialist.specialistProfile;
-
                   const accountActive =
                     specialist.active;
-
                   const specialties =
                     profile?.specialties ??
                     [];
-
                   const services =
                     profile?.services ??
                     [];
-
                   const activeServices =
                     services.filter(
                       (service) =>
                         service.active
                     ).length;
-
                   return (
                     <article
                       className="specialist-card"
@@ -1067,7 +908,6 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
                             'E'
                           )}
                         </div>
-
                         <div className="specialist-info">
                           <div className="specialist-title-row">
                             <div>
@@ -1076,14 +916,12 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
                                   specialist.name
                                 }
                               </h3>
-
                               <span className="specialist-email">
                                 {
                                   specialist.email
                                 }
                               </span>
                             </div>
-
                             <span
                               className={
                                 accountActive
@@ -1092,20 +930,17 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
                               }
                             >
                               <i />
-
                               {accountActive
                                 ? 'Activo'
                                 : 'Inactivo'}
                             </span>
                           </div>
-
                           <div className="specialist-meta">
                             <span>
                               ☎{' '}
                               {profile?.phone ||
                                 'Sin teléfono'}
                             </span>
-
                             <span>
                               ◉{' '}
                               {profile?.municipality ||
@@ -1114,7 +949,6 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
                                 ? `, ${profile.state}`
                                 : ''}
                             </span>
-
                             <span>
                               ◷{' '}
                               {profile?.experience ??
@@ -1128,7 +962,6 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
                               de experiencia
                             </span>
                           </div>
-
                           <div className="specialist-specialties">
                             {specialties.length >
                               0 ? (
@@ -1155,7 +988,6 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
                           </div>
                         </div>
                       </div>
-
                       <div className="specialist-card-footer">
                         <div className="specialist-card-numbers">
                           <span>
@@ -1164,31 +996,25 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
                                 services.length
                               }
                             </strong>
-
                             Servicios
                           </span>
-
                           <span>
                             <strong>
                               {
                                 activeServices
                               }
                             </strong>
-
                             Activos
                           </span>
-
                           <span>
                             <strong>
                               {profile?.profileCompleted
                                 ? 'Sí'
                                 : 'No'}
                             </strong>
-
                             Perfil completo
                           </span>
                         </div>
-
                         <div className="specialist-actions">
                           <button
                             type="button"
@@ -1226,7 +1052,6 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
                           >
                             Editar
                           </button>
-
                           <button
                             type="button"
                             className={
@@ -1244,7 +1069,6 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
                               ? 'Dar de baja'
                               : 'Reactivar'}
                           </button>
-
                           <button
                             type="button"
                             className="specialist-action delete"
@@ -1266,7 +1090,6 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
           )}
         </section>
       </main>
-
       {selectedSpecialist && (
         <div
           className="admin-modal-backdrop"
@@ -1289,20 +1112,17 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
                 <span className="admin-eyebrow">
                   INFORMACIÓN
                 </span>
-
                 <h2>
                   {
                     selectedSpecialist.name
                   }
                 </h2>
-
                 <p>
                   {
                     selectedSpecialist.email
                   }
                 </p>
               </div>
-
               <button
                 type="button"
                 className="admin-modal-close"
@@ -1315,7 +1135,6 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
                 ×
               </button>
             </div>
-
             <div className="admin-modal-body">
               <div className="detail-status-row">
                 <span
@@ -1326,12 +1145,10 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
                   }
                 >
                   <i />
-
                   {selectedSpecialist.active
                     ? 'Activo'
                     : 'Dado de baja'}
                 </span>
-
                 <span className="detail-profile-state">
                   Perfil{' '}
                   {selectedSpecialist
@@ -1341,13 +1158,11 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
                     : 'incompleto'}
                 </span>
               </div>
-
               <div className="detail-grid">
                 <div>
                   <span>
                     TELÉFONO
                   </span>
-
                   <strong>
                     {selectedSpecialist
                       .specialistProfile
@@ -1355,12 +1170,10 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
                       'No registrado'}
                   </strong>
                 </div>
-
                 <div>
                   <span>
                     EXPERIENCIA
                   </span>
-
                   <strong>
                     {selectedSpecialist
                       .specialistProfile
@@ -1369,12 +1182,10 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
                     años
                   </strong>
                 </div>
-
                 <div>
                   <span>
                     ESTADO
                   </span>
-
                   <strong>
                     {selectedSpecialist
                       .specialistProfile
@@ -1382,12 +1193,10 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
                       'No registrado'}
                   </strong>
                 </div>
-
                 <div>
                   <span>
                     MUNICIPIO
                   </span>
-
                   <strong>
                     {selectedSpecialist
                       .specialistProfile
@@ -1395,12 +1204,10 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
                       'No registrado'}
                   </strong>
                 </div>
-
                 <div>
                   <span>
                     COLONIA
                   </span>
-
                   <strong>
                     {selectedSpecialist
                       .specialistProfile
@@ -1408,12 +1215,10 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
                       'No registrada'}
                   </strong>
                 </div>
-
                 <div>
                   <span>
                     CÓDIGO POSTAL
                   </span>
-
                   <strong>
                     {selectedSpecialist
                       .specialistProfile
@@ -1422,12 +1227,10 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
                   </strong>
                 </div>
               </div>
-
               <div className="detail-section">
                 <span className="detail-section-label">
                   DIRECCIÓN
                 </span>
-
                 <p>
                   {selectedSpecialist
                     .specialistProfile
@@ -1435,12 +1238,10 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
                     'No se registró una dirección.'}
                 </p>
               </div>
-
               <div className="detail-section">
                 <span className="detail-section-label">
                   DESCRIPCIÓN
                 </span>
-
                 <p>
                   {selectedSpecialist
                     .specialistProfile
@@ -1448,12 +1249,10 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
                     'El especialista no agregó una descripción.'}
                 </p>
               </div>
-
               <div className="detail-section">
                 <span className="detail-section-label">
                   DOCUMENTOS DE VERIFICACIÓN
                 </span>
-
                 <div
                   style={{
                     display: 'grid',
@@ -1472,7 +1271,6 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
                     >
                       Foto de perfil
                     </strong>
-
                     {selectedSpecialist
                       .specialistProfile
                       ?.profilePhotoUrl ? (
@@ -1496,7 +1294,6 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
                       <p>No registrada.</p>
                     )}
                   </div>
-
                   <div>
                     <strong
                       style={{
@@ -1506,7 +1303,6 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
                     >
                       INE frente
                     </strong>
-
                     {selectedSpecialist
                       .specialistProfile
                       ?.idFrontUrl ? (
@@ -1531,7 +1327,6 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
                       <p>No registrada.</p>
                     )}
                   </div>
-
                   <div>
                     <strong
                       style={{
@@ -1541,7 +1336,6 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
                     >
                       INE reverso
                     </strong>
-
                     {selectedSpecialist
                       .specialistProfile
                       ?.idBackUrl ? (
@@ -1568,12 +1362,10 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
                   </div>
                 </div>
               </div>
-
               <div className="detail-section">
                 <span className="detail-section-label">
                   ESPECIALIDADES
                 </span>
-
                 <div className="specialist-specialties detail-specialties">
                   {selectedSpecialist
                     .specialistProfile
@@ -1601,12 +1393,10 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
                   )}
                 </div>
               </div>
-
               <div className="detail-section">
                 <span className="detail-section-label">
                   SERVICIOS
                 </span>
-
                 <div className="detail-services">
                   {selectedSpecialist
                     .specialistProfile
@@ -1625,7 +1415,6 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
                                 service.name
                               }
                             </strong>
-
                             <span>
                               {
                                 service
@@ -1634,14 +1423,12 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
                               }
                             </span>
                           </div>
-
                           <div className="detail-service-price">
                             <strong>
                               {formatMoney(
                                 service.price
                               )}
                             </strong>
-
                             <span>
                               {formatPriceType(
                                 service.priceType
@@ -1661,7 +1448,6 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
                 </div>
               </div>
             </div>
-
             <div className="admin-modal-footer">
               <button
                 type="button"
@@ -1674,18 +1460,15 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
               >
                 Cerrar
               </button>
-
               <button
                 type="button"
                 className="modal-primary-button"
                 onClick={() => {
                   const specialist =
                     selectedSpecialist;
-
                   setSelectedSpecialist(
                     null
                   );
-
                   openEdit(
                     specialist
                   );
@@ -1697,7 +1480,6 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
           </div>
         </div>
       )}
-
       {editingSpecialist && (
         <div className="admin-modal-backdrop">
           <div className="admin-modal admin-edit-modal">
@@ -1706,20 +1488,17 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
                 <span className="admin-eyebrow">
                   EDITAR PERFIL
                 </span>
-
                 <h2>
                   {
                     editingSpecialist.name
                   }
                 </h2>
-
                 <p>
                   Actualiza la
                   información del
                   especialista.
                 </p>
               </div>
-
               <button
                 type="button"
                 className="admin-modal-close"
@@ -1733,7 +1512,6 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
                 ×
               </button>
             </div>
-
             <form
               onSubmit={
                 handleSave
@@ -1745,7 +1523,6 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
                     <span>
                       Nombre
                     </span>
-
                     <input
                       type="text"
                       name="name"
@@ -1758,12 +1535,10 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
                       required
                     />
                   </label>
-
                   <label>
                     <span>
                       Teléfono
                     </span>
-
                     <input
                       type="text"
                       name="phone"
@@ -1775,12 +1550,10 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
                       }
                     />
                   </label>
-
                   <label>
                     <span>
                       Experiencia
                     </span>
-
                     <input
                       type="number"
                       min="0"
@@ -1793,12 +1566,10 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
                       }
                     />
                   </label>
-
                   <label>
                     <span>
                       Estado
                     </span>
-
                     <input
                       type="text"
                       name="state"
@@ -1810,12 +1581,10 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
                       }
                     />
                   </label>
-
                   <label>
                     <span>
                       Municipio
                     </span>
-
                     <input
                       type="text"
                       name="municipality"
@@ -1827,12 +1596,10 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
                       }
                     />
                   </label>
-
                   <label>
                     <span>
                       Colonia
                     </span>
-
                     <input
                       type="text"
                       name="neighborhood"
@@ -1844,12 +1611,10 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
                       }
                     />
                   </label>
-
                   <label>
                     <span>
                       Código postal
                     </span>
-
                     <input
                       type="text"
                       name="postalCode"
@@ -1861,12 +1626,10 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
                       }
                     />
                   </label>
-
                   <label>
                     <span>
                       Dirección
                     </span>
-
                     <input
                       type="text"
                       name="address"
@@ -1878,12 +1641,10 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
                       }
                     />
                   </label>
-
                   <label className="admin-form-full">
                     <span>
                       Descripción
                     </span>
-
                     <textarea
                       name="description"
                       rows={5}
@@ -1897,7 +1658,6 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
                   </label>
                 </div>
               </div>
-
               <div className="admin-modal-footer">
                 <button
                   type="button"
@@ -1911,7 +1671,6 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
                 >
                   Cancelar
                 </button>
-
                 <button
                   type="submit"
                   className="modal-primary-button"
@@ -1926,7 +1685,6 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
           </div>
         </div>
       )}
-
       {statusSpecialist && (
         <div className="admin-modal-backdrop">
           <div className="admin-modal admin-confirm-modal">
@@ -1935,19 +1693,16 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
                 ? '!'
                 : '✓'}
             </div>
-
             <h2>
               {statusSpecialist.active
                 ? 'Dar de baja al especialista'
                 : 'Reactivar especialista'}
             </h2>
-
             <p>
               {statusSpecialist.active
                 ? `${statusSpecialist.name} no podrá iniciar sesión ni usar la aplicación como especialista. Su perfil, documentos, servicios e información permanecerán guardados.`
                 : `${statusSpecialist.name} podrá volver a iniciar sesión y usar la aplicación. Su información seguirá siendo la misma.`}
             </p>
-
             <div className="confirm-actions">
               <button
                 type="button"
@@ -1963,7 +1718,6 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
               >
                 Cancelar
               </button>
-
               <button
                 type="button"
                 className={
@@ -1988,18 +1742,15 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
           </div>
         </div>
       )}
-
       {deletingSpecialist && (
         <div className="admin-modal-backdrop">
           <div className="admin-modal admin-confirm-modal">
             <div className="confirm-icon danger">
               !
             </div>
-
             <h2>
               Eliminar especialista
             </h2>
-
             <p>
               Estás por eliminar
               definitivamente a{' '}
@@ -2013,12 +1764,10 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
               servicios e información
               relacionada.
             </p>
-
             <div className="delete-warning">
               Esta acción no se puede
               deshacer.
             </div>
-
             <div className="confirm-actions">
               <button
                 type="button"
@@ -2034,7 +1783,6 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
               >
                 Cancelar
               </button>
-
               <button
                 type="button"
                 className="modal-danger-button"
@@ -2064,7 +1812,6 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     >
       <div className="certificate-modal-header">
         <h3>Vista previa de constancia</h3>
-
         <button
           type="button"
           onClick={() => setPreviewUrl(null)}
@@ -2072,7 +1819,6 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
           ×
         </button>
       </div>
-
       <div className="certificate-modal-body">
         {previewUrl.toLowerCase().endsWith('.pdf') ? (
           <iframe
@@ -2092,5 +1838,4 @@ const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     </div>
   );
 };
-
 export default AdminSpecialists;
