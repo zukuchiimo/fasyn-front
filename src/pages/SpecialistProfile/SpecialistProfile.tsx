@@ -3,28 +3,22 @@ import {
   useMemo,
   useState,
 } from 'react';
-
 import {
   GoogleMap,
   MarkerF,
   useJsApiLoader,
 } from '@react-google-maps/api';
-
 import {
   useNavigate,
   useParams,
 } from 'react-router-dom';
-
 import { api } from '../../api/api';
 import logo from '../../assets/logo.png';
-
 import './SpecialistProfile.css';
-
 type PriceType =
   | 'HOUR'
   | 'DAY'
   | 'ACTIVITY';
-
 type RequestStatus =
   | 'PENDING_PAYMENT'
   | 'PENDING_ADMIN'
@@ -36,12 +30,10 @@ type RequestStatus =
   | 'IN_PROGRESS'
   | 'COMPLETED'
   | 'CANCELLED';
-
 type UserRole =
   | 'CLIENT'
   | 'SPECIALIST'
   | 'ADMIN';
-
 type SessionUser = {
   id?: number;
   userId?: number;
@@ -49,17 +41,14 @@ type SessionUser = {
   email?: string;
   role?: UserRole;
 };
-
 type JwtPayload = {
   userId?: number;
   role?: UserRole;
 };
-
 type Category = {
   id: number;
   name: string;
 };
-
 type Service = {
   id: number;
   name: string;
@@ -69,43 +58,33 @@ type Service = {
   durationMinutes: number;
   category: Category;
 };
-
 type BusySlot = {
   start: string;
   end: string;
 };
-
 type ScheduleOption = {
   time: string;
   available: boolean;
   reason?: 'PAST' | 'BUSY';
 };
-
 const TRAVEL_BUFFER_MINUTES = 60;
 const SCHEDULE_STEP_MINUTES = 15;
-
 type Specialist = {
   id: number;
   userId: number;
   name: string;
-
   description?: string | null;
   experience?: number | null;
-
   state?: string | null;
   municipality?: string | null;
   neighborhood?: string | null;
   profilePhotoUrl?: string | null;
-
   available: boolean;
   profileCompleted: boolean;
-
   specialties: Category[];
   services: Service[];
-
   startingPrice?: number | null;
 };
-
 type ClientPaymentStatus =
   | 'PENDING'
   | 'IN_PROCESS'
@@ -114,7 +93,6 @@ type ClientPaymentStatus =
   | 'CANCELLED'
   | 'REFUNDED'
   | 'CHARGED_BACK';
-
 type ClientPayment = {
   id: number;
   amount: string | number;
@@ -124,7 +102,6 @@ type ClientPayment = {
   createdAt?: string;
   updatedAt?: string;
 };
-
 type ClientServiceRequest = {
   id: number;
   clientId?: number;
@@ -138,7 +115,6 @@ type ClientServiceRequest = {
   createdAt?: string;
   updatedAt?: string;
 };
-
 type ClientAddress = {
   id: number;
   userId: number;
@@ -157,7 +133,6 @@ type ClientAddress = {
   createdAt?: string;
   updatedAt?: string;
 };
-
 type NewAddressForm = {
   label: string;
   state: string;
@@ -172,23 +147,19 @@ type NewAddressForm = {
   longitude: number | null;
   isDefault: boolean;
 };
-
 const decodeJwtPayload = (
   token: string
 ): JwtPayload | null => {
   try {
     const payloadPart =
       token.split('.')[1];
-
     if (!payloadPart) {
       return null;
     }
-
     const normalized =
       payloadPart
         .replace(/-/g, '+')
         .replace(/_/g, '/');
-
     const padded =
       normalized.padEnd(
         normalized.length +
@@ -197,7 +168,6 @@ const decodeJwtPayload = (
             4),
         '='
       );
-
     return JSON.parse(
       atob(padded)
     ) as JwtPayload;
@@ -206,19 +176,15 @@ const decodeJwtPayload = (
       'ERROR LEYENDO TOKEN:',
       error
     );
-
     return null;
   }
 };
-
 const DEFAULT_MAP_POSITION = {
   lat: 19.4326,
   lng: -99.1332,
 };
-
 const GOOGLE_MAPS_API_KEY =
   import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '';
-
 type AddressLookup = {
   state?: string;
   municipality?: string;
@@ -227,13 +193,11 @@ type AddressLookup = {
   street?: string;
   exteriorNumber?: string;
 };
-
 type GoogleAddressComponent = {
   long_name: string;
   short_name: string;
   types: string[];
 };
-
 type GooglePlaceResult = {
   formatted_address: string;
   geometry: {
@@ -241,7 +205,6 @@ type GooglePlaceResult = {
   };
   address_components?: GoogleAddressComponent[];
 };
-
 const getGoogleAddressComponent = (
   components: GoogleAddressComponent[] | undefined,
   types: string[]
@@ -249,20 +212,16 @@ const getGoogleAddressComponent = (
   if (!components) {
     return '';
   }
-
   for (const type of types) {
     const component = components.find((item) =>
       item.types.includes(type)
     );
-
     if (component) {
       return component.long_name;
     }
   }
-
   return '';
 };
-
 const normalizeGoogleAddress = (
   components?: GoogleAddressComponent[]
 ): AddressLookup => {
@@ -301,7 +260,6 @@ const normalizeGoogleAddress = (
     ),
   };
 };
-
 type NominatimAddress = {
   state?: string;
   municipality?: string;
@@ -320,12 +278,10 @@ type NominatimAddress = {
   residential?: string;
   house_number?: string;
 };
-
 type NominatimReverseResult = {
   display_name?: string;
   address?: NominatimAddress;
 };
-
 const reverseGeocodeNominatim = async (
   latitude: number,
   longitude: number
@@ -336,20 +292,16 @@ const reverseGeocodeNominatim = async (
   const response = await fetch(
     `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1&accept-language=es`
   );
-
   if (!response.ok) {
     throw new Error(
       'No fue posible identificar la ubicación.'
     );
   }
-
   const data:
     NominatimReverseResult =
       await response.json();
-
   const address =
     data.address || {};
-
   const municipality =
     address.municipality ||
     address.city_district ||
@@ -359,39 +311,31 @@ const reverseGeocodeNominatim = async (
     address.village ||
     address.county ||
     '';
-
   return {
     formattedAddress:
       data.display_name || '',
-
     address: {
       state:
         address.state || '',
-
       municipality,
-
       neighborhood:
         address.neighbourhood ||
         address.suburb ||
         address.quarter ||
         '',
-
       postalCode:
         address.postcode || '',
-
       street:
         address.road ||
         address.pedestrian ||
         address.residential ||
         '',
-
       exteriorNumber:
         address.house_number ||
         '',
     },
   };
 };
-
 const getTodayInputValue = () => {
   const now = new Date();
   const year = now.getFullYear();
@@ -401,10 +345,8 @@ const getTodayInputValue = () => {
   const day = String(
     now.getDate()
   ).padStart(2, '0');
-
   return `${year}-${month}-${day}`;
 };
-
 type AddressMapPickerProps = {
   latitude: number | null;
   longitude: number | null;
@@ -416,7 +358,6 @@ type AddressMapPickerProps = {
     address: AddressLookup
   ) => void;
 };
-
 const AddressMapPicker = ({
   latitude,
   longitude,
@@ -425,29 +366,20 @@ const AddressMapPicker = ({
 }: AddressMapPickerProps) => {
   const [searchText, setSearchText] =
     useState('');
-
   const [searchResults, setSearchResults] =
     useState<GooglePlaceResult[]>([]);
-
   const [searching, setSearching] =
     useState(false);
-
   const [locating, setLocating] =
     useState(false);
-
   const [resolvingAddress, setResolvingAddress] =
     useState(false);
-
   const [mapMessage, setMapMessage] =
     useState('');
-
   const [resolvedAddress, setResolvedAddress] =
     useState('');
-
-
   const [map, setMap] =
     useState<google.maps.Map | null>(null);
-
   const { isLoaded, loadError } =
     useJsApiLoader({
       id: 'fasyn-google-maps-script',
@@ -456,7 +388,6 @@ const AddressMapPicker = ({
       language: 'es',
       region: 'MX',
     });
-
   const position = {
     lat:
       latitude ??
@@ -465,7 +396,6 @@ const AddressMapPicker = ({
       longitude ??
       DEFAULT_MAP_POSITION.lng,
   };
-
   useEffect(() => {
     if (
       !map ||
@@ -474,19 +404,16 @@ const AddressMapPicker = ({
     ) {
       return;
     }
-
     map.panTo({
       lat: latitude,
       lng: longitude,
     });
-
     map.setZoom(17);
   }, [
     map,
     latitude,
     longitude,
   ]);
-
   const reverseGeocode = async (
     currentLatitude: number,
     currentLongitude: number
@@ -494,12 +421,9 @@ const AddressMapPicker = ({
     try {
       setResolvingAddress(true);
       setMapMessage('');
-
       let googleResolved:
         AddressLookup = {};
-
       let googleFormattedAddress = '';
-
       /*
         1. Intentamos con Google si está cargado.
       */
@@ -507,7 +431,6 @@ const AddressMapPicker = ({
         try {
           const geocoder =
             new google.maps.Geocoder();
-
           const response =
             await geocoder.geocode({
               location: {
@@ -516,15 +439,12 @@ const AddressMapPicker = ({
               },
               region: 'MX',
             });
-
           const result =
             response.results[0];
-
           if (result) {
             googleFormattedAddress =
               result.formatted_address ||
               '';
-
             googleResolved =
               normalizeGoogleAddress(
                 result.address_components
@@ -537,7 +457,6 @@ const AddressMapPicker = ({
           );
         }
       }
-
       /*
         2. Consultamos Nominatim.
         Este suele regresar mejor colonia,
@@ -545,20 +464,16 @@ const AddressMapPicker = ({
       */
       let nominatimResolved:
         AddressLookup = {};
-
       let nominatimFormattedAddress =
         '';
-
       try {
         const nominatim =
           await reverseGeocodeNominatim(
             currentLatitude,
             currentLongitude
           );
-
         nominatimResolved =
           nominatim.address;
-
         nominatimFormattedAddress =
           nominatim.formattedAddress;
       } catch (nominatimError) {
@@ -567,7 +482,6 @@ const AddressMapPicker = ({
           nominatimError
         );
       }
-
       /*
         3. Combinamos ambos.
         Nominatim tiene prioridad en los
@@ -579,37 +493,30 @@ const AddressMapPicker = ({
           nominatimResolved.state ||
           googleResolved.state ||
           '',
-
         municipality:
           nominatimResolved.municipality ||
           googleResolved.municipality ||
           '',
-
         neighborhood:
           nominatimResolved.neighborhood ||
           googleResolved.neighborhood ||
           '',
-
         postalCode:
           nominatimResolved.postalCode ||
           googleResolved.postalCode ||
           '',
-
         street:
           nominatimResolved.street ||
           googleResolved.street ||
           '',
-
         exteriorNumber:
           googleResolved.exteriorNumber ||
           nominatimResolved.exteriorNumber ||
           '',
       };
-
       const formattedAddress =
         googleFormattedAddress ||
         nominatimFormattedAddress;
-
       console.log(
         'UBICACIÓN RESUELTA:',
         {
@@ -622,21 +529,17 @@ const AddressMapPicker = ({
           resolved,
         }
       );
-
       if (formattedAddress) {
         setResolvedAddress(
           formattedAddress
         );
-
         setSearchText(
           formattedAddress
         );
       }
-
       onAddressResolved(
         resolved
       );
-
       const hasAddress =
         Boolean(
           resolved.state ||
@@ -645,28 +548,23 @@ const AddressMapPicker = ({
           resolved.postalCode ||
           resolved.street
         );
-
       if (!hasAddress) {
         setMapMessage(
           'Se obtuvo tu ubicación, pero no fue posible identificar el domicilio. Completa los campos manualmente.'
         );
       }
-
     } catch (error) {
       console.error(
         'REVERSE GEOCODING ERROR:',
         error
       );
-
       setMapMessage(
         'Se obtuvo tu ubicación, pero no fue posible identificar el domicilio.'
       );
-
     } finally {
       setResolvingAddress(false);
     }
   };
-
   const selectCoordinates = async (
     currentLatitude: number,
     currentLongitude: number
@@ -675,43 +573,34 @@ const AddressMapPicker = ({
       currentLatitude,
       currentLongitude
     );
-
     setSearchResults([]);
-
     await reverseGeocode(
       currentLatitude,
       currentLongitude
     );
   };
-
   const handleSearch = async (
     event: React.FormEvent<HTMLFormElement>
   ) => {
     event.preventDefault();
-
     const query = searchText.trim();
-
     if (query.length < 3) {
       setMapMessage(
         'Escribe al menos 3 caracteres para buscar.'
       );
       return;
     }
-
     if (!isLoaded) {
       setMapMessage(
         'Google Maps todavía está cargando.'
       );
       return;
     }
-
     try {
       setSearching(true);
       setMapMessage('');
-
       const geocoder =
         new google.maps.Geocoder();
-
       const response =
         await geocoder.geocode({
           address: query,
@@ -720,14 +609,11 @@ const AddressMapPicker = ({
           },
           region: 'MX',
         });
-
       const results =
         response.results as GooglePlaceResult[];
-
       setSearchResults(
         results.slice(0, 6)
       );
-
       if (results.length === 0) {
         setMapMessage(
           'No encontramos esa ubicación. Intenta con calle, colonia y municipio.'
@@ -738,7 +624,6 @@ const AddressMapPicker = ({
         'GOOGLE MAP SEARCH ERROR:',
         error
       );
-
       setSearchResults([]);
       setMapMessage(
         'No fue posible buscar la ubicación. Puedes colocar el pin manualmente.'
@@ -747,37 +632,29 @@ const AddressMapPicker = ({
       setSearching(false);
     }
   };
-
   const handleSelectSearchResult = async (
     result: GooglePlaceResult
   ) => {
     const selectedLatitude =
       result.geometry.location.lat();
-
     const selectedLongitude =
       result.geometry.location.lng();
-
     onChange(
       selectedLatitude,
       selectedLongitude
     );
-
     setResolvedAddress(
       result.formatted_address
     );
-
     setSearchText(
       result.formatted_address
     );
-
     setSearchResults([]);
-
     onAddressResolved(
       normalizeGoogleAddress(
         result.address_components
       )
     );
-
     if (map) {
       map.panTo({
         lat: selectedLatitude,
@@ -786,7 +663,6 @@ const AddressMapPicker = ({
       map.setZoom(17);
     }
   };
-
   const handleUseMyLocation = () => {
     if (!navigator.geolocation) {
       setMapMessage(
@@ -794,10 +670,8 @@ const AddressMapPicker = ({
       );
       return;
     }
-
     setLocating(true);
     setMapMessage('');
-
     navigator.geolocation.getCurrentPosition(
       async (positionResult) => {
         try {
@@ -814,7 +688,6 @@ const AddressMapPicker = ({
           'GEOLOCATION ERROR:',
           error
         );
-
         setLocating(false);
         setMapMessage(
           'No fue posible obtener tu ubicación. Revisa el permiso del navegador.'
@@ -827,7 +700,6 @@ const AddressMapPicker = ({
       }
     );
   };
-
   if (!GOOGLE_MAPS_API_KEY) {
     return (
       <div className="service-map-message">
@@ -835,7 +707,6 @@ const AddressMapPicker = ({
       </div>
     );
   }
-
   if (loadError) {
     return (
       <div className="service-map-message">
@@ -843,7 +714,6 @@ const AddressMapPicker = ({
       </div>
     );
   }
-
   return (
     <div className="service-map-picker">
       <div className="service-map-toolbar">
@@ -854,7 +724,6 @@ const AddressMapPicker = ({
           <span className="service-map-search-icon">
             ⌕
           </span>
-
           <input
             type="text"
             value={searchText}
@@ -862,7 +731,6 @@ const AddressMapPicker = ({
               setSearchText(
                 event.target.value
               );
-
               if (
                 searchResults.length > 0
               ) {
@@ -872,7 +740,6 @@ const AddressMapPicker = ({
             placeholder="Buscar calle, colonia o lugar"
             autoComplete="off"
           />
-
           <button
             type="submit"
             disabled={
@@ -884,7 +751,6 @@ const AddressMapPicker = ({
               : 'Buscar'}
           </button>
         </form>
-
         <button
           type="button"
           className="service-map-location-button"
@@ -892,13 +758,11 @@ const AddressMapPicker = ({
           disabled={locating}
         >
           <span>◎</span>
-
           {locating
             ? 'Ubicando...'
             : 'Usar mi ubicación'}
         </button>
       </div>
-
       {searchResults.length > 0 && (
         <div className="service-map-results">
           {searchResults.map(
@@ -921,7 +785,6 @@ const AddressMapPicker = ({
           )}
         </div>
       )}
-
       <div className="service-map-canvas">
         {!isLoaded ? (
           <div className="service-map-status">
@@ -947,14 +810,12 @@ const AddressMapPicker = ({
                 event.latLng?.lat();
               const clickedLongitude =
                 event.latLng?.lng();
-
               if (
                 clickedLatitude === undefined ||
                 clickedLongitude === undefined
               ) {
                 return;
               }
-
               void selectCoordinates(
                 clickedLatitude,
                 clickedLongitude
@@ -980,14 +841,12 @@ const AddressMapPicker = ({
                       event.latLng?.lat();
                     const markerLongitude =
                       event.latLng?.lng();
-
                     if (
                       markerLatitude === undefined ||
                       markerLongitude === undefined
                     ) {
                       return;
                     }
-
                     void selectCoordinates(
                       markerLatitude,
                       markerLongitude
@@ -997,7 +856,6 @@ const AddressMapPicker = ({
               )}
           </GoogleMap>
         )}
-
         <div className="service-map-tip">
           <span>📍</span>
           <p>
@@ -1005,13 +863,11 @@ const AddressMapPicker = ({
           </p>
         </div>
       </div>
-
       {resolvingAddress && (
         <div className="service-map-status">
           Obteniendo dirección...
         </div>
       )}
-
       {resolvedAddress && (
         <div className="service-map-resolved">
           <span>✓</span>
@@ -1025,7 +881,6 @@ const AddressMapPicker = ({
           </div>
         </div>
       )}
-
       {mapMessage && (
         <div className="service-map-message">
           {mapMessage}
@@ -1034,7 +889,6 @@ const AddressMapPicker = ({
     </div>
   );
 };
-
 const SpecialistProfile = () => {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -1048,7 +902,6 @@ const [
   municipality?: string;
   state?: string;
 } | null>(null);
-
 const [
   requestCoverageError,
   setRequestCoverageError,
@@ -1061,23 +914,19 @@ const [
   /*
     =====================================
     SESIÓN
-
     Esta página sigue siendo pública.
     El token solamente se usa para saber
     si el visitante ya inició sesión.
     =====================================
   */
-
   const token =
     localStorage.getItem(
       'token'
     );
-
   const storedUser =
     localStorage.getItem(
       'user'
     );
-
   const currentUser =
     useMemo<SessionUser | null>(
       () => {
@@ -1087,7 +936,6 @@ const [
               JSON.parse(
                 storedUser
               ) as SessionUser;
-
             if (parsedUser) {
               return parsedUser;
             }
@@ -1098,7 +946,6 @@ const [
             );
           }
         }
-
         /*
           Si existe token pero por alguna razón
           no existe localStorage.user, recuperamos
@@ -1110,7 +957,6 @@ const [
             decodeJwtPayload(
               token
             );
-
           if (payload) {
             return {
               userId:
@@ -1120,7 +966,6 @@ const [
             };
           }
         }
-
         return null;
       },
       [
@@ -1128,27 +973,21 @@ const [
         token,
       ]
     );
-
   const isLoggedIn =
     Boolean(token);
-
   const currentRole =
     currentUser?.role;
-
   const goToPanel = () => {
     switch (currentRole) {
       case 'CLIENT':
         navigate('/client');
         return;
-
       case 'SPECIALIST':
         navigate('/specialist');
         return;
-
       case 'ADMIN':
         navigate('/admin');
         return;
-
       default:
         /*
           Hay token pero no pudimos leer el rol.
@@ -1158,11 +997,9 @@ const [
         navigate('/');
     }
   };
-
 const handleLogout = () => {
   localStorage.removeItem('token');
   localStorage.removeItem('user');
-
   window.location.replace('/login');
 };
   const [
@@ -1171,17 +1008,14 @@ const handleLogout = () => {
   ] = useState<Specialist | null>(
     null
   );
-
   const [
     loading,
     setLoading,
   ] = useState(true);
-
   const [
     error,
     setError,
   ] = useState('');
-
   /*
     SOLICITUDES DEL CLIENTE
   */
@@ -1191,21 +1025,18 @@ const handleLogout = () => {
   ] = useState<
     ClientServiceRequest[]
   >([]);
-
   const [
     requestingServiceId,
     setRequestingServiceId,
   ] = useState<number | null>(
     null
   );
-
   const [
     cancellingRequestId,
     setCancellingRequestId,
   ] = useState<number | null>(
     null
   );
-
   const [
     creatingPaymentId,
     setCreatingPaymentId,
@@ -1220,13 +1051,10 @@ const [
     requestMessage,
     setRequestMessage,
   ] = useState('');
-
   const [
     requestError,
     setRequestError,
   ] = useState('');
-
-
   /*
     DIRECCIONES Y MODAL DE SOLICITUD
   */
@@ -1234,45 +1062,36 @@ const [
     addresses,
     setAddresses,
   ] = useState<ClientAddress[]>([]);
-
   const [
     loadingAddresses,
     setLoadingAddresses,
   ] = useState(false);
-
   const [
     selectedAddressId,
     setSelectedAddressId,
   ] = useState<number | null>(null);
-
   const [
     requestModalOpen,
     setRequestModalOpen,
   ] = useState(false);
-
   const [
     selectedService,
     setSelectedService,
   ] = useState<Service | null>(null);
-
   const [
     serviceMessage,
     setServiceMessage,
   ] = useState('');
-
   const [
     serviceDate,
     setServiceDate,
   ] = useState('');
-
   const [
     serviceTime,
     setServiceTime,
   ] = useState('');
-
   /*
     CANTIDAD CONTRATADA
-
     HOUR     -> número de horas
     DAY      -> por ahora 1 día
     ACTIVITY -> 1 servicio
@@ -1281,32 +1100,26 @@ const [
     serviceQuantity,
     setServiceQuantity,
   ] = useState(1);
-
   const [
     busySlots,
     setBusySlots,
   ] = useState<BusySlot[]>([]);
-
   const [
     loadingAvailability,
     setLoadingAvailability,
   ] = useState(false);
-
   const [
     availabilityError,
     setAvailabilityError,
   ] = useState('');
-
   const [
     showNewAddressForm,
     setShowNewAddressForm,
   ] = useState(false);
-
   const [
     savingAddress,
     setSavingAddress,
   ] = useState(false);
-
   const [
     newAddress,
     setNewAddress,
@@ -1324,7 +1137,6 @@ const [
     longitude: null,
     isDefault: false,
   });
-
   /*
     CARGAR ESPECIALISTA
   */
@@ -1333,35 +1145,28 @@ const [
       try {
         setLoading(true);
         setError('');
-
         const response =
           await api.get(
             '/specialists'
           );
-
         const specialists:
           Specialist[] =
             response.data
               ?.specialists ||
             [];
-
         const found =
           specialists.find(
             (item) =>
               String(item.id) ===
               String(id)
           );
-
         if (!found) {
           setSpecialist(null);
-
           setError(
             'No encontramos este especialista.'
           );
-
           return;
         }
-
         setSpecialist(found);
       } catch (
         requestError: any
@@ -1372,7 +1177,6 @@ const [
             ?.data ||
             requestError
         );
-
         setError(
           requestError.response
             ?.data?.message ||
@@ -1382,7 +1186,6 @@ const [
         setLoading(false);
       }
     };
-
   /*
     CARGAR SOLICITUDES
     DEL CLIENTE
@@ -1393,12 +1196,10 @@ const [
         localStorage.getItem(
           'token'
         );
-
       if (!token) {
         setMyRequests([]);
         return;
       }
-
       try {
         const response =
           await api.get(
@@ -1410,12 +1211,10 @@ const [
               },
             }
           );
-
         console.log(
           'MIS SOLICITUDES:',
           response.data
         );
-
         setMyRequests(
           response.data
             ?.requests ||
@@ -1435,7 +1234,6 @@ const [
           setMyRequests([]);
           return;
         }
-
         if (
           requestError.response
             ?.status === 401
@@ -1443,7 +1241,6 @@ const [
           setMyRequests([]);
           return;
         }
-
         console.error(
           'ERROR CARGANDO SOLICITUDES:',
           requestError.response
@@ -1452,7 +1249,6 @@ const [
         );
       }
     };
-
   /*
     CARGAR DIRECCIONES DEL CLIENTE
   */
@@ -1462,15 +1258,12 @@ const [
         localStorage.getItem(
           'token'
         );
-
       if (!token) {
         setAddresses([]);
         return [];
       }
-
       try {
         setLoadingAddresses(true);
-
         const response =
           await api.get(
             '/addresses',
@@ -1481,23 +1274,19 @@ const [
               },
             }
           );
-
         const loadedAddresses:
           ClientAddress[] =
             response.data
               ?.addresses ||
             [];
-
         setAddresses(
           loadedAddresses
         );
-
         const defaultAddress =
           loadedAddresses.find(
             (address) =>
               address.isDefault
           );
-
         if (defaultAddress) {
           setSelectedAddressId(
             defaultAddress.id
@@ -1513,7 +1302,6 @@ const [
             null
           );
         }
-
         return loadedAddresses;
       } catch (
         addressError: any
@@ -1524,7 +1312,6 @@ const [
             ?.data ||
             addressError
         );
-
         if (
           addressError.response
             ?.status === 401
@@ -1538,7 +1325,6 @@ const [
           navigate('/login');
           return [];
         }
-
         if (
           addressError.response
             ?.status === 403
@@ -1549,25 +1335,20 @@ const [
           );
           return [];
         }
-
         setRequestError(
           addressError.response
             ?.data?.message ||
             'No fue posible cargar tus direcciones.'
         );
-
         return [];
       } finally {
         setLoadingAddresses(false);
       }
     };
-
 /*
   DISPONIBILIDAD DEL ESPECIALISTA
-
   El backend debe regresar busySlots con intervalos ISO:
   { start: string, end: string }
-
   La validación definitiva de conflictos sigue siendo
   responsabilidad del backend al crear la solicitud.
 */
@@ -1584,11 +1365,9 @@ const loadAvailability = async (
     setAvailabilityError('');
     return;
   }
-
   try {
     setLoadingAvailability(true);
     setAvailabilityError('');
-
     const response =
       await api.get(
         `/specialists/${specialist.id}/availability`,
@@ -1599,7 +1378,6 @@ const loadAvailability = async (
           },
         }
       );
-
     setBusySlots(
       Array.isArray(
         response.data?.busySlots
@@ -1613,9 +1391,7 @@ const loadAvailability = async (
       availabilityRequestError.response?.data ||
         availabilityRequestError
     );
-
     setBusySlots([]);
-
     setAvailabilityError(
       availabilityRequestError.response
         ?.data?.message ||
@@ -1625,7 +1401,6 @@ const loadAvailability = async (
     setLoadingAvailability(false);
   }
 };
-
 const scheduleOptions =
   useMemo<ScheduleOption[]>(() => {
     if (
@@ -1634,16 +1409,13 @@ const scheduleOptions =
     ) {
       return [];
     }
-
     const result: ScheduleOption[] = [];
-
     const durationMinutes =
       selectedService.priceType === 'HOUR'
         ? serviceQuantity * 60
         : Number(
             selectedService.durationMinutes
           ) || 60;
-
     for (
       let minuteOfDay = 0;
       minuteOfDay < 24 * 60;
@@ -1652,20 +1424,16 @@ const scheduleOptions =
       const hour = Math.floor(
         minuteOfDay / 60
       );
-
       const minute =
         minuteOfDay % 60;
-
       const time =
         `${String(hour).padStart(2, '0')}:${String(
           minute
         ).padStart(2, '0')}`;
-
       const proposedStart =
         new Date(
           `${serviceDate}T${time}:00`
         );
-
       if (
         Number.isNaN(
           proposedStart.getTime()
@@ -1673,7 +1441,6 @@ const scheduleOptions =
       ) {
         continue;
       }
-
       if (
         proposedStart.getTime() <=
         Date.now()
@@ -1683,10 +1450,8 @@ const scheduleOptions =
           available: false,
           reason: 'PAST',
         });
-
         continue;
       }
-
       const proposedEnd =
         new Date(
           proposedStart.getTime() +
@@ -1696,15 +1461,12 @@ const scheduleOptions =
             ) *
               60_000
         );
-
       const hasConflict =
         busySlots.some((slot) => {
           const busyStart =
             new Date(slot.start);
-
           const busyEnd =
             new Date(slot.end);
-
           if (
             Number.isNaN(
               busyStart.getTime()
@@ -1715,13 +1477,11 @@ const scheduleOptions =
           ) {
             return false;
           }
-
           return (
             proposedStart < busyEnd &&
             proposedEnd > busyStart
           );
         });
-
       result.push({
         time,
         available: !hasConflict,
@@ -1730,7 +1490,6 @@ const scheduleOptions =
           : undefined,
       });
     }
-
     return result;
   }, [
     serviceDate,
@@ -1738,13 +1497,11 @@ const scheduleOptions =
     busySlots,
     serviceQuantity,
   ]);
-
 const openRequestModal = async (
   service: Service
 ) => {
   const currentToken =
     localStorage.getItem('token');
-
   if (!currentToken) {
     navigate('/login', {
       state: {
@@ -1753,10 +1510,8 @@ const openRequestModal = async (
         serviceId: service.id,
       },
     });
-
     return;
   }
-
 if (
   currentRole !== 'CLIENT'
 ) {
@@ -1767,15 +1522,12 @@ if (
       serviceId: service.id,
     },
   });
-
   return;
 }
-
 setRequestMessage('');
 setRequestError('');
 setRequestCoverageError(null);
 setCreatedRequestId(null);
-
 setSelectedService(service);
   setServiceMessage('');
   setServiceDate('');
@@ -1785,7 +1537,6 @@ setSelectedService(service);
   setAvailabilityError('');
   setShowNewAddressForm(false);
   setSelectedAddressId(null);
-
   setNewAddress({
     label: '',
     state: '',
@@ -1800,9 +1551,7 @@ setSelectedService(service);
     longitude: null,
     isDefault: false,
   });
-
   setRequestModalOpen(true);
-
   await loadAddresses();
 };
   const closeRequestModal =
@@ -1813,7 +1562,6 @@ setSelectedService(service);
       ) {
         return;
       }
-
       setRequestModalOpen(false);
       setSelectedService(null);
       setSelectedAddressId(null);
@@ -1827,7 +1575,6 @@ setSelectedService(service);
       setRequestError('');
       setRequestCoverageError(null);
     };
-
   const handleNewAddressChange = (
     field: keyof NewAddressForm,
     value: string | boolean
@@ -1839,19 +1586,16 @@ setSelectedService(service);
       })
     );
   };
-
   const handleSaveAddress =
     async () => {
       const token =
         localStorage.getItem(
           'token'
         );
-
       if (!token) {
         navigate('/login');
         return;
       }
-
       if (
         !newAddress.label.trim() ||
         !newAddress.state.trim() ||
@@ -1866,7 +1610,6 @@ setSelectedService(service);
         );
         return;
       }
-
       if (
         newAddress.latitude === null ||
         newAddress.longitude === null
@@ -1876,11 +1619,9 @@ setSelectedService(service);
         );
         return;
       }
-
       try {
         setSavingAddress(true);
         setRequestError('');
-
         const response =
           await api.post(
             '/addresses',
@@ -1917,17 +1658,14 @@ setSelectedService(service);
               },
             }
           );
-
         const createdAddress:
           ClientAddress | undefined =
             response.data?.address;
-
         if (!createdAddress) {
           throw new Error(
             'No se recibió la dirección creada.'
           );
         }
-
         setAddresses(
           (previous) => {
             const normalized =
@@ -1939,14 +1677,12 @@ setSelectedService(service);
                     })
                   )
                 : previous;
-
             return [
               createdAddress,
               ...normalized,
             ];
           }
         );
-
         setSelectedAddressId(
           createdAddress.id
         );
@@ -1974,7 +1710,6 @@ setSelectedService(service);
             ?.data ||
             addressError
         );
-
         if (
           addressError.response
             ?.status === 401
@@ -1988,7 +1723,6 @@ setSelectedService(service);
           navigate('/login');
           return;
         }
-
         setRequestError(
           addressError.response
             ?.data?.message ||
@@ -1998,12 +1732,10 @@ setSelectedService(service);
         setSavingAddress(false);
       }
     };
-
   useEffect(() => {
     loadSpecialist();
     loadMyRequests();
   }, [id]);
-
   /*
     INICIALES
   */
@@ -2014,7 +1746,6 @@ setSelectedService(service);
       ) {
         return 'ES';
       }
-
       return specialist.name
         .trim()
         .split(' ')
@@ -2026,7 +1757,6 @@ setSelectedService(service);
         .substring(0, 2)
         .toUpperCase();
     }, [specialist]);
-
   /*
     FORMATO DE ESPECIALIDAD
   */
@@ -2036,7 +1766,6 @@ setSelectedService(service);
     if (!value) {
       return 'Especialidad';
     }
-
     const formatted =
       value
         .replace(
@@ -2052,11 +1781,9 @@ setSelectedService(service);
           ' '
         )
         .trim();
-
     if (!formatted) {
       return 'Especialidad';
     }
-
     return (
       formatted
         .charAt(0)
@@ -2066,7 +1793,6 @@ setSelectedService(service);
       formatted.slice(1)
     );
   };
-
   /*
     TIPO DE PRECIO
   */
@@ -2076,18 +1802,14 @@ setSelectedService(service);
     switch (type) {
       case 'HOUR':
         return 'hora';
-
       case 'DAY':
         return 'día';
-
       case 'ACTIVITY':
         return 'servicio';
-
       default:
         return 'servicio';
     }
   };
-
   /*
     FORMATO PRECIO
   */
@@ -2106,19 +1828,19 @@ setSelectedService(service);
       }
     );
   };
-
+const getClientPrice = (
+  basePrice: number
+) => {
+  return Math.round(
+    Number(basePrice) * 1.15 * 100
+  ) / 100;
+};
   /*
     RESUMEN DE CONTRATACIÓN
-
     El frontend solo muestra una estimación.
     El backend sigue siendo la fuente de verdad
     para calcular el monto que se cobrará.
   */
-  const contractedQuantity =
-    selectedService?.priceType === 'HOUR'
-      ? serviceQuantity
-      : 1;
-
   const contractedDurationMinutes =
     selectedService
       ? selectedService.priceType === 'HOUR'
@@ -2127,17 +1849,17 @@ setSelectedService(service);
             selectedService.durationMinutes
           ) || 60
       : 0;
-
-  const baseSubtotal =
-    selectedService
-      ? Number(
-          selectedService.price
-        ) * contractedQuantity
-      : 0;
-
-  const estimatedClientTotal =
-    baseSubtotal * 1.15;
-
+ const contractedQuantity =
+  selectedService?.priceType === 'HOUR'
+    ? serviceQuantity
+    : 1;
+const estimatedClientTotal =
+  selectedService
+    ? getClientPrice(
+        Number(selectedService.price) *
+          contractedQuantity
+      )
+    : 0;
   /*
     UBICACIÓN
   */
@@ -2146,7 +1868,6 @@ setSelectedService(service);
       if (!specialist) {
         return '';
       }
-
       return [
         specialist.neighborhood,
         specialist.municipality,
@@ -2155,7 +1876,6 @@ setSelectedService(service);
         .filter(Boolean)
         .join(', ');
     }, [specialist]);
-
   /*
     SERVICIO MÁS ECONÓMICO
   */
@@ -2168,7 +1888,6 @@ setSelectedService(service);
       ) {
         return null;
       }
-
       return [
         ...specialist.services,
       ].sort(
@@ -2177,12 +1896,10 @@ setSelectedService(service);
           Number(b.price)
       )[0];
     }, [specialist]);
-
   /*
     BUSCAR SOLICITUD ACTIVA
     DE UN SERVICIO
   */
- 
 const getActiveRequest = (
   serviceId: number
 ) => {
@@ -2195,7 +1912,6 @@ const getActiveRequest = (
       request.status !== 'COMPLETED'
   );
 };
-
   /*
     SOLICITAR SERVICIO
   */
@@ -2207,30 +1923,26 @@ const getActiveRequest = (
         );
         return;
       }
-
       if (!selectedAddressId) {
         setRequestError(
           'Selecciona una dirección para realizar el servicio.'
         );
         return;
       }
-
-      if (
-        selectedService.priceType === 'HOUR' &&
-        (
-          !Number.isInteger(
-            serviceQuantity
-          ) ||
-          serviceQuantity < 1 ||
-          serviceQuantity > 24
-        )
-      ) {
-        setRequestError(
-          'Selecciona una cantidad de horas válida.'
-        );
-        return;
-      }
-
+if (
+  selectedService.priceType === 'HOUR' &&
+  (
+    !Number.isInteger(
+      serviceQuantity
+    ) ||
+    serviceQuantity < 1
+  )
+) {
+  setRequestError(
+    'Selecciona una cantidad de horas válida.'
+  );
+  return;
+}
       if (
         !serviceDate ||
         !serviceTime
@@ -2240,11 +1952,9 @@ const getActiveRequest = (
         );
         return;
       }
-
       /*
         El input date/time representa la hora local
         seleccionada por el usuario.
-
         Al crear Date sin Z, el navegador interpreta
         esa hora en la zona local del dispositivo.
       */
@@ -2252,7 +1962,6 @@ const getActiveRequest = (
         new Date(
           `${serviceDate}T${serviceTime}:00`
         );
-
       if (
         Number.isNaN(
           localScheduledDate.getTime()
@@ -2263,7 +1972,6 @@ const getActiveRequest = (
         );
         return;
       }
-
       if (
         localScheduledDate.getTime() <=
         Date.now()
@@ -2273,54 +1981,42 @@ const getActiveRequest = (
         );
         return;
       }
-
       const scheduledAt =
         localScheduledDate.toISOString();
-
       const scheduledTimeZone =
         Intl
           .DateTimeFormat()
           .resolvedOptions()
           .timeZone ||
         'America/Mexico_City';
-
       try {
         const token =
           localStorage.getItem(
             'token'
           );
-
         if (!token) {
           navigate('/login');
           return;
         }
-
         setRequestingServiceId(
           selectedService.id
         );
-
         setRequestMessage('');
         setRequestError('');
-
         const response =
           await api.post(
             '/requests',
             {
               serviceId:
                 selectedService.id,
-
               addressId:
                 selectedAddressId,
-
               quantity:
                 selectedService.priceType === 'HOUR'
                   ? serviceQuantity
                   : 1,
-
               scheduledAt,
-
               scheduledTimeZone,
-
               message:
                 serviceMessage.trim(),
             },
@@ -2331,27 +2027,21 @@ const getActiveRequest = (
               },
             }
           );
-
  console.log(
   'SOLICITUD CREADA:',
   response.data
 );
-
 const createdRequest =
   response.data?.request;
-
 if (!createdRequest?.id) {
   throw new Error(
     'No se recibió la solicitud creada.'
   );
 }
-
 setCreatedRequestId(
   createdRequest.id
 );
-
 await loadMyRequests();
-
 setRequestMessage(
   'Solicitud creada correctamente. Continúa con el pago.'
 );
@@ -2364,7 +2054,6 @@ setRequestMessage(
             ?.data ||
             requestError
         );
-
         if (
           requestError.response
             ?.status === 401
@@ -2372,39 +2061,31 @@ setRequestMessage(
           localStorage.removeItem(
             'token'
           );
-
           localStorage.removeItem(
             'user'
           );
-
           navigate('/login');
           return;
         }
-
         const data =
           requestError.response?.data;
-
         if (
           data?.code ===
           'SCHEDULE_CONFLICT'
         ) {
           setServiceTime('');
-
           setRequestError(
             data?.message ||
               'Ese horario acaba de ser ocupado. Selecciona otra hora disponible.'
           );
-
           if (serviceDate) {
             await loadAvailability(
               serviceDate,
               selectedService
             );
           }
-
           return;
         }
-
         const isOutsideServiceArea =
           data?.code ===
             'OUTSIDE_SERVICE_AREA' ||
@@ -2417,7 +2098,6 @@ setRequestMessage(
               )
             )
           );
-
         if (
           isOutsideServiceArea
         ) {
@@ -2425,23 +2105,17 @@ setRequestMessage(
             code:
               data?.code ||
               'OUTSIDE_SERVICE_AREA',
-
             message:
               data?.message ||
               'El especialista no presta servicio en la ubicación seleccionada.',
-
             municipality:
               data?.location?.municipality,
-
             state:
               data?.location?.state,
           });
-
           setRequestError('');
-
           return;
         }
-
         setRequestError(
           data?.message ||
             'No fue posible enviar la solicitud.'
@@ -2450,7 +2124,6 @@ setRequestMessage(
         setRequestingServiceId(null);
       }
     };
-
   /*
     CANCELAR SOLICITUD
   */
@@ -2463,19 +2136,15 @@ setRequestMessage(
           localStorage.getItem(
             'token'
           );
-
         if (!token) {
           navigate('/login');
           return;
         }
-
         setCancellingRequestId(
           requestId
         );
-
         setRequestMessage('');
         setRequestError('');
-
         const response =
           await api.patch(
             `/requests/${requestId}/cancel`,
@@ -2487,19 +2156,16 @@ setRequestMessage(
               },
             }
           );
-
         console.log(
           'SOLICITUD CANCELADA:',
           response.data
         );
-
         /*
           Volvemos a consultar.
           Como ahora estará CANCELLED,
           volverá a aparecer Solicitar.
         */
         await loadMyRequests();
-
         setRequestMessage(
           response.data?.message ||
             'Solicitud cancelada correctamente.'
@@ -2513,7 +2179,6 @@ setRequestMessage(
             ?.data ||
             requestError
         );
-
         setRequestError(
           requestError.response
             ?.data?.message ||
@@ -2525,10 +2190,8 @@ setRequestMessage(
         );
       }
     };
-
   /*
     CONTINUAR AL PAGO
-
     Solo se ejecuta cuando la solicitud ya fue
     aprobada por FASYN. El importe nunca sale
     del frontend: el backend lo obtiene del
@@ -2543,19 +2206,15 @@ setRequestMessage(
           localStorage.getItem(
             'token'
           );
-
         if (!token) {
           navigate('/login');
           return;
         }
-
         setCreatingPaymentId(
           requestId
         );
-
         setRequestError('');
         setRequestMessage('');
-
         const response =
           await api.post(
             `/payments/request/${requestId}`,
@@ -2567,12 +2226,10 @@ setRequestMessage(
               },
             }
           );
-
         console.log(
           'PAGO MERCADO PAGO:',
           response.data
         );
-
         /*
           Si el webhook ya confirmó el pago,
           no volvemos a enviar al usuario al
@@ -2584,23 +2241,18 @@ setRequestMessage(
           setRequestMessage(
             'Este servicio ya se encuentra pagado.'
           );
-
           await loadMyRequests();
           return;
         }
-
         const checkoutUrl =
           response.data?.checkoutUrl;
-
         if (!checkoutUrl) {
           throw new Error(
             'Mercado Pago no devolvió la URL de pago.'
           );
         }
-
         /*
           Checkout Pro.
-
           Usamos location.assign porque queremos
           continuar el flujo en la página segura
           de Mercado Pago.
@@ -2616,36 +2268,27 @@ setRequestMessage(
     paymentError.response?.data ||
       paymentError
   );
-
   const data =
     paymentError.response?.data;
-
 if (
   data?.code ===
   'OUTSIDE_SERVICE_AREA'
 ) {
   setPaymentCoverageError({
     requestId,
-
     code:
       data.code,
-
     message:
       data.message ||
       'La ubicación está fuera de cobertura.',
-
     municipality:
       data.location?.municipality,
-
     state:
       data.location?.state,
   });
-
   setRequestError('');
-
   return;
 }
-
   setRequestError(
     data?.message ||
       paymentError.message ||
@@ -2658,7 +2301,6 @@ if (
         );
       }
     };
-
   /*
     BOTÓN SEGÚN ESTADO
   */
@@ -2668,48 +2310,39 @@ if (
 ] = useState<ClientServiceRequest | null>(
   null
 );
-
 const handleChangeCoverageAddress =
   async () => {
     if (!paymentCoverageError) {
       return;
     }
-
     const requestId =
       paymentCoverageError.requestId;
-
     const currentRequest =
       myRequests.find(
         (request) =>
           request.id === requestId
       );
-
     if (!currentRequest) {
       setPaymentCoverageError(null);
       return;
     }
-
     const service =
       specialist?.services.find(
         (item) =>
           item.id ===
           currentRequest.serviceId
       );
-
     if (!service) {
       setPaymentCoverageError(null);
       return;
     }
-
     try {
       const token =
         localStorage.getItem('token');
-
       if (!token) {
         navigate('/login');
         return;
       }
-
       await api.patch(
         `/requests/${requestId}/cancel`,
         {},
@@ -2720,36 +2353,35 @@ const handleChangeCoverageAddress =
           },
         }
       );
-
       await loadMyRequests();
-
       setPaymentCoverageError(null);
-
       await openRequestModal(
         service
       );
-
     } catch (error: any) {
       console.error(
         'ERROR CAMBIANDO DIRECCIÓN:',
         error.response?.data ||
           error
       );
-
       setPaymentCoverageError(null);
-
       setRequestError(
         error.response?.data?.message ||
           'No fue posible cambiar la dirección.'
       );
     }
   };
+const baseSubtotal =
+  selectedService
+    ? Number(
+        selectedService.price
+      ) * contractedQuantity
+    : 0;
 const renderRequestButton = (
   service: Service
 ) => {
   const existingRequest =
     getActiveRequest(service.id);
-
   // NO EXISTE SOLICITUD
   if (!existingRequest) {
     return (
@@ -2765,20 +2397,16 @@ const renderRequestButton = (
         {requestingServiceId === service.id
           ? 'Enviando...'
           : 'Solicitar'}
-
         <b>→</b>
       </button>
     );
   }
-
   const paymentStatus =
     existingRequest.payment?.status;
-
   /*
     PAGO YA CONFIRMADO +
     SOLICITUD ESPERANDO PROCESARSE
   */
- 
 /*
   SOLICITUD CREADA PERO NO PAGADA
 */
@@ -2804,12 +2432,10 @@ if (
       existingRequest.id
         ? 'Preparando pago...'
         : 'Continuar al pago'}
-
       <b>→</b>
     </button>
   );
 }
-
   /*
     SOLICITUD CREADA PERO NO PAGADA
   */
@@ -2836,12 +2462,10 @@ if (
         existingRequest.id
           ? 'Preparando pago...'
           : 'Continuar al pago'}
-
         <b>→</b>
       </button>
     );
   }
-
   /*
     ADMIN YA APROBÓ
   */
@@ -2860,12 +2484,10 @@ if (
       }
     >
       Ver detalles
-
       <b>→</b>
     </button>
   );
 }
-
   if (
     existingRequest.status ===
     'IN_PROGRESS'
@@ -2881,7 +2503,6 @@ if (
       </button>
     );
   }
-
   if (
     existingRequest.status ===
     'COMPLETED'
@@ -2897,7 +2518,6 @@ if (
       </button>
     );
   }
-
   return (
     <button
       type="button"
@@ -2916,22 +2536,17 @@ if (
   if (loading) {
     return (
       <div className="public-profile-loading">
-
         <div className="public-profile-spinner" />
-
         <strong>
           Cargando especialista
         </strong>
-
         <span>
           Estamos preparando su
           perfil profesional.
         </span>
-
       </div>
     );
   }
-
   /*
     ERROR
   */
@@ -2941,21 +2556,17 @@ if (
   ) {
     return (
       <div className="public-profile-error-page">
-
         <div className="public-profile-error-icon">
           !
         </div>
-
         <h1>
           Especialista no
           encontrado
         </h1>
-
         <p>
           {error ||
             'El perfil que buscas no está disponible.'}
         </p>
-
         <button
           type="button"
           onClick={() =>
@@ -2966,20 +2577,14 @@ if (
         >
           Volver a especialistas
         </button>
-
       </div>
     );
   }
-
   return (
     <div className="public-profile-page">
-
       {/* NAVBAR */}
-
       <header className="public-profile-navbar">
-
         <div className="public-profile-navbar-inner">
-
           <button
             type="button"
             className="public-profile-brand"
@@ -2992,9 +2597,7 @@ if (
               alt="FASYN"
             />
           </button>
-
           <nav>
-
             <button
               type="button"
               onClick={() =>
@@ -3003,7 +2606,6 @@ if (
             >
               Inicio
             </button>
-
             <button
               type="button"
               className="active"
@@ -3015,7 +2617,6 @@ if (
             >
               Especialistas
             </button>
-
             {isLoggedIn ? (
               <>
                 <button
@@ -3026,7 +2627,6 @@ if (
                 >
                   Mi panel
                 </button>
-
                 <button
                   type="button"
                   className="public-profile-register"
@@ -3055,7 +2655,6 @@ if (
                 >
                   Iniciar sesión
                 </button>
-
                 <button
                   type="button"
                   className="public-profile-register"
@@ -3069,17 +2668,11 @@ if (
                 </button>
               </>
             )}
-
           </nav>
-
         </div>
-
       </header>
-
       <main className="public-profile-container">
-
         {/* VOLVER */}
-
         <button
           type="button"
           className="public-profile-back"
@@ -3092,50 +2685,33 @@ if (
           <span>
             ←
           </span>
-
           Volver a especialistas
         </button>
-
         {/* HERO */}
-
         <section className="public-profile-hero">
-
           <div className="public-profile-avatar">
             {initials}
           </div>
-
           <div className="public-profile-identity">
-
             <div className="public-profile-name-row">
-
               <div>
-
                 <div className="public-profile-status-row">
-
                   <span className="public-profile-status">
-
                     <i />
-
                     {specialist.available
                       ? 'Disponible'
                       : 'No disponible'}
-
                   </span>
-
                   {specialist.profileCompleted && (
                     <span className="public-profile-verified">
                       ✓ Perfil completo
                     </span>
                   )}
-
                 </div>
-
                 <h1>
                   {specialist.name}
                 </h1>
-
                 <div className="public-profile-specialties">
-
                   {specialist.specialties.map(
                     (
                       specialty
@@ -3151,7 +2727,6 @@ if (
                       </span>
                     )
                   )}
-
                   {specialist
                     .specialties
                     .length === 0 && (
@@ -3160,11 +2735,8 @@ if (
                       FASYN
                     </span>
                   )}
-
                 </div>
-
               </div>
-
               <button
                 type="button"
                 className="public-profile-favorite"
@@ -3172,17 +2744,12 @@ if (
               >
                 ♡
               </button>
-
             </div>
-
             <div className="public-profile-meta">
-
               <div>
-
                 <span>
                   EXPERIENCIA
                 </span>
-
                 <strong>
                   {specialist.experience
                     ? `${specialist.experience} ${
@@ -3193,28 +2760,20 @@ if (
                       }`
                     : 'No especificada'}
                 </strong>
-
               </div>
-
               <div>
-
                 <span>
                   UBICACIÓN
                 </span>
-
                 <strong>
                   {location ||
                     'No especificada'}
                 </strong>
-
               </div>
-
               <div>
-
                 <span>
                   SERVICIOS
                 </span>
-
                 <strong>
                   {
                     specialist
@@ -3222,58 +2781,36 @@ if (
                       .length
                   }
                 </strong>
-
               </div>
-
             </div>
-
           </div>
-
         </section>
-
         {/* CONTENIDO */}
-
         <div className="public-profile-layout">
-
           <div className="public-profile-left">
-
             {/* ACERCA */}
-
             <section className="public-profile-section">
-
               <div className="public-profile-section-heading">
-
                 <span>
                   01
                 </span>
-
                 <div>
-
                   <small>
                     PERFIL PROFESIONAL
                   </small>
-
                   <h2>
                     Acerca de mí
                   </h2>
-
                 </div>
-
               </div>
-
               <p className="public-profile-description">
-
                 {specialist.description ||
                   'Este especialista aún no ha agregado una descripción profesional.'}
-
               </p>
-
               {specialist
                 .specialties
                 .length > 0 && (
-
                 <div className="public-profile-tags">
-
                   {specialist.specialties.map(
                     (
                       specialty
@@ -3289,238 +2826,163 @@ if (
                       </span>
                     )
                   )}
-
                 </div>
-
               )}
-
             </section>
-
             {/* SERVICIOS */}
-
             <section
               id="specialist-services"
               className="public-profile-section"
             >
-
               <div className="public-profile-section-heading services">
-
                 <span>
                   02
                 </span>
-
                 <div>
-
                   <small>
                     LO QUE OFRECE
                   </small>
-
                   <h2>
                     Servicios
                   </h2>
-
                   <p>
                     Selecciona el
                     trabajo que
                     necesitas.
                   </p>
-
                 </div>
-
               </div>
-
               {/* MENSAJES */}
-
               {requestMessage && (
-
                 <div className="public-request-success">
-
                   <div className="public-request-feedback-icon">
                     ✓
                   </div>
-
                   <div>
-
                     <strong>
                       Solicitud actualizada
                     </strong>
-
                     <p>
                       {requestMessage}
                     </p>
-
                   </div>
-
                 </div>
-
               )}
- 
               {requestError && (
-
                 <div className="public-request-error">
-
                   <div className="public-request-feedback-icon">
                     !
                   </div>
-
                   <div>
-
                     <strong>
                       No se pudo realizar
                       la operación
                     </strong>
-
                     <p>
                       {requestError}
                     </p>
-
                   </div>
-
                 </div>
-
               )}
-
               {specialist.services
                 .length > 0 ? (
-
                 <div className="public-services-list">
-
                   {specialist.services.map(
                     (service) => (
-
                       <article
                         className="public-service-card"
                         key={
                           service.id
                         }
                       >
-
                         <div className="public-service-content">
-
                           <span className="public-service-category">
-
                             {formatCategoryName(
                               service
                                 .category
                                 .name
                             )}
-
                           </span>
-
                           <h3>
                             {
                               service.name
                             }
                           </h3>
-
                           <p>
                             {service.description ||
                               'Servicio profesional disponible.'}
                           </p>
-
                         </div>
-
                         <div className="public-service-action">
-
                           <small>
                             Desde
                           </small>
-
                           <strong>
                             {formatPrice(
                               service.price
                             )}
                           </strong>
-
                           <span>
                             por{' '}
                             {getPriceType(
                               service.priceType
                             )}
                           </span>
-
                           {renderRequestButton(
                             service
                           )}
-
                         </div>
-
                       </article>
-
                     )
                   )}
-
                 </div>
-
               ) : (
-
                 <div className="public-services-empty">
-
                   <div>
                     +
                   </div>
-
                   <h3>
                     Sin servicios
                     publicados
                   </h3>
-
                   <p>
                     Este especialista
                     aún no tiene
                     servicios
                     disponibles.
                   </p>
-
                 </div>
-
               )}
-
             </section>
-
             {/* OPINIONES */}
-
             <section className="public-profile-section">
-
               <div className="public-profile-section-heading">
-
                 <span>
                   03
                 </span>
-
                 <div>
-
                   <small>
                     REPUTACIÓN
                   </small>
-
                   <h2>
                     Opiniones
                   </h2>
-
                   <p>
                     Las valoraciones
                     aparecerán después
                     de servicios
                     completados.
                   </p>
-
                 </div>
-
               </div>
-
               <div className="public-reviews-empty">
-
                 <div className="public-reviews-symbol">
                   ★
                 </div>
-
                 <div>
-
                   <h3>
                     Aún sin opiniones
                   </h3>
-
                   <p>
                     Cuando clientes
                     completen servicios
@@ -3528,128 +2990,89 @@ if (
                     podrán dejar una
                     valoración.
                   </p>
-
                 </div>
-
               </div>
-
             </section>
-
           </div>
-
           {/* CONTRATAR */}
-
           <aside className="public-hire-card">
-
             <span className="public-hire-eyebrow">
               CONTRATAR ESPECIALISTA
             </span>
-
             <h2>
               ¿Necesitas alguno de
               sus servicios?
             </h2>
-
             <p>
               Revisa sus servicios y
               envía una solicitud cuando
               encuentres el trabajo que
               necesitas.
             </p>
-
             {lowestService && (
-
               <div className="public-hire-price">
-
                 <span>
                   Servicios desde
                 </span>
-
                 <strong>
                   {formatPrice(
                     lowestService.price
                   )}
                 </strong>
-
                 <small>
                   por{' '}
                   {getPriceType(
                     lowestService.priceType
                   )}
                 </small>
-
               </div>
-
             )}
-
             <div className="public-hire-divider" />
-
             <div className="public-hire-feature">
-
               <span>
                 ✓
               </span>
-
               <div>
-
                 <strong>
                   Perfil en FASYN
                 </strong>
-
                 <small>
                   Información profesional
                   registrada
                 </small>
-
               </div>
-
             </div>
-
             <div className="public-hire-feature">
-
               <span>
                 ✓
               </span>
-
               <div>
-
                 <strong>
                   Servicios publicados
                 </strong>
-
                 <small>
                   Precios y modalidades
                   definidos por el
                   especialista
                 </small>
-
               </div>
-
             </div>
-
             <div className="public-hire-feature">
-
               <span>
                 ✓
               </span>
-
               <div>
-
                 <strong>
                   Solicitud sujeta a
                   aprobación
                 </strong>
-
                 <small>
                   FASYN revisará la
                   solicitud antes de
                   enviarla al especialista
                 </small>
-
               </div>
-
             </div>
-
             <button
               type="button"
               className="public-hire-button"
@@ -3662,35 +3085,25 @@ if (
                   document.getElementById(
                     'specialist-services'
                   );
-
                 element?.scrollIntoView({
                   behavior: 'smooth',
                   block: 'start',
                 });
               }}
             >
-
               Ver servicios disponibles
-
               <span>
                 →
               </span>
-
             </button>
-
             <small className="public-hire-disclaimer">
-
               La solicitud primero será
               revisada por FASYN. No se
               realizará ningún cobro en
               este momento.
-
             </small>
-
           </aside>
-
         </div>
-
       </main>
       {requestCoverageError && (
   <div
@@ -3699,7 +3112,6 @@ if (
     aria-modal="true"
   >
     <div className="coverage-modal">
-
       <button
         type="button"
         className="coverage-modal-close"
@@ -3709,31 +3121,25 @@ if (
       >
         ×
       </button>
-
       <div className="coverage-modal-icon">
         📍
       </div>
-
       <span className="coverage-modal-eyebrow">
         COBERTURA NO DISPONIBLE
       </span>
-
       <h2>
         Esta dirección está fuera
         de la zona de atención
       </h2>
-
       <p className="coverage-modal-description">
         {requestCoverageError.message}
       </p>
-
       {(requestCoverageError.municipality ||
         requestCoverageError.state) && (
         <div className="coverage-modal-location">
           <small>
             UBICACIÓN SELECCIONADA
           </small>
-
           <strong>
             {[
               requestCoverageError.municipality,
@@ -3744,12 +3150,10 @@ if (
           </strong>
         </div>
       )}
-
       <p className="coverage-modal-help">
         Selecciona otra dirección para
         continuar con la solicitud.
       </p>
-
       <div className="coverage-modal-actions">
         <button
           type="button"
@@ -3760,7 +3164,6 @@ if (
         >
           Cerrar
         </button>
-
         <button
           type="button"
           className="coverage-modal-primary"
@@ -3778,7 +3181,6 @@ if (
     </div>
   </div>
 )}
-
 {paymentCoverageError && (
   <div
     className="coverage-modal-overlay"
@@ -3786,7 +3188,6 @@ if (
     aria-modal="true"
   >
     <div className="coverage-modal">
-
       <button
         type="button"
         className="coverage-modal-close"
@@ -3796,33 +3197,26 @@ if (
       >
         ×
       </button>
-
       <div className="coverage-modal-icon">
         📍
       </div>
-
       <span className="coverage-modal-eyebrow">
         COBERTURA NO DISPONIBLE
       </span>
-
       <h2>
         Esta dirección está fuera
         de la zona de atención
       </h2>
-
       <p className="coverage-modal-description">
         El especialista no presta servicios
         actualmente en esta ubicación.
       </p>
-
       {(paymentCoverageError.municipality ||
         paymentCoverageError.state) && (
         <div className="coverage-modal-location">
-
           <small>
             UBICACIÓN DETECTADA
           </small>
-
           <strong>
             {[
               paymentCoverageError.municipality,
@@ -3831,17 +3225,13 @@ if (
               .filter(Boolean)
               .join(', ')}
           </strong>
-
         </div>
       )}
-
       <p className="coverage-modal-help">
         Selecciona otra dirección para
         continuar con el pago.
       </p>
-
       <div className="coverage-modal-actions">
-
         <button
           type="button"
           className="coverage-modal-secondary"
@@ -3851,7 +3241,6 @@ if (
         >
           Cerrar
         </button>
-
         <button
           type="button"
           className="coverage-modal-primary"
@@ -3862,18 +3251,13 @@ if (
           Cambiar dirección
           <span>→</span>
         </button>
-
       </div>
-
     </div>
   </div>
 )} 
-
       {/* MODAL SOLICITAR SERVICIO */}
-
       {requestModalOpen &&
         selectedService && (
-
         <div
           className="service-request-modal-overlay"
           onMouseDown={(event) => {
@@ -3886,23 +3270,19 @@ if (
           }}
         >
           <div className="service-request-modal">
-
             <div className="service-request-modal-header">
               <div>
                 <span className="service-request-modal-eyebrow">
                   SOLICITAR SERVICIO
                 </span>
-
                 <h2>
                   {selectedService.name}
                 </h2>
-
                 <p>
                   Selecciona dónde necesitas
                   que se realice el servicio.
                 </p>
               </div>
-
               <button
                 type="button"
                 className="service-request-modal-close"
@@ -3918,53 +3298,54 @@ if (
                 ×
               </button>
             </div>
-
-            <div className="service-request-summary">
-              <div>
-                <small>
-                  SERVICIO
-                </small>
-
-                <strong>
-                  {selectedService.name}
-                </strong>
-
-                <span>
-                  {formatCategoryName(
-                    selectedService
-                      .category.name
-                  )}
-                </span>
-              </div>
-
-              <div className="service-request-summary-price">
-                <strong>
-                  {formatPrice(
-                    selectedService.price
-                  )}
-                </strong>
-
-                <span>
-                  por{' '}
-                  {getPriceType(
-                    selectedService.priceType
-                  )}
-                </span>
-              </div>
-            </div>
-
+         <div className="service-request-summary">
+  <div>
+    <small>
+      RESUMEN DEL SERVICIO
+    </small>
+    <strong>
+      {selectedService.priceType === 'HOUR'
+        ? `${serviceQuantity} ${
+            serviceQuantity === 1
+              ? 'hora'
+              : 'horas'
+          }`
+        : selectedService.priceType === 'DAY'
+          ? '1 día'
+          : '1 servicio'}
+    </strong>
+    <span>
+      {selectedService.priceType === 'HOUR'
+        ? 'Modalidad por hora'
+        : selectedService.priceType === 'DAY'
+          ? 'Modalidad por día'
+          : 'Modalidad por servicio'}
+    </span>
+  </div>
+  <div className="service-request-summary-price">
+    <small>
+      TOTAL A PAGAR
+    </small>
+    <strong>
+      {formatPrice(
+        estimatedClientTotal
+      )}
+    </strong>
+    <span>
+      Incluye comisión de servicio
+    </span>
+  </div>
+</div>
             {requestError && (
               <div className="service-request-modal-error">
                 <span>
                   !
                 </span>
-
                 <p>
                   {requestError}
                 </p>
               </div>
             )}
-
             {!showNewAddressForm && (
               <>
                 <div className="service-request-section-title">
@@ -3972,12 +3353,10 @@ if (
                     <span>
                       01
                     </span>
-
                     <div>
                       <strong>
                         Dirección del servicio. ss
                       </strong>
-
                       <small>
                         El especialista acudirá
                         a esta dirección.
@@ -3985,11 +3364,9 @@ if (
                     </div>
                   </div>
                 </div>
-
                 {loadingAddresses ? (
                   <div className="service-request-loading">
                     <div className="public-profile-spinner" />
-
                     <span>
                       Cargando tus direcciones...
                     </span>
@@ -4003,7 +3380,6 @@ if (
                             const selected =
                               selectedAddressId ===
                               address.id;
-
                             return (
                               <button
                                 key={
@@ -4029,20 +3405,17 @@ if (
                                       : '○'}
                                   </span>
                                 </div>
-
                                 <div className="service-address-content">
                                   <div className="service-address-title">
                                     <strong>
                                       {address.label}
                                     </strong>
-
                                     {address.isDefault && (
                                       <span>
                                         Principal
                                       </span>
                                     )}
                                   </div>
-
                                   <p>
                                     {address.street}{' '}
                                     #{address.exteriorNumber}
@@ -4050,18 +3423,15 @@ if (
                                       ? ` Int. ${address.interiorNumber}`
                                       : ''}
                                   </p>
-
                                   <small>
                                     {address.neighborhood},{' '}
                                     {address.municipality},{' '}
                                     {address.state}
                                   </small>
-
                                   <small>
                                     C.P.{' '}
                                     {address.postalCode}
                                   </small>
-
                                   {address.references && (
                                     <em>
                                       Referencias:{' '}
@@ -4079,18 +3449,15 @@ if (
                         <div>
                           ⌂
                         </div>
-
                         <strong>
                           Aún no tienes direcciones
                         </strong>
-
                         <p>
                           Agrega la dirección donde
                           necesitas el servicio.
                         </p>
                       </div>
                     )}
-
                     <button
                       type="button"
                       className="service-add-address-button"
@@ -4104,23 +3471,18 @@ if (
                       <span>
                         +
                       </span>
-
                       Agregar nueva dirección
                     </button>
-
                     <div className="service-request-schedule">
-
                       <div className="service-request-section-title compact">
                         <div>
                           <span>
                             02
                           </span>
-
                           <div>
                             <strong>
                               Fecha y hora
                             </strong>
-
                             <small>
                               Indica cuándo necesitas
                               que se realice el servicio.
@@ -4128,7 +3490,6 @@ if (
                           </div>
                         </div>
                       </div>
-
                       {selectedService.priceType === 'HOUR' && (
                         <div className="service-time-block">
                           <div className="service-time-block-header">
@@ -4136,13 +3497,11 @@ if (
                               <label>
                                 ¿Cuántas horas necesitas? *
                               </label>
-
                               <small>
                                 El precio se calcula por las horas
                                 seleccionadas.
                               </small>
                             </div>
-
                             <strong>
                               {serviceQuantity}{' '}
                               {serviceQuantity === 1
@@ -4150,7 +3509,6 @@ if (
                                 : 'horas'}
                             </strong>
                           </div>
-
                           <div className="service-quantity-options">
                             {Array.from(
                               {
@@ -4176,11 +3534,9 @@ if (
                                     setServiceQuantity(
                                       hours
                                     );
-
                                     setServiceTime(
                                       ''
                                     );
-
                                     setRequestError(
                                       ''
                                     );
@@ -4193,16 +3549,13 @@ if (
                           </div>
                         </div>
                       )}
-
                       <div className="service-schedule-grid">
-
                         <div className="service-form-field">
                           <label
                             htmlFor="serviceDate"
                           >
-                            Fecha *
+                            Fechna *
                           </label>
-
                           <input
                             id="serviceDate"
                             className="service-date-input"
@@ -4228,27 +3581,21 @@ if (
                               const value =
                                 event.target
                                   .value;
-
                               setServiceDate(
                                 value
                               );
-
                               setServiceTime(
                                 ''
                               );
-
                               setBusySlots(
                                 []
                               );
-
                               setRequestError(
                                 ''
                               );
-
                               setAvailabilityError(
                                 ''
                               );
-
                               if (value) {
                                 void loadAvailability(
                                   value,
@@ -4258,14 +3605,12 @@ if (
                             }}
                           />
                         </div>
-
                         <div className="service-form-field">
                           <label
                             htmlFor="serviceTime"
                           >
                             Hora *
                           </label>
-
                           <div
                             className={
                               !serviceDate ||
@@ -4280,14 +3625,12 @@ if (
                                 Selecciona primero una fecha.
                               </div>
                             )}
-
                             {serviceDate &&
                               loadingAvailability && (
                                 <div className="service-time-empty">
                                   Consultando horarios...
                                 </div>
                               )}
-
                             {serviceDate &&
                               !loadingAvailability &&
                               !availabilityError &&
@@ -4312,7 +3655,6 @@ if (
                                       setServiceTime(
                                         slot.time
                                       );
-
                                       setRequestError(
                                         ''
                                       );
@@ -4321,7 +3663,6 @@ if (
                                     <span>
                                       {slot.time}
                                     </span>
-
                                     {!slot.available && (
                                       <small>
                                         {slot.reason ===
@@ -4334,7 +3675,6 @@ if (
                                 )
                               )}
                           </div>
-
                           {availabilityError && (
                             <small
                               className="service-schedule-error"
@@ -4343,9 +3683,7 @@ if (
                             </small>
                           )}
                         </div>
-
                       </div>
-
                       <small className="service-schedule-timezone">
                         La hora se enviará usando tu zona horaria actual.
                         El horario considera{' '}
@@ -4359,61 +3697,42 @@ if (
                         hora(s) de servicio y 1 hora adicional
                         de traslado.
                       </small>
-
-                      <div className="service-request-summary">
-                        <div>
-                          <small>
-                            RESUMEN
-                          </small>
-
-                          <strong>
-                            {selectedService.priceType === 'HOUR'
-                              ? `${serviceQuantity} ${
-                                  serviceQuantity === 1
-                                    ? 'hora'
-                                    : 'horas'
-                                }`
-                              : selectedService.priceType === 'DAY'
-                                ? '1 día'
-                                : '1 servicio'}
-                          </strong>
-
-                          <span>
-                            Base:{' '}
-                            {formatPrice(
-                              baseSubtotal
-                            )}
-                          </span>
-                        </div>
-
-                        <div className="service-request-summary-price">
-                          <strong>
-                            {formatPrice(
-                              estimatedClientTotal
-                            )}
-                          </strong>
-
-                          <span>
-                            total estimado
-                          </span>
-                        </div>
-                      </div>
-
+                    <div className="service-request-summary">
+  <div>
+    <small>
+      RESUMEN DEL SERVICIO
+    </small>
+    <strong>
+      {selectedService.priceType === 'HOUR'
+        ? `${serviceQuantity} ${
+            serviceQuantity === 1
+              ? 'hora'
+              : 'horas'
+          }`
+        : selectedService.priceType === 'DAY'
+          ? '1 día'
+          : '1 servicio'}
+    </strong>
+    <span>
+      {selectedService.priceType === 'HOUR'
+        ? 'Modalidad por hora'
+        : selectedService.priceType === 'DAY'
+          ? 'Modalidad por día'
+          : 'Modalidad por servicio'}
+    </span>
+  </div>
+</div>
                     </div>
-
                     <div className="service-request-message-field">
-
                       <div className="service-request-section-title compact">
                         <div>
                           <span>
                             03
                           </span>
-
                           <div>
                             <strong>
                               Indicaciones
                             </strong>
-
                             <small>
                               Información adicional para
                               que el especialista pueda llegar.
@@ -4421,13 +3740,11 @@ if (
                           </div>
                         </div>
                       </div>
-
                       <label
                         htmlFor="serviceMessage"
                       >
                         Indicaciones para el especialista
                       </label>
-
                       <textarea
                         id="serviceMessage"
                         value={
@@ -4444,19 +3761,16 @@ if (
                         placeholder="Ej. Tocar el timbre al llegar, preguntar por Juan..."
                         maxLength={500}
                       />
-
                       <small>
                         Opcional ·{' '}
                         {serviceMessage.length}
                         /500
                       </small>
-
                     </div>
                   </>
                 )}
               </>
             )}
-
             {showNewAddressForm && (
               <div className="service-new-address">
                 <div className="service-request-section-title">
@@ -4464,12 +3778,10 @@ if (
                     <span>
                       01
                     </span>
-
                     <div>
                       <strong>
                         Nueva dirección
                       </strong>
-
                       <small>
                         Guarda una nueva dirección
                         para este y futuros servicios.
@@ -4477,13 +3789,11 @@ if (
                     </div>
                   </div>
                 </div>
-
                 <div className="service-new-address-grid">
                   <div className="service-form-field">
                     <label>
                       Nombre de la dirección *
                     </label>
-
                     <input
                       type="text"
                       value={
@@ -4500,12 +3810,10 @@ if (
                       placeholder="Ej. Casa, Oficina"
                     />
                   </div>
-
                   <div className="service-form-field">
                     <label>
                       Código postal *
                     </label>
-
                     <input
                       type="text"
                       value={
@@ -4522,12 +3830,10 @@ if (
                       placeholder="53000"
                     />
                   </div>
-
                   <div className="service-form-field">
                     <label>
                       Estado *
                     </label>
-
                     <input
                       type="text"
                       value={
@@ -4544,12 +3850,10 @@ if (
                       placeholder="Estado de México"
                     />
                   </div>
-
                   <div className="service-form-field">
                     <label>
                       Municipio / Alcaldía *
                     </label>
-
                     <input
                       type="text"
                       value={
@@ -4566,12 +3870,10 @@ if (
                       placeholder="Naucalpan de Juárez"
                     />
                   </div>
-
                   <div className="service-form-field full">
                     <label>
                       Colonia *
                     </label>
-
                     <input
                       type="text"
                       value={
@@ -4588,12 +3890,10 @@ if (
                       placeholder="Colonia"
                     />
                   </div>
-
                   <div className="service-form-field full">
                     <label>
                       Calle *
                     </label>
-
                     <input
                       type="text"
                       value={
@@ -4610,12 +3910,10 @@ if (
                       placeholder="Nombre de la calle"
                     />
                   </div>
-
                   <div className="service-form-field">
                     <label>
                       Número exterior *
                     </label>
-
                     <input
                       type="text"
                       value={
@@ -4632,12 +3930,10 @@ if (
                       placeholder="123"
                     />
                   </div>
-
                   <div className="service-form-field">
                     <label>
                       Número interior
                     </label>
-
                     <input
                       type="text"
                       value={
@@ -4654,12 +3950,10 @@ if (
                       placeholder="Opcional"
                     />
                   </div>
-
                   <div className="service-form-field full">
                     <label>
                       Referencias
                     </label>
-
                     <textarea
                       value={
                         newAddress.references
@@ -4675,16 +3969,13 @@ if (
                       placeholder="Ej. Portón negro, casa de dos pisos..."
                     />
                   </div>
-
                   <div className="service-form-field full service-map-field">
                     <label>
                       Ubicación exacta en el mapa *
                     </label>
-
                     <p className="service-map-help">
                       Haz clic en el mapa para colocar el pin. También puedes arrastrarlo hasta la ubicación exacta donde se realizará el servicio.
                     </p>
-
                     <AddressMapPicker
                       latitude={
                         newAddress.latitude
@@ -4705,7 +3996,6 @@ if (
                             longitude,
                           })
                         );
-
                         setRequestError(
                           ''
                         );
@@ -4718,27 +4008,21 @@ if (
                             previous
                           ) => ({
                             ...previous,
-
                             state:
                               resolved.state ||
                               previous.state,
-
                             municipality:
                               resolved.municipality ||
                               previous.municipality,
-
                             neighborhood:
                               resolved.neighborhood ||
                               previous.neighborhood,
-
                             postalCode:
                               resolved.postalCode ||
                               previous.postalCode,
-
                             street:
                               resolved.street ||
                               previous.street,
-
                             exteriorNumber:
                               resolved.exteriorNumber ||
                               previous.exteriorNumber,
@@ -4746,7 +4030,6 @@ if (
                         );
                       }}
                     />
-
                     <div className="service-map-coordinates">
                       <span>
                         Latitud:{' '}
@@ -4756,7 +4039,6 @@ if (
                             : 'Selecciona un punto'}
                         </strong>
                       </span>
-
                       <span>
                         Longitud:{' '}
                         <strong>
@@ -4768,7 +4050,6 @@ if (
                     </div>
                   </div>
                 </div>
-
                 <label className="service-default-address">
                   <input
                     type="checkbox"
@@ -4784,19 +4065,16 @@ if (
                       )
                     }
                   />
-
                   <span>
                     <strong>
                       Usar como dirección principal
                     </strong>
-
                     <small>
                       Se seleccionará automáticamente
                       en futuras solicitudes.
                     </small>
                   </span>
                 </label>
-
                 <div className="service-new-address-actions">
                   <button
                     type="button"
@@ -4813,7 +4091,6 @@ if (
                   >
                     Volver
                   </button>
-
                   <button
                     type="button"
                     className="primary"
@@ -4831,7 +4108,6 @@ if (
                 </div>
               </div>
             )}
-
             {!showNewAddressForm && (
               <div className="service-request-modal-footer">
                 <button
@@ -4869,7 +4145,6 @@ if (
     null
       ? 'Enviando solicitud...'
       : 'Enviar solccicitud'}
-
     <span>
       →
     </span>
@@ -4892,7 +4167,6 @@ if (
     createdRequestId
       ? 'Preparando pago...'
       : 'Continuar al pago'}
-
     <span>
       →
     </span>
@@ -4900,10 +4174,8 @@ if (
 )}
               </div>
             )}
-
           </div>
         </div>
-
       )}
  {selectedRequestDetail && (
   <div
@@ -4920,7 +4192,6 @@ if (
     }}
   >
     <div className="service-detail-modal">
-
       <button
         type="button"
         className="service-detail-close"
@@ -4933,41 +4204,30 @@ if (
       >
         ×
       </button>
-
       <div className="service-detail-top">
-
         <div className="service-detail-success-icon">
           ✓
         </div>
-
         <span className="service-detail-eyebrow">
           SERVICIO CONFIRMADO
         </span>
-
         <h2>
           Tu servicio está solicitado
         </h2>
-
         <p>
           El pago fue confirmado y tu
           solicitud ya está registrada.
         </p>
-
       </div>
-
       <div className="service-detail-service-card">
-
         <div className="service-detail-service-copy">
-
           <small>
             SOLICITUD
           </small>
-
           <strong>
             Solicitud #
             {selectedRequestDetail.id}
           </strong>
-
           {selectedRequestDetail
             .scheduledAt && (
             <span>
@@ -4985,32 +4245,23 @@ if (
               )}
             </span>
           )}
-
         </div>
-
         <div className="service-detail-payment-chip">
           <span>
             ✓
           </span>
-
           Pagado
         </div>
-
       </div>
-
       <div className="service-detail-info-grid">
-
         <div className="service-detail-info">
-
           <div className="service-detail-info-icon">
             $
           </div>
-
           <div>
             <small>
               TOTAL PAGADO
             </small>
-
             <strong>
               {selectedRequestDetail
                 .payment?.amount
@@ -5029,20 +4280,15 @@ if (
                 : 'No disponible'}
             </strong>
           </div>
-
         </div>
-
         <div className="service-detail-info">
-
           <div className="service-detail-info-icon">
             ◷
           </div>
-
           <div>
             <small>
               HORARIO
             </small>
-
             <strong>
               {selectedRequestDetail
                 .scheduledAt
@@ -5061,71 +4307,51 @@ if (
                 : 'Por definir'}
             </strong>
           </div>
-
         </div>
-
       </div>
-
       <div className="service-detail-progress">
-
         <div className="service-detail-progress-line">
-
           <div className="service-detail-step completed">
             <span>
               ✓
             </span>
-
             <small>
               Solicitud
             </small>
           </div>
-
           <div className="service-detail-progress-bar completed" />
-
           <div className="service-detail-step completed">
             <span>
               ✓
             </span>
-
             <small>
               Pago
             </small>
           </div>
-
           <div className="service-detail-progress-bar" />
-
           <div className="service-detail-step">
             <span>
               3
             </span>
-
             <small>
               Servicio
             </small>
           </div>
-
         </div>
-
       </div>
-
       {selectedRequestDetail
         .message && (
         <div className="service-detail-notes">
-
           <small>
             INDICACIONES DEL SERVICIO
           </small>
-
           <p>
             {selectedRequestDetail
               .message}
           </p>
-
         </div>
       )}
-
       <div className="service-detail-footer">
-
         <button
           type="button"
           className="service-detail-secondary"
@@ -5137,7 +4363,6 @@ if (
         >
           Cerrar
         </button>
-
         <button
           type="button"
           className="service-detail-primary"
@@ -5148,19 +4373,15 @@ if (
           }
         >
           Ir a mis solicitudes
-
           <span>
             →
           </span>
         </button>
-
       </div>
-
     </div>
   </div>
 )}
     </div>
   );
 };
-
 export default SpecialistProfile;

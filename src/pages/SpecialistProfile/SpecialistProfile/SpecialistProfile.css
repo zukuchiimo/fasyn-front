@@ -1,224 +1,143 @@
 .public-profile-page {
   min-height: 100vh;
-
   background: #f5f7fb;
-
   color: #111c38;
 }
-
 /* =================================== */
 /* NAVBAR */
 /* =================================== */
-
 .public-profile-navbar {
   height: 76px;
-
   background: #ffffff;
-
   border-bottom:
     1px solid #e6eaf1;
 }
-
 .public-profile-navbar-inner {
   width:
     min(
       1180px,
       calc(100% - 48px)
     );
-
   height: 100%;
-
   margin: 0 auto;
-
   display: flex;
-
   align-items: center;
-
   justify-content:
     space-between;
 }
-
 .public-profile-brand {
   padding: 0;
-
   border: 0;
-
   background: transparent;
-
   cursor: pointer;
 }
-
 .public-profile-brand img {
   display: block;
-
   height: 38px;
 }
-
 .public-profile-navbar nav {
   display: flex;
-
   align-items: center;
-
   gap: 7px;
 }
-
 .public-profile-navbar nav button {
   height: 40px;
-
   padding: 0 14px;
-
   border: 0;
-
   border-radius: 9px;
-
   background: transparent;
-
   color: #59657d;
-
   font-family: inherit;
-
   font-size: 11px;
-
   font-weight: 700;
-
   cursor: pointer;
-
   transition:
     0.2s ease;
 }
-
 .public-profile-navbar nav button:hover,
 .public-profile-navbar nav button.active {
   background: #f3f5ff;
-
   color: #5c7cff;
 }
-
 .public-profile-navbar
   nav
   .public-profile-register {
   margin-left: 5px;
-
   padding: 0 18px;
-
   background: #101c3a;
-
   color: #ffffff;
 }
-
 .public-profile-navbar
   nav
   .public-profile-register:hover {
   background: #5c7cff;
-
   color: #ffffff;
 }
-
 /* =================================== */
 /* MAIN */
 /* =================================== */
-
 .public-profile-container {
   width:
     min(
       1180px,
       calc(100% - 48px)
     );
-
   margin: 0 auto;
-
   padding: 34px 0 80px;
 }
-
 /* =================================== */
 /* BACK */
 /* =================================== */
-
 .public-profile-back {
   display: inline-flex;
-
   align-items: center;
-
   gap: 8px;
-
   margin-bottom: 22px;
-
   padding: 0;
-
   border: 0;
-
   background: transparent;
-
   color: #768198;
-
   font-family: inherit;
-
   font-size: 11px;
-
   font-weight: 700;
-
   cursor: pointer;
 }
-
 .public-profile-back span {
   width: 27px;
-
   height: 27px;
-
   display: flex;
-
   align-items: center;
-
   justify-content: center;
-
   background: #ffffff;
-
   border:
     1px solid #e0e5ed;
-
   border-radius: 8px;
-
   color: #5c7cff;
-
   transition:
     0.2s ease;
 }
-
 .public-profile-back:hover {
   color: #5c7cff;
 }
-
 .public-profile-back:hover span {
   transform:
     translateX(-2px);
 }
-
 /* =================================== */
 /* HERO */
 /* =================================== */
-
 .public-profile-hero {
   position: relative;
-
   overflow: hidden;
-
   display: grid;
-
   grid-template-columns:
     125px minmax(0, 1fr);
-
   gap: 28px;
-
   padding: 38px;
-
   margin-bottom: 25px;
-
   background: #101c3a;
-
   border-radius: 24px;
-
   color: #ffffff;
-
   box-shadow:
     0 18px 45px
     rgba(
@@ -228,22 +147,14 @@
       0.14
     );
 }
-
 .public-profile-hero::after {
   content: '';
-
   position: absolute;
-
   width: 320px;
-
   height: 320px;
-
   right: -130px;
-
   top: -170px;
-
   border-radius: 50%;
-
   background:
     rgba(
       92,
@@ -252,29 +163,20 @@
       0.09
     );
 }
-
 .public-profile-avatar {
   position: relative;
-
   z-index: 1;
-
   width: 112px;
-
   height: 112px;
-
   display: flex;
-
   align-items: center;
-
   justify-content: center;
-
   background:
     linear-gradient(
       135deg,
       #5c7cff,
       #899cff
     );
-
   border:
     5px solid
     rgba(
@@ -283,15 +185,10 @@
       255,
       0.08
     );
-
   border-radius: 27px;
-
   color: #ffffff;
-
   font-size: 31px;
-
   font-weight: 900;
-
   box-shadow:
     0 13px 32px
     rgba(
@@ -301,55 +198,35 @@
       0.25
     );
 }
-
 .public-profile-identity {
   position: relative;
-
   z-index: 1;
-
   min-width: 0;
 }
-
 .public-profile-name-row {
   display: flex;
-
   align-items: flex-start;
-
   justify-content:
     space-between;
-
   gap: 24px;
 }
-
 .public-profile-status-row {
   display: flex;
-
   flex-wrap: wrap;
-
   align-items: center;
-
   gap: 8px;
-
   margin-bottom: 11px;
 }
-
 .public-profile-status,
 .public-profile-verified {
   display: inline-flex;
-
   align-items: center;
-
   gap: 6px;
-
   padding: 6px 9px;
-
   border-radius: 999px;
-
   font-size: 9px;
-
   font-weight: 800;
 }
-
 .public-profile-status {
   background:
     rgba(
@@ -358,20 +235,14 @@
       151,
       0.11
     );
-
   color: #65e0a9;
 }
-
 .public-profile-status i {
   width: 6px;
-
   height: 6px;
-
   border-radius: 50%;
-
   background: #3ddc97;
 }
-
 .public-profile-verified {
   background:
     rgba(
@@ -380,33 +251,22 @@
       255,
       0.14
     );
-
   color: #aab6ff;
 }
-
 .public-profile-name-row h1 {
   margin: 0;
-
   color: #ffffff;
-
   font-size: 34px;
-
   line-height: 1.1;
 }
-
 .public-profile-specialties {
   display: flex;
-
   flex-wrap: wrap;
-
   gap: 7px;
-
   margin-top: 12px;
 }
-
 .public-profile-specialties span {
   padding: 6px 10px;
-
   background:
     rgba(
       255,
@@ -414,7 +274,6 @@
       255,
       0.07
     );
-
   border:
     1px solid
     rgba(
@@ -423,29 +282,18 @@
       255,
       0.07
     );
-
   border-radius: 999px;
-
   color: #c2cadb;
-
   font-size: 10px;
-
   font-weight: 700;
 }
-
 .public-profile-favorite {
   width: 44px;
-
   height: 44px;
-
   flex-shrink: 0;
-
   display: flex;
-
   align-items: center;
-
   justify-content: center;
-
   border:
     1px solid
     rgba(
@@ -454,9 +302,7 @@
       255,
       0.1
     );
-
   border-radius: 12px;
-
   background:
     rgba(
       255,
@@ -464,35 +310,23 @@
       255,
       0.05
     );
-
   color: #ffffff;
-
   font-size: 20px;
-
   cursor: pointer;
 }
-
 .public-profile-favorite:hover {
   background: #ffffff;
-
   color: #5c7cff;
 }
-
 /* =================================== */
 /* META */
 /* =================================== */
-
 .public-profile-meta {
   display: flex;
-
   flex-wrap: wrap;
-
   gap: 0;
-
   margin-top: 27px;
-
   padding-top: 22px;
-
   border-top:
     1px solid
     rgba(
@@ -502,12 +336,9 @@
       0.08
     );
 }
-
 .public-profile-meta > div {
   min-width: 145px;
-
   padding: 0 28px;
-
   border-right:
     1px solid
     rgba(
@@ -517,73 +348,49 @@
       0.08
     );
 }
-
 .public-profile-meta > div:first-child {
   padding-left: 0;
 }
-
 .public-profile-meta > div:last-child {
   border-right: 0;
 }
-
 .public-profile-meta span {
   display: block;
-
   margin-bottom: 5px;
-
   color: #8390ac;
-
   font-size: 8px;
-
   font-weight: 900;
-
   letter-spacing: 1px;
 }
-
 .public-profile-meta strong {
   color: #ffffff;
-
   font-size: 11px;
 }
-
 /* =================================== */
 /* LAYOUT */
 /* =================================== */
-
 .public-profile-layout {
   display: grid;
-
   grid-template-columns:
     minmax(0, 1fr)
     310px;
-
   gap: 24px;
-
   align-items: start;
 }
-
 .public-profile-left {
   display: flex;
-
   flex-direction: column;
-
   gap: 20px;
 }
-
 /* =================================== */
 /* SECTION */
 /* =================================== */
-
 .public-profile-section {
   padding: 31px;
-
   background: #ffffff;
-
   border:
     1px solid #e4e8f0;
-
   border-radius: 20px;
-
   box-shadow:
     0 12px 35px
     rgba(
@@ -593,142 +400,88 @@
       0.04
     );
 }
-
 .public-profile-section-heading {
   display: flex;
-
   align-items: flex-start;
-
   gap: 13px;
-
   margin-bottom: 24px;
 }
-
 .public-profile-section-heading
   > span {
   width: 35px;
-
   height: 35px;
-
   flex-shrink: 0;
-
   display: flex;
-
   align-items: center;
-
   justify-content: center;
-
   background: #eef1ff;
-
   border-radius: 10px;
-
   color: #5c7cff;
-
   font-size: 10px;
-
   font-weight: 900;
 }
-
 .public-profile-section-heading
   small {
   display: block;
-
   margin-bottom: 4px;
-
   color: #5c7cff;
-
   font-size: 8px;
-
   font-weight: 900;
-
   letter-spacing: 1.2px;
 }
-
 .public-profile-section-heading
   h2 {
   margin: 0;
-
   color: #17213d;
-
   font-size: 19px;
 }
-
 .public-profile-section-heading p {
   margin: 5px 0 0;
-
   color: #8a94a7;
-
   font-size: 10px;
 }
-
 /* =================================== */
 /* ABOUT */
 /* =================================== */
-
 .public-profile-description {
   margin: 0;
-
   color: #657188;
-
   font-size: 12px;
-
   line-height: 1.8;
 }
-
 .public-profile-tags {
   display: flex;
-
   flex-wrap: wrap;
-
   gap: 8px;
-
   margin-top: 22px;
 }
-
 .public-profile-tags span {
   padding: 8px 12px;
-
   background: #f2f4ff;
-
   color: #5c7cff;
-
   border-radius: 999px;
-
   font-size: 9px;
-
   font-weight: 800;
 }
-
 /* =================================== */
 /* SERVICES */
 /* =================================== */
-
 .public-services-list {
   display: flex;
-
   flex-direction: column;
-
   gap: 12px;
 }
-
 .public-service-card {
   display: grid;
-
   grid-template-columns:
     minmax(0, 1fr)
     160px;
-
   gap: 24px;
-
   padding: 21px;
-
   background: #fafbfc;
-
   border:
     1px solid #e6eaf1;
-
   border-radius: 15px;
-
   transition:
     border-color
       0.2s ease,
@@ -737,10 +490,8 @@
     transform
       0.2s ease;
 }
-
 .public-service-card:hover {
   border-color: #d3dafb;
-
   box-shadow:
     0 10px 28px
     rgba(
@@ -749,265 +500,159 @@
       56,
       0.055
     );
-
   transform:
     translateY(-1px);
 }
-
 .public-service-category {
   display: inline-flex;
-
   margin-bottom: 9px;
-
   padding: 5px 8px;
-
   background: #eef1ff;
-
   color: #5c7cff;
-
   border-radius: 999px;
-
   font-size: 8px;
-
   font-weight: 800;
 }
-
 .public-service-content h3 {
   margin: 0;
-
   color: #18233f;
-
   font-size: 14px;
 }
-
 .public-service-content p {
   max-width: 500px;
-
   margin: 8px 0 0;
-
   color: #7c879a;
-
   font-size: 10px;
-
   line-height: 1.6;
 }
-
 .public-service-action {
   display: flex;
-
   flex-direction: column;
-
   align-items: flex-end;
-
   justify-content: center;
-
   padding-left: 20px;
-
   border-left:
     1px solid #e7eaf0;
 }
-
 .public-service-action small {
   color: #a0a8b7;
-
   font-size: 8px;
 }
-
 .public-service-action strong {
   margin-top: 3px;
-
   color: #17213d;
-
   font-size: 18px;
 }
-
 .public-service-action
   > span {
   margin-top: 1px;
-
   color: #8d96a7;
-
   font-size: 9px;
 }
-
 .public-service-action button {
   width: 100%;
-
   height: 37px;
-
   margin-top: 12px;
-
   display: flex;
-
   align-items: center;
-
   justify-content: center;
-
   gap: 8px;
-
   border: 0;
-
   border-radius: 9px;
-
   background: #101c3a;
-
   color: #ffffff;
-
   font-family: inherit;
-
   font-size: 9px;
-
   font-weight: 800;
-
   cursor: pointer;
 }
-
 .public-service-action button:hover {
   background: #5c7cff;
 }
-
 .public-service-action button b {
   font-size: 13px;
 }
-
 /* =================================== */
 /* EMPTY SERVICES */
 /* =================================== */
-
 .public-services-empty {
   padding: 35px;
-
   display: flex;
-
   flex-direction: column;
-
   align-items: center;
-
   text-align: center;
-
   background: #f7f8fb;
-
   border-radius: 14px;
 }
-
 .public-services-empty > div {
   width: 44px;
-
   height: 44px;
-
   display: flex;
-
   align-items: center;
-
   justify-content: center;
-
   margin-bottom: 12px;
-
   background: #eef1ff;
-
   border-radius: 12px;
-
   color: #5c7cff;
-
   font-size: 20px;
 }
-
 .public-services-empty h3 {
   margin: 0;
-
   color: #25304a;
-
   font-size: 13px;
 }
-
 .public-services-empty p {
   margin: 6px 0 0;
-
   color: #8993a5;
-
   font-size: 10px;
 }
-
 /* =================================== */
 /* REVIEWS */
 /* =================================== */
-
 .public-reviews-empty {
   display: flex;
-
   align-items: center;
-
   gap: 15px;
-
   padding: 20px;
-
   background: #fafbfc;
-
   border:
     1px solid #eaedf2;
-
   border-radius: 14px;
 }
-
 .public-reviews-symbol {
   width: 48px;
-
   height: 48px;
-
   flex-shrink: 0;
-
   display: flex;
-
   align-items: center;
-
   justify-content: center;
-
   background: #fff8e5;
-
   border-radius: 13px;
-
   color: #dfa51e;
-
   font-size: 18px;
 }
-
 .public-reviews-empty h3 {
   margin: 0;
-
   color: #27314a;
-
   font-size: 12px;
 }
-
 .public-reviews-empty p {
   max-width: 440px;
-
   margin: 5px 0 0;
-
   color: #8a94a6;
-
   font-size: 10px;
-
   line-height: 1.55;
 }
-
 /* =================================== */
 /* HIRE */
 /* =================================== */
-
 .public-hire-card {
   position: sticky;
-
   top: 24px;
-
   padding: 27px;
-
   background: #101c3a;
-
   border-radius: 20px;
-
   color: #ffffff;
-
   box-shadow:
     0 15px 38px
     rgba(
@@ -1017,44 +662,28 @@
       0.15
     );
 }
-
 .public-hire-eyebrow {
   display: block;
-
   margin-bottom: 11px;
-
   color: #91a3ff;
-
   font-size: 8px;
-
   font-weight: 900;
-
   letter-spacing: 1.4px;
 }
-
 .public-hire-card h2 {
   margin: 0;
-
   font-size: 20px;
-
   line-height: 1.3;
 }
-
 .public-hire-card > p {
   margin: 10px 0 0;
-
   color: #a1acc3;
-
   font-size: 10px;
-
   line-height: 1.65;
 }
-
 .public-hire-price {
   margin-top: 22px;
-
   padding: 18px;
-
   background:
     rgba(
       255,
@@ -1062,7 +691,6 @@
       255,
       0.055
     );
-
   border:
     1px solid
     rgba(
@@ -1071,39 +699,26 @@
       255,
       0.06
     );
-
   border-radius: 14px;
 }
-
 .public-hire-price span {
   display: block;
-
   color: #8f9bb5;
-
   font-size: 8px;
 }
-
 .public-hire-price strong {
   display: block;
-
   margin-top: 4px;
-
   color: #ffffff;
-
   font-size: 24px;
 }
-
 .public-hire-price small {
   color: #9faac1;
-
   font-size: 9px;
 }
-
 .public-hire-divider {
   height: 1px;
-
   margin: 22px 0;
-
   background:
     rgba(
       255,
@@ -1112,31 +727,20 @@
       0.08
     );
 }
-
 .public-hire-feature {
   display: flex;
-
   align-items: flex-start;
-
   gap: 10px;
-
   margin-bottom: 16px;
 }
-
 .public-hire-feature
   > span {
   width: 24px;
-
   height: 24px;
-
   flex-shrink: 0;
-
   display: flex;
-
   align-items: center;
-
   justify-content: center;
-
   background:
     rgba(
       92,
@@ -1144,65 +748,38 @@
       255,
       0.17
     );
-
   border-radius: 7px;
-
   color: #aebbff;
-
   font-size: 9px;
-
   font-weight: 900;
 }
-
 .public-hire-feature strong {
   display: block;
-
   font-size: 10px;
 }
-
 .public-hire-feature small {
   display: block;
-
   margin-top: 4px;
-
   color: #8f9bb4;
-
   font-size: 8px;
-
   line-height: 1.4;
 }
-
 .public-hire-button {
   width: 100%;
-
   height: 45px;
-
   margin-top: 9px;
-
   display: flex;
-
   align-items: center;
-
   justify-content: center;
-
   gap: 9px;
-
   border: 0;
-
   border-radius: 10px;
-
   background: #5c7cff;
-
   color: #ffffff;
-
   font-family: inherit;
-
   font-size: 10px;
-
   font-weight: 800;
-
   cursor: pointer;
-
   box-shadow:
     0 9px 22px
     rgba(
@@ -1212,182 +789,117 @@
       0.22
     );
 }
-
 .public-hire-button:hover {
   background: #6d88ff;
 }
-
 .public-hire-button:disabled {
   opacity: 0.5;
-
   cursor: not-allowed;
 }
-
 .public-hire-disclaimer {
   display: block;
-
   margin-top: 12px;
-
   color: #7e8ba8;
-
   font-size: 8px;
-
   line-height: 1.5;
-
   text-align: center;
 }
-
 /* =================================== */
 /* LOADING */
 /* =================================== */
-
 .public-profile-loading,
 .public-profile-error-page {
   min-height: 100vh;
-
   display: flex;
-
   flex-direction: column;
-
   align-items: center;
-
   justify-content: center;
-
   background: #f5f7fb;
-
   text-align: center;
 }
-
 .public-profile-spinner {
   width: 38px;
-
   height: 38px;
-
   border:
     3px solid #dfe4ed;
-
   border-top-color: #5c7cff;
-
   border-radius: 50%;
-
   animation:
     public-profile-spin
     0.8s linear infinite;
 }
-
 .public-profile-loading strong {
   margin-top: 16px;
-
   color: #17213d;
-
   font-size: 14px;
 }
-
 .public-profile-loading span {
   margin-top: 6px;
-
   color: #8993a5;
-
   font-size: 10px;
 }
-
 .public-profile-error-icon {
   width: 55px;
-
   height: 55px;
-
   display: flex;
-
   align-items: center;
-
   justify-content: center;
-
   margin-bottom: 16px;
-
   background: #eef1ff;
-
   border-radius: 15px;
-
   color: #5c7cff;
-
   font-size: 20px;
-
   font-weight: 900;
 }
-
 .public-profile-error-page h1 {
   margin: 0;
-
   color: #17213d;
-
   font-size: 22px;
 }
-
 .public-profile-error-page p {
   margin: 9px 0 20px;
-
   color: #8590a4;
-
   font-size: 11px;
 }
-
 .public-profile-error-page button {
   height: 41px;
-
   padding: 0 17px;
-
   border: 0;
-
   border-radius: 10px;
-
   background: #5c7cff;
-
   color: white;
-
   font-family: inherit;
-
   font-size: 10px;
-
   font-weight: 800;
-
   cursor: pointer;
 }
-
 @keyframes public-profile-spin {
   to {
     transform:
       rotate(360deg);
   }
 }
-
 /* =================================== */
 /* RESPONSIVE */
 /* =================================== */
-
 @media (max-width: 900px) {
   .public-profile-layout {
     grid-template-columns:
       1fr;
   }
-
   .public-hire-card {
     position: static;
   }
-
   .public-profile-hero {
     grid-template-columns:
       100px minmax(0, 1fr);
   }
-
   .public-profile-avatar {
     width: 90px;
-
     height: 90px;
-
     border-radius: 22px;
   }
 }
-
 @media (max-width: 650px) {
   .public-profile-navbar
     nav
@@ -1396,66 +908,49 @@
     ) {
     display: none;
   }
-
   .public-profile-navbar-inner,
   .public-profile-container {
     width:
       calc(100% - 28px);
   }
-
   .public-profile-container {
     padding-top: 24px;
   }
-
   .public-profile-hero {
     grid-template-columns:
       1fr;
-
     padding: 27px;
   }
-
   .public-profile-name-row h1 {
     font-size: 28px;
   }
-
   .public-profile-meta {
     flex-direction: column;
-
     gap: 16px;
   }
-
   .public-profile-meta > div,
   .public-profile-meta
     > div:first-child {
     padding: 0;
-
     border: 0;
   }
-
   .public-profile-section {
     padding: 23px 20px;
   }
-
   .public-service-card {
     grid-template-columns:
       1fr;
   }
-
   .public-service-action {
     align-items: flex-start;
-
     padding:
       17px 0 0;
-
     border-left: 0;
-
     border-top:
       1px solid #e7eaf0;
   }
-
   .public-profile-favorite {
     width: 39px;
-
     height: 39px;
   }
 }

@@ -1,70 +1,51 @@
 import {
   useState,
 } from 'react';
-
 import {
   Link,
   useNavigate,
   useSearchParams,
 } from 'react-router-dom';
-
 import { api } from '../../api/api';
-
 import logo from '../../assets/logo.png';
-
 import './ResetPassword.css';
-
 const ResetPassword = () => {
   const navigate =
     useNavigate();
-
   const [searchParams] =
     useSearchParams();
-
   const token =
     searchParams.get('token') || '';
-
   const [password, setPassword] =
     useState('');
-
   const [
     confirmPassword,
     setConfirmPassword,
   ] = useState('');
-
   const [loading, setLoading] =
     useState(false);
-
   const [error, setError] =
     useState('');
-
   const [success, setSuccess] =
     useState('');
-
   const handleSubmit = async (
     e: React.FormEvent
   ) => {
     e.preventDefault();
-
     setError('');
     setSuccess('');
-
     if (!token) {
       setError(
         'El enlace de recuperación no contiene un token válido.'
       );
-
       return;
     }
-
     if (password.length < 8) {
       setError(
         'La contraseña debe tener al menos 8 caracteres.'
       );
-
       return;
     }
-
     if (
       password !==
       confirmPassword
@@ -72,13 +53,10 @@ const ResetPassword = () => {
       setError(
         'Las contraseñas no coinciden.'
       );
-
       return;
     }
-
     try {
       setLoading(true);
-
       const response =
         await api.post(
           '/auth/reset-password',
@@ -87,15 +65,12 @@ const ResetPassword = () => {
             password,
           }
         );
-
       setSuccess(
         response.data?.message ||
           'Tu contraseña fue actualizada correctamente.'
       );
-
       setPassword('');
       setConfirmPassword('');
-
       setTimeout(() => {
         navigate(
           '/login',
@@ -104,14 +79,12 @@ const ResetPassword = () => {
           }
         );
       }, 2000);
-
     } catch (error: any) {
       console.error(
         'RESET PASSWORD ERROR:',
         error.response?.data ||
           error
       );
-
       setError(
         error.response?.data
           ?.message ||
@@ -121,11 +94,9 @@ const ResetPassword = () => {
       setLoading(false);
     }
   };
-
   return (
     <div className="reset-password-page">
       <div className="reset-password-card">
-
         <Link
           to="/"
           className="reset-password-logo"
@@ -135,21 +106,17 @@ const ResetPassword = () => {
             alt="FASYN"
           />
         </Link>
-
         <span className="reset-password-label">
           NUEVA CONTRASEÑA
         </span>
-
         <h1>
           Crea una nueva contraseña
         </h1>
-
         <p className="reset-password-description">
           Ingresa una nueva contraseña
           para recuperar el acceso
           a tu cuenta.
         </p>
-
         <form
           onSubmit={handleSubmit}
         >
@@ -157,7 +124,6 @@ const ResetPassword = () => {
             <label htmlFor="password">
               Nueva contraseña
             </label>
-
             <input
               id="password"
               type="password"
@@ -172,12 +138,10 @@ const ResetPassword = () => {
               required
             />
           </div>
-
           <div className="form-field">
             <label htmlFor="confirmPassword">
               Confirmar contraseña
             </label>
-
             <input
               id="confirmPassword"
               type="password"
@@ -192,19 +156,16 @@ const ResetPassword = () => {
               required
             />
           </div>
-
           {error && (
             <div className="reset-error">
               {error}
             </div>
           )}
-
           {success && (
             <div className="reset-success">
               {success}
             </div>
           )}
-
           <button
             type="submit"
             className="reset-submit"
@@ -215,17 +176,14 @@ const ResetPassword = () => {
               : 'Cambiar contraseña'}
           </button>
         </form>
-
         <Link
           to="/login"
           className="back-login"
         >
           Volver a iniciar sesión
         </Link>
-
       </div>
     </div>
   );
 };
-
 export default ResetPassword;

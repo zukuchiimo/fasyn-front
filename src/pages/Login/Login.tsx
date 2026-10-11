@@ -6,13 +6,10 @@ import {
 } from 'react-router-dom';
 import { api } from '../../api/api';
 import logo from '../../assets/logo.png';
-
 import './Login.css';
-
 const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
-
   const loginState =
     location.state as
     | {
@@ -23,60 +20,48 @@ const Login = () => {
     | null;
   const [email, setEmail] =
     useState('');
-
   const [password, setPassword] =
     useState('');
-
   const [loading, setLoading] =
     useState(false);
-
   const [error, setError] =
     useState('');
   const [resending, setResending] =
     useState(false);
-
   const [verificationSent, setVerificationSent] =
     useState(false);
   const [
     specialistDisabled,
     setSpecialistDisabled,
   ] = useState(false);
-
   const handleCloseDisabledModal = () => {
     setSpecialistDisabled(false);
     setPassword('');
   };
-
   const supportEmail =
     'rbenito@fasyn.com';
-
   const supportMailSubject =
     'Solicitud de revisión de cuenta de especialista';
-
   const supportMailBody =
     `Hola equipo de FASYN,%0D%0A%0D%0A` +
     `Mi cuenta de especialista aparece como dada de baja y no puedo ingresar al panel profesional.%0D%0A%0D%0A` +
     `Correo asociado a mi cuenta: ${encodeURIComponent(email)}%0D%0A%0D%0A` +
     `Solicito por favor la revisión del estado de mi cuenta.%0D%0A%0D%0A` +
     `Gracias.`;
-
   const supportMailUrl =
     `mailto:${supportEmail}` +
     `?subject=${encodeURIComponent(
       supportMailSubject
     )}` +
     `&body=${supportMailBody}`;
-
   const handleLogin = async (
     e: React.FormEvent
   ) => {
     e.preventDefault();
-
     try {
       setLoading(true);
       setError('');
       setSpecialistDisabled(false);
-
       /*
         1. LOGIN
       */
@@ -88,23 +73,18 @@ const Login = () => {
             password,
           }
         );
-
       const {
         token,
         user,
       } = response.data;
-
       console.log(
         'USUARIO LOGIN:',
         user
       );
-
       /*
         VALIDAMOS EL ESTADO REAL DE LA CUENTA.
-
         active = false significa que el
         administrador dio de baja la cuenta.
-
         NO usamos specialistProfile.available
         para controlar el acceso.
       */
@@ -114,11 +94,9 @@ const Login = () => {
         localStorage.removeItem(
           'token'
         );
-
         localStorage.removeItem(
           'user'
         );
-
         if (
           user.role ===
           'SPECIALIST'
@@ -131,12 +109,9 @@ const Login = () => {
             'Tu cuenta se encuentra deshabilitada. Contacta al equipo de FASYN para revisar su estado.'
           );
         }
-
         setLoading(false);
-
         return;
       }
-
       /*
         GUARDAMOS LA SESIÓN SOLO SI
         LA CUENTA ESTÁ ACTIVA.
@@ -145,12 +120,10 @@ const Login = () => {
         'token',
         token
       );
-
       localStorage.setItem(
         'user',
         JSON.stringify(user)
       );
-
       /*
         3. CLIENTE
       */
@@ -168,17 +141,13 @@ const Login = () => {
               },
             }
           );
-
           return;
         }
-
         navigate('/client', {
           replace: true,
         });
-
         return;
       }
-
       /*
         4. ADMIN
       */
@@ -192,10 +161,8 @@ const Login = () => {
             replace: true,
           }
         );
-
         return;
       }
-
       /*
         5. ESPECIALISTA
       */
@@ -207,7 +174,6 @@ const Login = () => {
           /*
             AQUÍ SOLO CONSULTAMOS EL PERFIL
             PARA SABER SI YA ESTÁ COMPLETO.
-
             available NO controla el login.
           */
           const profileResponse =
@@ -220,23 +186,19 @@ const Login = () => {
                 },
               }
             );
-
           console.log(
             'PERFIL ESPECIALISTA:',
             profileResponse.data
           );
-
           const profile =
             profileResponse.data
               ?.profile ??
             profileResponse.data;
-
           console.log(
             'PROFILE COMPLETED:',
             profile
               ?.profileCompleted
           );
-
           /*
             PERFIL COMPLETO
           */
@@ -251,10 +213,8 @@ const Login = () => {
                 replace: true,
               }
             );
-
             return;
           }
-
           /*
             PERFIL INCOMPLETO
           */
@@ -264,9 +224,7 @@ const Login = () => {
               replace: true,
             }
           );
-
           return;
-
         } catch (
         profileError: any
         ) {
@@ -276,7 +234,6 @@ const Login = () => {
               .response?.data ||
             profileError
           );
-
           /*
             SI TODAVÍA NO EXISTE
             PERFIL, LO MANDAMOS
@@ -290,23 +247,17 @@ const Login = () => {
             navigate(
               '/specialist/setup'
             );
-
             return;
           }
-
           throw profileError;
         }
       }
-
       navigate('/');
-
     } catch (error: any) {
-
       console.error(
         'LOGIN ERROR:',
         error.response?.data || error
       );
-
       if (
         error.response?.data?.code ===
         'EMAIL_NOT_VERIFIED'
@@ -314,10 +265,8 @@ const Login = () => {
         setError(
           'Este correo ya está registrado pero todavía no ha sido verificado.'
         );
-
         return;
       }
-
       setError(
         error.response?.data?.message ||
         'No fue posible iniciar sesión. Verifica tu correo y contraseña.'
@@ -326,19 +275,16 @@ const Login = () => {
       setLoading(false);
     }
   };
-
   const handleResendVerification = async () => {
     try {
       setResending(true);
       setVerificationSent(false);
-
       await api.post(
         '/auth/resend-verification',
         {
           email,
         }
       );
-
       setVerificationSent(true);
       setError('');
     } catch (error: any) {
@@ -352,9 +298,7 @@ const Login = () => {
   };
   return (
     <div className="login-page">
-
       <section className="login-brand">
-
         <Link
           to="/"
           className="brand-logo"
@@ -364,13 +308,10 @@ const Login = () => {
             alt="FASYN"
           />
         </Link>
-
         <div className="brand-content">
-
           <span className="brand-label">
             SERVICIOS PARA TU HOGAR Y NEGOCIO
           </span>
-
           <h1>
             Encuentra al especialista
             <span>
@@ -378,7 +319,6 @@ const Login = () => {
               que necesitas.
             </span>
           </h1>
-
           <p className="brand-description">
             Conecta con profesionales
             para resolver trabajos,
@@ -387,142 +327,103 @@ const Login = () => {
             proyectos de forma
             sencilla.
           </p>
-
           <div className="services-preview">
-
             <div className="service-item">
-
               <span className="service-index">
                 01
               </span>
-
               <div>
                 <strong>
                   Carpintería
                 </strong>
-
                 <p>
                   Reparación,
                   instalación y
                   fabricación.
                 </p>
               </div>
-
             </div>
-
             <div className="service-item">
-
               <span className="service-index">
                 02
               </span>
-
               <div>
                 <strong>
                   Plomería
                 </strong>
-
                 <p>
                   Instalaciones,
                   fugas y
                   mantenimiento.
                 </p>
               </div>
-
             </div>
-
             <div className="service-item">
-
               <span className="service-index">
                 03
               </span>
-
               <div>
                 <strong>
                   Pintura
                 </strong>
-
                 <p>
                   Interiores,
                   exteriores y
                   acabados.
                 </p>
               </div>
-
             </div>
-
             <div className="service-item">
-
               <span className="service-index">
                 04
               </span>
-
               <div>
                 <strong>
                   Y mucho más
                 </strong>
-
                 <p>
                   Especialistas para
                   cada tipo de
                   proyecto.
                 </p>
               </div>
-
             </div>
-
           </div>
-
         </div>
-
         <div className="brand-footer">
-
           <span>
             FASYN
           </span>
-
           <span>
             Encuentra. Contrata.
             Resuelve.
           </span>
-
         </div>
-
       </section>
-
       <section className="login-access">
-
         <div className="login-card">
-
           <div className="login-heading">
-
             <span className="access-label">
               ACCESO
             </span>
-
             <h2>
               Bienvenido
             </h2>
-
             <p>
               Ingresa a tu cuenta
               para continuar en
               FASYN.
             </p>
-
           </div>
-
           <form
             onSubmit={
               handleLogin
             }
           >
-
             <div className="form-field">
-
               <label htmlFor="email">
                 Correo electrónico
               </label>
-
               <input
                 id="email"
                 type="email"
@@ -536,22 +437,16 @@ const Login = () => {
                 autoComplete="email"
                 required
               />
-
             </div>
-
             <div className="form-field">
-
               <div className="password-header">
-
                 <label htmlFor="password">
                   Contraseña
                 </label>
-
                 <Link to="/forgot-password">
                   ¿Olvidaste tu contraseña?
                 </Link>
               </div>
-
               <input
                 id="password"
                 type="password"
@@ -565,13 +460,10 @@ const Login = () => {
                 autoComplete="current-password"
                 required
               />
-
             </div>
-
             {error && (
               <div className="login-error">
                 <div>{error}</div>
-
                 {error.includes(
                   'todavía no ha sido verificado'
                 ) && (
@@ -587,13 +479,11 @@ const Login = () => {
                   )}
               </div>
             )}
-
             {verificationSent && (
               <div className="login-success">
                 Te enviamos un nuevo correo de verificación.
               </div>
             )}
-
             <button
               type="submit"
               className="login-submit"
@@ -603,52 +493,37 @@ const Login = () => {
                 ? 'Ingresando...'
                 : 'Iniciar sesión'}
             </button>
-
           </form>
-
           <div className="create-account">
-
             <span>
               ¿Todavía no tienes
               cuenta?
             </span>
-
             <Link to="/register">
               Crear una cuenta
             </Link>
-
           </div>
-
           <div className="login-separator">
-
             <span />
-
             <p>
               o
             </p>
-
             <span />
-
           </div>
-
           <Link
             to="/specialists"
             className="explore-button"
           >
             Explorar especialistas
           </Link>
-
           <p className="specialist-message">
             ¿Ofreces servicios
             profesionales? Crea tu
             perfil en FASYN y conecta
             con nuevos clientes.
           </p>
-
         </div>
-
       </section>
-
       {specialistDisabled && (
         <div
           className="specialist-disabled-backdrop"
@@ -663,35 +538,29 @@ const Login = () => {
             <div className="specialist-disabled-icon">
               !
             </div>
-
             <span className="specialist-disabled-label">
               CUENTA DE ESPECIALISTA
             </span>
-
             <h2
               id="specialist-disabled-title"
             >
               Tu perfil fue dado de baja
             </h2>
-
             <p>
               Tu cuenta de especialista se
               encuentra deshabilitada y por
               el momento no puedes ingresar
               al panel profesional.
             </p>
-
             <div className="specialist-disabled-notice">
               <strong>
                 ¿Consideras que se trata de un error?
               </strong>
-
               <span>
                 Puedes enviar un correo al equipo
                 de FASYN explicando tu caso para
                 solicitar la revisión de tu cuenta.
               </span>
-
               <a
                 className="specialist-disabled-email"
                 href={supportMailUrl}
@@ -699,7 +568,6 @@ const Login = () => {
                 rbenito@fasyn.com
               </a>
             </div>
-
             <div className="specialist-disabled-actions">
               <a
                 className="specialist-disabled-contact-button"
@@ -707,7 +575,6 @@ const Login = () => {
               >
                 Enviar correo a soporte
               </a>
-
               <button
                 type="button"
                 className="specialist-disabled-button"
@@ -721,9 +588,7 @@ const Login = () => {
           </div>
         </div>
       )}
-
     </div>
   );
 };
-
 export default Login;

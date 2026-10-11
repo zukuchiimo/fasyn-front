@@ -2,16 +2,12 @@ import {
   useEffect,
   useState,
 } from 'react';
-
 import {
   useNavigate,
 } from 'react-router-dom';
-
 import { api } from '../../api/api';
 import logo from '../../assets/logo.png';
-
 import './AdminDashboard.css';
-
 type RequestStatus =
   | 'PENDING_ADMIN'
   | 'APPROVED'
@@ -19,30 +15,25 @@ type RequestStatus =
   | 'IN_PROGRESS'
   | 'COMPLETED'
   | 'CANCELLED';
-
 type AdminRequest = {
   id: number;
   status: RequestStatus;
   message?: string | null;
   createdAt: string;
-
   client: {
     id: number;
     name: string;
     email: string;
   };
-
   service: {
     id: number;
     name: string;
     price: number;
     priceType: string;
-
     category: {
       id: number;
       name: string;
     };
-
     specialist: {
       user: {
         id: number;
@@ -52,31 +43,26 @@ type AdminRequest = {
     };
   };
 };
-
 type AdminStats = {
   pending: number;
   specialists: number;
   clients: number;
   services: number;
 };
-
 const AdminDashboard = () => {
   const navigate = useNavigate();
-
   const [
     userName,
     setUserName,
   ] = useState(
     'Administrador'
   );
-
   const [
     requests,
     setRequests,
   ] = useState<
     AdminRequest[]
   >([]);
-
   const [
     stats,
     setStats,
@@ -86,24 +72,20 @@ const AdminDashboard = () => {
     clients: 0,
     services: 0,
   });
-
   const [
     loading,
     setLoading,
   ] = useState(true);
-
   const [
     error,
     setError,
   ] = useState('');
-
   const [
     processingId,
     setProcessingId,
   ] = useState<
     number | null
   >(null);
-
   /*
     CARGAR USUARIO
   */
@@ -113,13 +95,11 @@ const AdminDashboard = () => {
         localStorage.getItem(
           'user'
         );
-
       if (storedUser) {
         const user =
           JSON.parse(
             storedUser
           );
-
         if (user?.name) {
           setUserName(
             user.name
@@ -132,10 +112,8 @@ const AdminDashboard = () => {
         error
       );
     }
-
     loadAdminData();
   }, []);
-
   /*
     CARGAR SOLICITUDES
   */
@@ -146,15 +124,12 @@ const AdminDashboard = () => {
           localStorage.getItem(
             'token'
           );
-
         if (!token) {
           navigate('/login');
           return;
         }
-
         setLoading(true);
         setError('');
-
         const response =
           await api.get(
             '/admin/requests',
@@ -165,18 +140,15 @@ const AdminDashboard = () => {
               },
             }
           );
-
         console.log(
           'SOLICITUDES ADMIN:',
           response.data
         );
-
         setRequests(
           response.data
             ?.requests ||
           []
         );
-
         setStats(
           response.data
             ?.stats || {
@@ -195,7 +167,6 @@ const AdminDashboard = () => {
             ?.data ||
           requestError
         );
-
         if (
           requestError.response
             ?.status === 401
@@ -203,15 +174,12 @@ const AdminDashboard = () => {
           localStorage.removeItem(
             'token'
           );
-
           localStorage.removeItem(
             'user'
           );
-
           navigate('/login');
           return;
         }
-
         if (
           requestError.response
             ?.status === 403
@@ -219,10 +187,8 @@ const AdminDashboard = () => {
           setError(
             'Este usuario no tiene permisos de administrador. Cierra sesión y vuelve a iniciar sesión.'
           );
-
           return;
         }
-
         setError(
           requestError.response
             ?.data?.message ||
@@ -232,7 +198,6 @@ const AdminDashboard = () => {
         setLoading(false);
       }
     };
-
   /*
     APROBAR SOLICITUD
   */
@@ -245,18 +210,14 @@ const AdminDashboard = () => {
           localStorage.getItem(
             'token'
           );
-
         if (!token) {
           navigate('/login');
           return;
         }
-
         setProcessingId(
           requestId
         );
-
         setError('');
-
         await api.patch(
           `/admin/requests/${requestId}/approve`,
           {},
@@ -267,7 +228,6 @@ const AdminDashboard = () => {
             },
           }
         );
-
         await loadAdminData();
       } catch (
       requestError: any
@@ -278,7 +238,6 @@ const AdminDashboard = () => {
             ?.data ||
           requestError
         );
-
         setError(
           requestError.response
             ?.data?.message ||
@@ -290,7 +249,6 @@ const AdminDashboard = () => {
         );
       }
     };
-
   /*
     RECHAZAR SOLICITUD
   */
@@ -303,18 +261,14 @@ const AdminDashboard = () => {
           localStorage.getItem(
             'token'
           );
-
         if (!token) {
           navigate('/login');
           return;
         }
-
         setProcessingId(
           requestId
         );
-
         setError('');
-
         await api.patch(
           `/admin/requests/${requestId}/reject`,
           {},
@@ -325,7 +279,6 @@ const AdminDashboard = () => {
             },
           }
         );
-
         await loadAdminData();
       } catch (
       requestError: any
@@ -336,7 +289,6 @@ const AdminDashboard = () => {
             ?.data ||
           requestError
         );
-
         setError(
           requestError.response
             ?.data?.message ||
@@ -348,7 +300,6 @@ const AdminDashboard = () => {
         );
       }
     };
-
   const formatPrice = (
     price: number
   ) => {
@@ -364,7 +315,6 @@ const AdminDashboard = () => {
       }
     );
   };
-
   const formatDate = (
     value: string
   ) => {
@@ -378,64 +328,45 @@ const AdminDashboard = () => {
       }
     );
   };
-
   const getStatusLabel = (
     status: RequestStatus
   ) => {
     switch (status) {
       case 'PENDING_ADMIN':
         return 'Pendiente';
-
       case 'APPROVED':
         return 'Aprobada';
-
       case 'REJECTED':
         return 'Rechazada';
-
       case 'IN_PROGRESS':
         return 'En proceso';
-
       case 'COMPLETED':
         return 'Completada';
-
       case 'CANCELLED':
         return 'Cancelada';
-
       default:
         return status;
     }
   };
-
 const handleLogout = () => {
   localStorage.removeItem('token');
   localStorage.removeItem('user');
-
   window.location.replace('/login');
 };
-
   return (
     <div className="admin-page">
-
       {/* SIDEBAR */}
-
       <aside className="admin-sidebar">
-
         <div className="admin-brand">
-
           <img
             src={logo}
             alt="FASYN"
           />
-
           <span>
             ADMIN
           </span>
-
         </div>
-
- 
 <nav className="admin-menu">
-
   <button
     type="button"
     className={
@@ -450,9 +381,6 @@ const handleLogout = () => {
     <span>◫</span>
     Solicitudes
   </button>
-
- 
-
   <button
     type="button"
     className={
@@ -467,7 +395,6 @@ const handleLogout = () => {
     <span>♙</span>
     Especialistas
   </button>
-
   <button
     type="button"
     className={
@@ -482,7 +409,6 @@ const handleLogout = () => {
     <span>♧</span>
     Clientes
   </button>
-
   <button
     type="button"
     className={
@@ -497,7 +423,6 @@ const handleLogout = () => {
     <span>◇</span>
     Categorías
   </button>
-
   <button
     type="button"
     className={
@@ -512,11 +437,8 @@ const handleLogout = () => {
     <span>$</span>
     Pagos
   </button>
-
 </nav>
-
         <div className="admin-sidebar-bottom">
-
           <button
             type="button"
             onClick={
@@ -525,149 +447,100 @@ const handleLogout = () => {
           >
             Cerrar sesión
           </button>
-
         </div>
-
       </aside>
-
       {/* CONTENT */}
-
       <main className="admin-content">
-
         <header className="admin-header">
-
           <div>
-
             <span>
               PANEL DE CONTROL
             </span>
-
             <h1>
               Administrador
             </h1>
-
             <p>
               Gestiona las solicitudes
               y usuarios de FASYN.
             </p>
-
           </div>
-
           <div className="admin-user">
-
             <div className="admin-user-avatar">
               {userName
                 .charAt(0)
                 .toUpperCase()}
             </div>
-
             <div>
-
               <strong>
                 {userName}
               </strong>
-
               <span>
                 Administrador
               </span>
-
             </div>
-
           </div>
-
         </header>
-
         {/* ESTADÍSTICAS */}
-
         <section className="admin-stats">
-
           <article>
-
             <span>
               SOLICITUDES PENDIENTES
             </span>
-
             <strong>
               {stats.pending}
             </strong>
-
             <small>
               Por revisar
             </small>
-
           </article>
-
           <article>
-
             <span>
               ESPECIALISTAS
             </span>
-
             <strong>
               {stats.specialists}
             </strong>
-
             <small>
               Registrados
             </small>
-
           </article>
-
           <article>
-
             <span>
               CLIENTES
             </span>
-
             <strong>
               {stats.clients}
             </strong>
-
             <small>
               Registrados
             </small>
-
           </article>
-
           <article>
-
             <span>
               SERVICIOS
             </span>
-
             <strong>
               {stats.services}
             </strong>
-
             <small>
               Publicados
             </small>
-
           </article>
-
         </section>
-
         {/* SOLICITUDES */}
-
         <section
           id="admin-requests"
           className="admin-panel"
         >
-
           <div className="admin-panel-header">
-
             <div>
-
               <span>
                 SOLICITUDES
               </span>
-
               <h2>
                 Solicitudes registradas
               </h2>
-
             </div>
-
             <button
               type="button"
               className="admin-refresh"
@@ -677,89 +550,62 @@ const handleLogout = () => {
             >
               Actualizar
             </button>
-
           </div>
-
           {error && (
             <div className="admin-error">
               {error}
             </div>
           )}
-
           {loading ? (
-
             <div className="admin-empty">
-
               <div>
                 …
               </div>
-
               <h3>
                 Cargando
                 solicitudes
               </h3>
-
               <p>
                 Consultando la
                 información de FASYN.
               </p>
-
             </div>
-
           ) : requests.length ===
             0 ? (
-
             <div className="admin-empty">
-
               <div>
                 ✓
               </div>
-
               <h3>
                 Sin solicitudes
               </h3>
-
               <p>
                 Actualmente no hay
                 solicitudes registradas.
               </p>
-
             </div>
-
           ) : (
-
             <div className="admin-requests-list">
-
               {requests.map(
                 (request) => (
-
                   <article
                     key={
                       request.id
                     }
                     className="admin-request-card"
                   >
-
                     <div className="admin-request-main">
-
                       <div className="admin-request-number">
-
                         <span>
                           SOLICITUD
                         </span>
-
                         <strong>
                           #{request.id}
                         </strong>
-
                       </div>
-
                       <div className="admin-request-info">
-
                         <div className="admin-request-title-row">
-
                           <div>
-
                             <span>
                               {
                                 request
@@ -768,7 +614,6 @@ const handleLogout = () => {
                                   .name
                               }
                             </span>
-
                             <h3>
                               {
                                 request
@@ -776,9 +621,7 @@ const handleLogout = () => {
                                   .name
                               }
                             </h3>
-
                           </div>
-
                           <span
                             className={`admin-request-status ${request.status.toLowerCase()}`}
                           >
@@ -786,17 +629,12 @@ const handleLogout = () => {
                               request.status
                             )}
                           </span>
-
                         </div>
-
                         <div className="admin-request-data">
-
                           <div>
-
                             <span>
                               CLIENTE
                             </span>
-
                             <strong>
                               {
                                 request
@@ -804,7 +642,6 @@ const handleLogout = () => {
                                   .name
                               }
                             </strong>
-
                             <small>
                               {
                                 request
@@ -812,15 +649,11 @@ const handleLogout = () => {
                                   .email
                               }
                             </small>
-
                           </div>
-
                           <div>
-
                             <span>
                               ESPECIALISTA
                             </span>
-
                             <strong>
                               {
                                 request
@@ -830,7 +663,6 @@ const handleLogout = () => {
                                   .name
                               }
                             </strong>
-
                             <small>
                               {
                                 request
@@ -840,15 +672,11 @@ const handleLogout = () => {
                                   .email
                               }
                             </small>
-
                           </div>
-
                           <div>
-
                             <span>
                               PRECIO
                             </span>
-
                             <strong>
                               {formatPrice(
                                 request
@@ -856,48 +684,33 @@ const handleLogout = () => {
                                   .price
                               )}
                             </strong>
-
                           </div>
-
                           <div>
-
                             <span>
                               FECHA
                             </span>
-
                             <strong>
                               {formatDate(
                                 request.createdAt
                               )}
                             </strong>
-
                           </div>
-
                         </div>
-
                         {request.message && (
-
                           <div className="admin-request-message">
-
                             <span>
                               MENSAJE DEL CLIENTE
                             </span>
-
                             <p>
                               {
                                 request.message
                               }
                             </p>
-
                           </div>
-
                         )}
-
                         {request.status ===
                           'PENDING_ADMIN' && (
-
                             <div className="admin-request-actions">
-
                               <button
                                 type="button"
                                 className="admin-approve"
@@ -916,7 +729,6 @@ const handleLogout = () => {
                                   ? 'Procesando...'
                                   : 'Aprobar'}
                               </button>
-
                               <button
                                 type="button"
                                 className="admin-reject"
@@ -932,30 +744,18 @@ const handleLogout = () => {
                               >
                                 Rechazar
                               </button>
-
                             </div>
-
                           )}
-
                       </div>
-
                     </div>
-
                   </article>
-
                 )
               )}
-
             </div>
-
           )}
-
         </section>
-
       </main>
-
     </div>
   );
 };
-
 export default AdminDashboard;

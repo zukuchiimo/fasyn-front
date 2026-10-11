@@ -4,18 +4,13 @@ import {
   useMemo,
   useState,
 } from 'react';
-
 import { useNavigate } from 'react-router-dom';
-
 import { api } from '../../api/api';
 import logo from '../../assets/logo.png';
-
 import './AdminCategories.css';
-
 interface CategorySpecialist {
   specialistId: number;
   categoryId: number;
-
   specialist?: {
     id: number;
     user?: {
@@ -25,7 +20,6 @@ interface CategorySpecialist {
     };
   };
 }
-
 interface CategoryService {
   id: number;
   name: string;
@@ -33,7 +27,6 @@ interface CategoryService {
   price: string;
   priceType: string;
   active: boolean;
-
   specialist?: {
     id: number;
     user?: {
@@ -43,41 +36,32 @@ interface CategoryService {
     };
   };
 }
-
 interface Category {
   id: number;
   name: string;
   description?: string | null;
   createdAt: string;
-
   specialists: CategorySpecialist[];
   services: CategoryService[];
 }
-
 interface CategoryForm {
   name: string;
   description: string;
 }
-
 const EMPTY_FORM: CategoryForm = {
   name: '',
   description: '',
 };
-
 const AdminCategories = () => {
   const navigate = useNavigate();
-
   const token =
     localStorage.getItem('token');
-
   const userRaw =
     localStorage.getItem('user');
-
   const [
     categories,
     setCategories,
   ] = useState<Category[]>([]);
-
   const [
     loading,
     setLoading,

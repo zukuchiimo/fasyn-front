@@ -1,30 +1,23 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-
 const PaymentSuccess = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-
   const [loading, setLoading] = useState(true);
-
   const requestId = searchParams.get('requestId');
   const paymentId =
     searchParams.get('payment_id') ||
     searchParams.get('collection_id');
-
   const status =
     searchParams.get('status') ||
     searchParams.get('collection_status');
-
   useEffect(() => {
     console.log('PAYMENT SUCCESS');
     console.log('requestId:', requestId);
     console.log('paymentId:', paymentId);
     console.log('status:', status);
-
     setLoading(false);
   }, [requestId, paymentId, status]);
-
   if (loading) {
     return (
       <div style={styles.container}>
@@ -34,46 +27,38 @@ const PaymentSuccess = () => {
       </div>
     );
   }
-
   return (
     <div style={styles.container}>
       <div style={styles.card}>
         <div style={styles.icon}>✓</div>
-
         <h1 style={styles.title}>
           ¡Solicitud registrada!
         </h1>
-
         <p style={styles.text}>
           Tu pago fue procesado correctamente y tu solicitud de servicio
           fue registrada.
         </p>
-
         {requestId && (
           <div style={styles.info}>
             <span>Solicitud</span>
             <strong>#{requestId}</strong>
           </div>
         )}
-
         {paymentId && (
           <div style={styles.info}>
             <span>ID de pago</span>
             <strong>{paymentId}</strong>
           </div>
         )}
-
         <div style={styles.status}>
           Pago aprobado
         </div>
-
         <button
           style={styles.primaryButton}
           onClick={() => navigate('/client/requests')}
         >
           Ver mis solicitudes
         </button>
-
         <button
           style={styles.secondaryButton}
           onClick={() => navigate('/client')}
@@ -84,7 +69,6 @@ const PaymentSuccess = () => {
     </div>
   );
 };
-
 const styles = {
   container: {
     minHeight: '100vh',
@@ -94,7 +78,6 @@ const styles = {
     background: '#f5f7fa',
     padding: '20px',
   },
-
   card: {
     width: '100%',
     maxWidth: '480px',
@@ -104,7 +87,6 @@ const styles = {
     textAlign: 'center',
     boxShadow: '0 8px 30px rgba(0,0,0,0.08)',
   },
-
   icon: {
     width: '75px',
     height: '75px',
@@ -117,17 +99,14 @@ const styles = {
     fontSize: '42px',
     margin: '0 auto 24px',
   },
-
   title: {
     marginBottom: '12px',
   },
-
   text: {
     color: '#666',
     lineHeight: '1.6',
     marginBottom: '30px',
   },
-
   info: {
     display: 'flex',
     justifyContent: 'space-between',
@@ -136,7 +115,6 @@ const styles = {
     borderRadius: '10px',
     marginBottom: '10px',
   },
-
   status: {
     background: '#dcfce7',
     color: '#166534',
@@ -145,7 +123,6 @@ const styles = {
     margin: '20px 0',
     fontWeight: '600',
   },
-
   primaryButton: {
     width: '100%',
     padding: '14px',
@@ -157,7 +134,6 @@ const styles = {
     fontSize: '16px',
     marginBottom: '10px',
   },
-
   secondaryButton: {
     width: '100%',
     padding: '14px',
@@ -168,5 +144,4 @@ const styles = {
     fontSize: '16px',
   },
 };
-
 export default PaymentSuccess;

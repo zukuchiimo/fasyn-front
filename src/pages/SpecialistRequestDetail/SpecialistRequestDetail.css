@@ -1,21 +1,17 @@
 /* =========================================
    FEISIN - DETALLE DE SOLICITUD
 ========================================= */
-
 * {
   box-sizing: border-box;
 }
-
 .request-detail-page {
   min-height: 100vh;
   background: #f5f6fa;
   color: #182033;
 }
-
 /* =========================================
    HEADER
 ========================================= */
-
 .request-detail-header {
   position: sticky;
   top: 0;
@@ -25,7 +21,6 @@
   border-bottom: 1px solid #e8eaf0;
   backdrop-filter: blur(12px);
 }
-
 .request-detail-header-inner {
   width: 100%;
   max-width: 1380px;
@@ -37,7 +32,6 @@
   justify-content: space-between;
   gap: 20px;
 }
-
 .request-detail-brand {
   border: none;
   background: transparent;
@@ -46,7 +40,6 @@
   align-items: center;
   cursor: pointer;
 }
-
 .request-detail-brand img {
   height: 35px;
   width: auto;
@@ -54,7 +47,6 @@
   display: block;
   object-fit: contain;
 }
-
 .request-detail-back-header {
   min-height: 38px;
   padding: 0 14px;
@@ -72,25 +64,21 @@
     background 0.2s ease,
     transform 0.2s ease;
 }
-
 .request-detail-back-header:hover {
   color: #5c7cff;
   border-color: #ccd4ff;
   background: #f9faff;
   transform: translateY(-1px);
 }
-
 /* =========================================
    CONTENEDOR
 ========================================= */
-
 .request-detail-main {
   width: 100%;
   max-width: 1240px;
   margin: 0 auto;
   padding: 30px 32px 80px;
 }
-
 .request-detail-back {
   margin-bottom: 18px;
   padding: 0;
@@ -108,20 +96,16 @@
     color 0.2s ease,
     transform 0.2s ease;
 }
-
 .request-detail-back span {
   font-size: 15px;
 }
-
 .request-detail-back:hover {
   color: #5c7cff;
   transform: translateX(-3px);
 }
-
 /* =========================================
    HERO
 ========================================= */
-
 .request-detail-hero {
   position: relative;
   overflow: hidden;
@@ -147,7 +131,6 @@
     0 16px 42px
     rgba(24, 32, 51, 0.1);
 }
-
 .request-detail-hero::after {
   content: '';
   position: absolute;
@@ -158,19 +141,16 @@
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 50%;
 }
-
 .request-detail-hero > div {
   position: relative;
   z-index: 2;
 }
-
 .request-detail-meta {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 7px;
 }
-
 .request-number-chip,
 .request-category-chip {
   min-height: 25px;
@@ -182,19 +162,16 @@
   font-weight: 800;
   line-height: 1;
 }
-
 .request-number-chip {
   background: rgba(255, 255, 255, 0.11);
   border: 1px solid rgba(255, 255, 255, 0.12);
   color: #d9dfff;
 }
-
 .request-category-chip {
   background: rgba(92, 124, 255, 0.2);
   border: 1px solid rgba(154, 171, 255, 0.14);
   color: #bcc7ff;
 }
-
 .request-detail-hero h1 {
   margin: 11px 0 0;
   color: #ffffff;
@@ -202,18 +179,15 @@
   line-height: 1.18;
   letter-spacing: -0.45px;
 }
-
 .request-detail-hero-subtitle {
   margin: 6px 0 0 !important;
   color: #aeb7ca !important;
   font-size: 10px !important;
   line-height: 1.45;
 }
-
 /* =========================================
    ESTADO
 ========================================= */
-
 .request-detail-status {
   width: 238px;
   min-height: 64px;
@@ -226,50 +200,41 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(8px);
 }
-
 .request-detail-status > i {
   width: 10px;
   height: 10px;
   flex-shrink: 0;
   border-radius: 50%;
 }
-
 .request-detail-status > div {
   display: flex;
   flex-direction: column;
 }
-
 .request-detail-status strong {
   color: #ffffff;
   font-size: 10px;
 }
-
 .request-detail-status span {
   margin-top: 3px;
   color: #b9c0d0;
   font-size: 8.5px;
   line-height: 1.4;
 }
-
 .request-detail-status.approved > i {
   background: #37c47a;
   box-shadow: 0 0 0 4px rgba(55, 196, 122, 0.12);
 }
-
 .request-detail-status.progress > i {
   background: #f3b84b;
   box-shadow: 0 0 0 4px rgba(243, 184, 75, 0.12);
 }
-
 .request-detail-status.completed > i {
   background: #6d86ff;
   box-shadow: 0 0 0 4px rgba(109, 134, 255, 0.14);
 }
-
 /* =========================================
    GRID GENERAL
 ========================================= */
-
 .request-detail-grid {
   margin-top: 20px;
   display: grid;
@@ -279,17 +244,14 @@
   gap: 20px;
   align-items: start;
 }
-
 .request-detail-content {
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
-
 /* =========================================
    TARJETAS
 ========================================= */
-
 .request-detail-card {
   padding: 21px;
   background: #ffffff;
@@ -299,7 +261,6 @@
     0 5px 20px
     rgba(24, 32, 51, 0.03);
 }
-
 .request-detail-card-heading {
   margin-bottom: 15px;
   display: flex;
@@ -307,14 +268,12 @@
   justify-content: space-between;
   gap: 18px;
 }
-
 .request-detail-card-heading h2,
 .request-detail-card > h2 {
   margin: 0;
   color: #242b3b;
   font-size: 14px;
 }
-
 .request-detail-eyebrow {
   display: block;
   margin-bottom: 5px;
@@ -323,17 +282,14 @@
   font-weight: 800;
   letter-spacing: 1px;
 }
-
 /* =========================================
    CLIENTE
 ========================================= */
-
 .request-client-card {
   display: flex;
   align-items: center;
   gap: 13px;
 }
-
 .request-client-avatar {
   width: 56px;
   height: 56px;
@@ -353,55 +309,45 @@
   font-size: 13px;
   font-weight: 800;
 }
-
 .request-client-avatar img {
   width: 100%;
   height: 100%;
   display: block;
   object-fit: cover;
 }
-
 .request-client-information {
   min-width: 0;
   display: flex;
   flex-direction: column;
 }
-
 .request-client-information strong {
   color: #292f3e;
   font-size: 13px;
 }
-
 .request-client-information span,
 .request-client-information a {
   margin-top: 4px;
   font-size: 9.5px;
 }
-
 .request-client-information span {
   color: #9095a2;
 }
-
 .request-client-information a {
   color: #5c7cff;
   font-weight: 700;
   text-decoration: none;
 }
-
 .request-client-information a:hover {
   text-decoration: underline;
 }
-
 /* =========================================
    DIRECCIÓN
 ========================================= */
-
 .request-address-content {
   display: flex;
   align-items: flex-start;
   gap: 12px;
 }
-
 .request-address-icon {
   width: 39px;
   height: 39px;
@@ -414,12 +360,10 @@
   color: #5c7cff;
   font-size: 18px;
 }
-
 .request-address-content strong {
   color: #363d4d;
   font-size: 9.5px;
 }
-
 .request-address-content p {
   max-width: 680px;
   margin: 5px 0 0;
@@ -427,11 +371,9 @@
   font-size: 10px;
   line-height: 1.6;
 }
-
 /* =========================================
    REFERENCIAS
 ========================================= */
-
 .request-references {
   margin-top: 16px;
   padding: 13px 15px;
@@ -439,7 +381,6 @@
   background: #fafbfe;
   border: 1px solid #eceef4;
 }
-
 .request-references span {
   display: block;
   margin-bottom: 6px;
@@ -448,263 +389,189 @@
   font-weight: 800;
   letter-spacing: 1px;
 }
-
 .request-references p {
   margin: 0;
   color: #515867;
   font-size: 9.5px;
   line-height: 1.55;
 }
-
 /* =========================================
    GOOGLE MAPS
 ========================================= */
-
 .request-map-section {
   overflow: hidden;
 }
-
 .google-map-title-row {
   margin-bottom: 16px;
-
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 20px;
 }
-
 .google-map-title-row h2 {
   margin: 0;
-
   color: #242b3b;
-
   font-size: 14px;
   line-height: 1.2;
 }
-
 .google-map-title-row p {
   margin: 5px 0 0;
-
   color: #9298a5;
-
   font-size: 9px;
   line-height: 1.5;
 }
-
 .google-maps-open-button {
   min-height: 38px;
-
   padding: 0 14px;
-
   flex-shrink: 0;
-
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 7px;
-
   border: none;
   border-radius: 10px;
-
   background: #ffffff;
   color: #315efb;
-
   box-shadow:
     0 0 0 1px #dde3ff,
     0 6px 18px rgba(49, 94, 251, 0.08);
-
   font-family: inherit;
   font-size: 9px;
   font-weight: 800;
-
   cursor: pointer;
-
   transition:
     transform 0.2s ease,
     background 0.2s ease,
     box-shadow 0.2s ease;
 }
-
 .google-maps-open-button:hover:not(:disabled) {
   transform: translateY(-1px);
-
   background: #f8faff;
-
   box-shadow:
     0 0 0 1px #ccd6ff,
     0 9px 22px rgba(49, 94, 251, 0.12);
 }
-
 .google-maps-open-button:disabled {
   opacity: 0.45;
   cursor: not-allowed;
 }
-
 .google-maps-button-icon {
   width: 20px;
   height: 20px;
-
   display: inline-flex;
   align-items: center;
   justify-content: center;
-
   border-radius: 6px;
-
   background: #eef2ff;
   color: #315efb;
-
   font-size: 11px;
 }
-
 .google-map-shell {
   overflow: hidden;
-
   border: 1px solid #e3e6ee;
   border-radius: 16px;
-
   background: #ffffff;
-
   box-shadow:
     0 8px 28px
     rgba(24, 32, 51, 0.06);
 }
-
 .request-google-map {
   width: 100%;
   height: 390px;
-
   display: block;
-
   border: 0;
-
   background: #eef0f5;
 }
-
 .google-map-footer {
   min-height: 62px;
-
   padding: 11px 13px;
-
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-
   background: #ffffff;
-
   border-top: 1px solid #edf0f4;
 }
-
 .google-map-location-copy {
   min-width: 0;
-
   display: flex;
   flex-direction: column;
 }
-
 .google-map-location-copy span {
   color: #9ba0ac;
-
   font-size: 6.5px;
   font-weight: 800;
-
   letter-spacing: 0.8px;
 }
-
 .google-map-location-copy strong {
   margin-top: 3px;
-
   overflow: hidden;
-
   color: #434a59;
-
   font-size: 8.5px;
   font-weight: 600;
   line-height: 1.4;
-
   white-space: nowrap;
   text-overflow: ellipsis;
 }
-
 .google-map-footer button {
   min-height: 34px;
-
   padding: 0 12px;
-
   flex-shrink: 0;
-
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 7px;
-
   border: none;
   border-radius: 9px;
-
   background: #315efb;
   color: #ffffff;
-
   font-family: inherit;
   font-size: 8px;
   font-weight: 800;
-
   cursor: pointer;
-
   box-shadow:
     0 7px 18px
     rgba(49, 94, 251, 0.18);
 }
-
 .google-map-footer button:hover {
   background: #284ed6;
 }
-
 .google-map-footer button span {
   font-size: 11px;
 }
-
 @media (max-width: 700px) {
   .google-map-title-row {
     align-items: flex-start;
     flex-direction: column;
   }
-
   .google-maps-open-button {
     width: 100%;
   }
-
   .request-google-map {
     height: 320px;
   }
-
   .google-map-footer {
     align-items: flex-start;
     flex-direction: column;
   }
-
   .google-map-location-copy {
     width: 100%;
   }
-
   .google-map-location-copy strong {
     white-space: normal;
   }
-
   .google-map-footer button {
     width: 100%;
   }
 }
-
 @media (max-width: 520px) {
   .request-google-map {
     height: 275px;
   }
 }
-
 /* =========================================
    MAPA SIN COORDENADAS
 ========================================= */
-
 .request-map-empty {
   min-height: 220px;
   padding: 26px;
@@ -717,7 +584,6 @@
   border-radius: 14px;
   background: #fafbfe;
 }
-
 .request-map-empty > div {
   width: 46px;
   height: 46px;
@@ -730,12 +596,10 @@
   color: #5c7cff;
   font-size: 21px;
 }
-
 .request-map-empty strong {
   color: #3c4352;
   font-size: 11px;
 }
-
 .request-map-empty p {
   max-width: 400px;
   margin: 6px 0 14px;
@@ -743,7 +607,6 @@
   font-size: 9.5px;
   line-height: 1.55;
 }
-
 .request-map-empty button {
   min-height: 36px;
   padding: 0 14px;
@@ -756,15 +619,12 @@
   font-weight: 700;
   cursor: pointer;
 }
-
 .request-map-empty button:hover {
   background: #f4f6ff;
 }
-
 /* =========================================
    MENSAJE
 ========================================= */
-
 .request-message-box {
   position: relative;
   margin-top: 12px;
@@ -773,7 +633,6 @@
   background: #f8f9fc;
   border-left: 4px solid #5c7cff;
 }
-
 .request-message-box > span {
   position: absolute;
   top: 4px;
@@ -783,25 +642,21 @@
   font-size: 34px;
   line-height: 1;
 }
-
 .request-message-box p {
   margin: 0;
   color: #505766;
   font-size: 10px;
   line-height: 1.6;
 }
-
 .request-service-description {
   margin: 10px 0 0;
   color: #6f7685;
   font-size: 10px;
   line-height: 1.65;
 }
-
 /* =========================================
    SIDEBAR
 ========================================= */
-
 .request-detail-sidebar {
   position: sticky;
   top: 92px;
@@ -809,11 +664,9 @@
   flex-direction: column;
   gap: 15px;
 }
-
 /* =========================================
    RESUMEN
 ========================================= */
-
 .specialist-request-summary-card {
   padding: 20px;
   background: #ffffff;
@@ -823,14 +676,12 @@
     0 6px 22px
     rgba(24, 32, 51, 0.035);
 }
-
 .specialist-request-summary-card h2 {
   margin: 0;
   color: #252c3b;
   font-size: 14px;
   line-height: 1.35;
 }
-
 .specialist-request-summary-category {
   display: inline-flex;
   margin-top: 7px;
@@ -841,53 +692,44 @@
   font-size: 8px;
   font-weight: 800;
 }
-
 /* =========================================
    PRECIO
 ========================================= */
-
 .specialist-request-summary-price {
   margin-top: 18px;
   display: flex;
   flex-direction: column;
 }
-
 .specialist-request-summary-price small {
   color: #999eaa;
   font-size: 7px;
   font-weight: 800;
   letter-spacing: 1px;
 }
-
 .specialist-request-summary-price strong {
   margin-top: 4px;
   color: #182033;
   font-size: 23px;
   letter-spacing: -0.7px;
 }
-
 .specialist-request-summary-price > span {
   margin-top: 1px;
   color: #959aa7;
   font-size: 8.5px;
 }
-
 .specialist-request-summary-divider {
   height: 1px;
   margin: 17px 0 6px;
   background: #eceef3;
 }
-
 /* =========================================
    INFORMACIÓN RESUMEN
 ========================================= */
-
 .specialist-request-summary-information {
   display: flex;
   flex-direction: column;
   gap: 0;
 }
-
 .specialist-request-summary-information > div,
 .specialist-request-summary-row {
   min-height: 45px;
@@ -899,18 +741,15 @@
   gap: 14px;
   border-bottom: 1px solid #eff0f4;
 }
-
 .specialist-request-summary-information > div:last-child {
   border-bottom: none;
 }
-
 .specialist-request-summary-information span {
   margin: 0;
   color: #9298a5;
   font-size: 8px;
   line-height: 1.35;
 }
-
 .specialist-request-summary-information strong {
   margin: 0;
   max-width: 175px;
@@ -920,7 +759,6 @@
   line-height: 1.35;
   text-align: right;
 }
-
 .specialist-request-summary-id {
   padding: 4px 7px;
   border-radius: 6px;
@@ -929,11 +767,9 @@
   font-size: 9px !important;
   font-weight: 800 !important;
 }
-
 /* =========================================
    CÓMO LLEGAR SIDEBAR
 ========================================= */
-
 .specialist-request-summary-directions {
   width: 100%;
   min-height: 42px;
@@ -962,45 +798,37 @@
     transform 0.2s ease,
     box-shadow 0.2s ease;
 }
-
 .specialist-request-summary-directions:hover:not(:disabled) {
   transform: translateY(-2px);
   box-shadow:
     0 12px 26px
     rgba(92, 124, 255, 0.24);
 }
-
 .specialist-request-summary-directions:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
-
 .specialist-request-summary-directions span {
   font-size: 14px;
 }
-
 /* =========================================
    DATOS IMPORTANTES
 ========================================= */
-
 .request-important-card {
   padding: 19px;
   background: #ffffff;
   border: 1px solid #e8eaf0;
   border-radius: 16px;
 }
-
 .request-important-card > div {
   padding: 9px 0;
   display: flex;
   flex-direction: column;
   border-bottom: 1px solid #eff0f4;
 }
-
 .request-important-card > div:last-child {
   border-bottom: none;
 }
-
 .request-important-card strong {
   color: #8f95a2;
   font-size: 7px;
@@ -1008,7 +836,6 @@
   letter-spacing: 0.7px;
   text-transform: uppercase;
 }
-
 .request-important-card span,
 .request-important-card a {
   margin-top: 4px;
@@ -1017,21 +844,17 @@
   line-height: 1.45;
   word-break: break-word;
 }
-
 .request-important-card a {
   color: #5c7cff;
   font-weight: 700;
   text-decoration: none;
 }
-
 .request-important-card a:hover {
   text-decoration: underline;
 }
-
 /* =========================================
    LOADING
 ========================================= */
-
 .request-detail-loading-page {
   min-height: 100vh;
   display: flex;
@@ -1042,7 +865,6 @@
   background: #f5f6fa;
   text-align: center;
 }
-
 .request-detail-loader {
   width: 38px;
   height: 38px;
@@ -1054,28 +876,23 @@
     requestDetailSpin
     0.75s linear infinite;
 }
-
 .request-detail-loading-page strong {
   color: #343b4b;
   font-size: 12px;
 }
-
 .request-detail-loading-page p {
   margin: 5px 0 0;
   color: #969ba8;
   font-size: 9.5px;
 }
-
 @keyframes requestDetailSpin {
   to {
     transform: rotate(360deg);
   }
 }
-
 /* =========================================
    ERROR
 ========================================= */
-
 .request-detail-error-page {
   min-height: 100vh;
   padding: 30px;
@@ -1084,7 +901,6 @@
   justify-content: center;
   background: #f5f6fa;
 }
-
 .request-detail-error-card {
   width: 100%;
   max-width: 450px;
@@ -1097,7 +913,6 @@
     0 16px 42px
     rgba(24, 32, 51, 0.07);
 }
-
 .request-detail-error-card > span {
   width: 48px;
   height: 48px;
@@ -1111,20 +926,17 @@
   font-size: 20px;
   font-weight: 800;
 }
-
 .request-detail-error-card h1 {
   margin: 0;
   color: #292f3e;
   font-size: 19px;
 }
-
 .request-detail-error-card p {
   margin: 9px 0 19px;
   color: #8f95a2;
   font-size: 10px;
   line-height: 1.55;
 }
-
 .request-detail-error-card button {
   min-height: 39px;
   padding: 0 17px;
@@ -1137,15 +949,12 @@
   font-weight: 700;
   cursor: pointer;
 }
-
 .request-detail-error-card button:hover {
   background: #4f70f1;
 }
-
 /* =========================================
    RESPONSIVE
 ========================================= */
-
 @media (max-width: 1050px) {
   .request-detail-grid {
     grid-template-columns:
@@ -1153,12 +962,10 @@
       290px;
   }
 }
-
 @media (max-width: 900px) {
   .request-detail-grid {
     grid-template-columns: 1fr;
   }
-
   .request-detail-sidebar {
     position: static;
     display: grid;
@@ -1166,24 +973,19 @@
       repeat(2, minmax(0, 1fr));
   }
 }
-
 @media (max-width: 700px) {
   .request-detail-header {
     height: 66px;
   }
-
   .request-detail-header-inner {
     padding: 0 16px;
   }
-
   .request-detail-brand img {
     height: 31px;
   }
-
   .request-detail-main {
     padding: 24px 15px 55px;
   }
-
   .request-detail-hero {
     min-height: auto;
     padding: 23px 20px;
@@ -1191,97 +993,76 @@
     align-items: flex-start;
     border-radius: 18px;
   }
-
   .request-detail-hero h1 {
     font-size: 23px;
   }
-
   .request-detail-status {
     width: 100%;
   }
-
   .request-detail-card {
     padding: 18px;
   }
-
   .request-detail-sidebar {
     grid-template-columns: 1fr;
   }
-
   .request-map-container {
     height: 310px;
   }
 }
-
 @media (max-width: 520px) {
   .request-detail-back-header {
     padding: 0 10px;
     font-size: 9px;
   }
-
   .request-detail-hero h1 {
     font-size: 21px;
   }
-
   .request-number-chip,
   .request-category-chip {
     min-height: 23px;
     padding: 0 7px;
     font-size: 7.5px;
   }
-
   .request-detail-card-heading {
     flex-direction: column;
   }
-
   .request-map-heading {
     align-items: flex-start;
   }
-
   .request-directions-button {
     width: 100%;
   }
-
   .request-client-card {
     align-items: flex-start;
   }
-
   .request-address-content {
     flex-direction: column;
   }
-
   .request-map-container {
     height: 270px;
   }
-
   .specialist-request-summary-price strong {
     font-size: 21px;
   }
-
   .specialist-request-summary-information > div,
   .specialist-request-summary-row {
     min-height: 42px;
   }
 }
-
-
 /* =========================================
    RESUMEN LATERAL COMPACTO
    Evita que fechas y número de solicitud
    se vean demasiado grandes.
 ========================================= */
-
 .specialist-request-summary-card {
   padding: 16px;
   border-radius: 15px;
 }
-
 .specialist-request-summary-card h2 {
   margin: 0;
   font-size: 12px;
   line-height: 1.3;
 }
-
 .specialist-request-summary-category {
   margin-top: 6px;
   padding: 4px 7px;
@@ -1291,162 +1072,112 @@
 .service-status-action {
   margin-top: 18px;
   padding: 18px;
-
   border-radius: 16px;
-
   background:
     linear-gradient(
       135deg,
       #fff7ed,
       #ffffff
     );
-
   border: 1px solid #fdba74;
   border-left: 4px solid #f97316;
-
   box-shadow:
     0 10px 24px
     rgba(249, 115, 22, 0.08);
 }
-
 .service-status-action-eyebrow {
   display: block;
-
   margin-bottom: 6px;
-
   color: #c2410c;
-
   font-size: 10px;
   font-weight: 900;
-
   letter-spacing: 0.1em;
 }
-
 .service-status-action h3 {
   margin: 0 0 6px;
-
   color: #0f172a;
-
   font-size: 18px;
   font-weight: 800;
 }
-
 .service-status-action p {
   margin: 0 0 14px;
-
   color: #64748b;
-
   font-size: 13px;
   line-height: 1.5;
 }
-
 .service-status-action button {
   width: 100%;
-
   display: flex;
   align-items: center;
   justify-content: space-between;
-
   min-height: 46px;
-
   padding:
     0 16px;
-
   border: 0;
   border-radius: 12px;
-
   background: #0f172a;
   color: #ffffff;
-
   font-size: 14px;
   font-weight: 800;
-
   cursor: pointer;
-
   transition:
     transform 0.18s ease,
     background 0.18s ease,
     box-shadow 0.18s ease;
 }
-
 .service-status-action button:hover {
   background: #1e293b;
-
   transform:
     translateY(-1px);
-
   box-shadow:
     0 8px 18px
     rgba(15, 23, 42, 0.18);
 }
-
 .service-status-action button:disabled {
   opacity: 0.55;
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
 }
-
 .service-status-message {
   margin-top: 10px;
-
   padding:
     10px 12px;
-
   border-radius: 10px;
-
   background: #ecfdf5;
   color: #047857;
-
   font-size: 13px;
   font-weight: 700;
 }
-
 .service-status-finished {
   display: flex;
   align-items: center;
-
   gap: 12px;
-
   margin-top: 18px;
-
   padding: 15px;
-
   border-radius: 14px;
-
   background: #ecfdf5;
   color: #047857;
-
   border:
     1px solid #a7f3d0;
 }
-
 .service-status-finished > span {
   width: 34px;
   height: 34px;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   flex-shrink: 0;
-
   border-radius: 50%;
-
   background: #d1fae5;
-
   font-weight: 900;
 }
-
 .service-status-finished strong {
   display: block;
-
   margin-bottom: 2px;
 }
-
 .service-status-finished small {
   display: block;
-
   color: #059669;
 }
 .specialist-request-summary-price {
@@ -1455,7 +1186,6 @@
    FEISIN - ESTADO / ACCIONES DEL SERVICIO
    Diseño compacto alineado al resto de SpecialistRequestDetail
    ========================================================= */
-
 .service-execution-card {
   position: relative;
   overflow: hidden;
@@ -1472,7 +1202,6 @@
     0 5px 20px
     rgba(24, 32, 51, 0.035);
 }
-
 .service-execution-card::before {
   content: '';
   position: absolute;
@@ -1487,23 +1216,19 @@
       #7b8fff
     );
 }
-
 .service-execution-card .request-detail-eyebrow {
   margin-bottom: 10px;
   color: #6c83f7;
 }
-
 .service-execution-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
 }
-
 .service-execution-header > div {
   min-width: 0;
 }
-
 .service-execution-header small {
   display: block;
   margin-bottom: 4px;
@@ -1512,14 +1237,12 @@
   font-weight: 800;
   letter-spacing: 0.9px;
 }
-
 .service-execution-header h2 {
   margin: 0;
   color: #252c3b;
   font-size: 15px;
   line-height: 1.25;
 }
-
 .service-execution-header p {
   max-width: 520px;
   margin: 5px 0 0;
@@ -1527,7 +1250,6 @@
   font-size: 9px;
   line-height: 1.55;
 }
-
 .service-execution-status {
   min-height: 24px;
   padding: 0 9px;
@@ -1546,124 +1268,84 @@
 /* =========================================
    MODAL PAGO - SERVICIO FINALIZADO
 ========================================= */
-
 .payment-modal-overlay {
   position: fixed;
   inset: 0;
-
   width: 100%;
   height: 100%;
-
   background: rgba(15, 23, 42, 0.55);
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   padding: 20px;
-
   z-index: 99999;
-
   backdrop-filter: blur(3px);
 }
-
 .payment-modal {
   width: 100%;
   max-width: 420px;
-
   background: #ffffff;
-
   border-radius: 20px;
-
   padding: 32px 28px 26px;
-
   text-align: center;
-
   border: 1px solid #e8ebf8;
-
   box-shadow:
     0 25px 70px rgba(15, 23, 42, 0.25);
-
   animation: paymentModalIn 0.2s ease-out;
 }
-
 .payment-modal-icon {
   width: 64px;
   height: 64px;
-
   margin: 0 auto 18px;
-
   border-radius: 50%;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   background: #eef2ff;
-
   color: #5c7cff;
-
   font-size: 28px;
   font-weight: 700;
 }
-
 .payment-modal h2 {
   margin: 0 0 10px;
-
   font-size: 22px;
   font-weight: 700;
-
   color: #172033;
 }
-
 .payment-modal p {
   margin: 0 0 24px;
-
   font-size: 15px;
   line-height: 1.6;
-
   color: #667085;
 }
-
 .payment-modal button {
   width: 100%;
-
   min-height: 46px;
-
   border: none;
   border-radius: 12px;
-
   background: linear-gradient(
     135deg,
     #5c7cff,
     #6d86ff
   );
-
   color: #ffffff;
-
   font-size: 15px;
   font-weight: 600;
-
   cursor: pointer;
-
   transition:
     transform 0.15s ease,
     box-shadow 0.15s ease;
 }
-
 .payment-modal button:hover {
   transform: translateY(-1px);
-
   box-shadow:
     0 8px 20px rgba(92, 124, 255, 0.28);
 }
-
 @keyframes paymentModalIn {
   from {
     opacity: 0;
     transform: translateY(10px) scale(0.97);
   }
-
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -1674,62 +1356,50 @@
   min-height: 41px;
   margin-top: 14px;
   padding: 0 14px;
-
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-
   border: 0;
   border-radius: 10px;
-
   background:
     linear-gradient(
       135deg,
       #5c7cff,
       #6d86ff
     );
-
   color: #ffffff;
   font-family: inherit;
   font-size: 9.5px;
   font-weight: 800;
-
   cursor: pointer;
-
   box-shadow:
     0 7px 18px
     rgba(92, 124, 255, 0.16);
-
   transition:
     transform 0.18s ease,
     box-shadow 0.18s ease,
     opacity 0.18s ease;
 }
-
 .service-execution-button span {
   font-size: 12px;
   line-height: 1;
 }
-
 .service-execution-button:hover:not(:disabled) {
   transform: translateY(-1px);
   box-shadow:
     0 10px 22px
     rgba(92, 124, 255, 0.22);
 }
-
 .service-execution-button:active:not(:disabled) {
   transform: translateY(0);
 }
-
 .service-execution-button:disabled {
   opacity: 0.55;
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
 }
-
 .service-status-message {
   margin-top: 10px;
   padding: 9px 11px;
@@ -1740,185 +1410,136 @@
   font-size: 8.5px;
   font-weight: 700;
 }
-
 .service-execution-finished {
   margin-top: 10px;
   padding: 11px 12px;
-
   display: flex;
   align-items: center;
   gap: 10px;
-
   border: 1px solid #d8f1e3;
   border-radius: 11px;
-
   background: #f4fbf7;
   color: #237e54;
 }
-
 .service-execution-finished > span {
   width: 28px;
   height: 28px;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   flex-shrink: 0;
-
   border-radius: 50%;
   background: #e0f5e8;
-
   font-size: 12px;
   font-weight: 900;
 }
-
 .service-execution-finished strong {
   display: block;
   font-size: 9.5px;
 }
-
 .service-execution-finished p {
   margin: 3px 0 0;
   color: #6d9d84;
   font-size: 8px;
   line-height: 1.45;
 }
-
 @media (max-width: 700px) {
   .service-execution-card {
     padding: 16px;
   }
-
   .service-execution-header {
     flex-direction: column;
     gap: 10px;
   }
-
   .service-execution-status {
     align-self: flex-start;
   }
-
   .service-execution-button {
     min-height: 44px;
   }
 }
-
-
 .specialist-request-summary-price small {
   font-size: 6.5px;
   letter-spacing: 0.8px;
 }
-
 .specialist-request-summary-price strong {
   margin-top: 3px;
   font-size: 19px;
   line-height: 1.1;
 }
-
 .specialist-request-summary-price > span {
   margin-top: 2px;
   font-size: 7.5px;
 }
-
 .specialist-request-summary-divider {
   margin: 13px 0 3px;
 }
-
 .specialist-request-summary-information {
   display: flex;
   flex-direction: column;
   gap: 0;
 }
-
 .specialist-request-summary-information > div,
 .specialist-request-summary-row {
   width: 100%;
   min-height: 34px;
   padding: 7px 0;
-
   display: grid;
   grid-template-columns: 72px minmax(0, 1fr);
   align-items: center;
   column-gap: 8px;
-
   border-bottom: 1px solid #eff0f4;
 }
-
 .specialist-request-summary-information > div:last-child {
   border-bottom: none;
 }
-
 .specialist-request-summary-information span {
   margin: 0;
-
   color: #979daa;
-
   font-size: 6.5px;
   font-weight: 600;
   line-height: 1.2;
-
   white-space: nowrap;
 }
-
 .specialist-request-summary-information strong {
   width: 100%;
   max-width: none;
   margin: 0;
-
   color: #343b4b;
-
   font-size: 7.5px;
   font-weight: 700;
   line-height: 1.3;
-
   text-align: right;
-
   white-space: normal;
   overflow-wrap: anywhere;
 }
-
 .specialist-request-summary-id {
   justify-self: end;
-
   width: auto !important;
-
   padding: 3px 6px;
-
   border-radius: 5px;
-
   background: #eef1ff;
-
   color: #5c7cff !important;
-
   font-size: 7.5px !important;
   font-weight: 800 !important;
-
   line-height: 1 !important;
 }
-
 .specialist-request-summary-directions {
   min-height: 37px;
   margin-top: 14px;
-
   gap: 6px;
-
   border-radius: 9px;
-
   font-size: 8px;
 }
-
 .specialist-request-summary-directions span {
   font-size: 12px;
 }
-
 /* Sidebar un poco más angosto */
 .request-detail-grid {
   grid-template-columns:
     minmax(0, 1fr)
     305px;
 }
-
 @media (max-width: 1050px) {
   .request-detail-grid {
     grid-template-columns:
@@ -1926,12 +1547,10 @@
       285px;
   }
 }
-
 @media (max-width: 900px) {
   .request-detail-grid {
     grid-template-columns: 1fr;
   }
-
   .request-detail-sidebar {
     position: static;
     display: grid;
@@ -1939,12 +1558,10 @@
       repeat(2, minmax(0, 1fr));
   }
 }
-
 @media (max-width: 700px) {
   .request-detail-sidebar {
     grid-template-columns: 1fr;
   }
-
   .specialist-request-summary-information > div,
   .specialist-request-summary-row {
     grid-template-columns: 78px minmax(0, 1fr);

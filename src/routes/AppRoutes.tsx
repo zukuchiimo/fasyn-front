@@ -4,20 +4,16 @@ import {
   Route,
   Navigate,
 } from 'react-router-dom';
-
 import Home from '../pages/Home/Home';
 import Login from '../pages/Login/Login';
 import Register from '../pages/Register/Register';
-
 import Specialists from '../pages/Specialists/Specialists';
 import SpecialistProfile from '../pages/SpecialistProfile/SpecialistProfile';
-
 import ClientHistory from '../pages/client/History/ClientHistory';
 import ClientFavorites from '../pages/client/Favorites/ClientFavorites';
 import ClientProfile from '../pages/client/ClientProfile';
 import MyRequests from '../pages/client/MyRequests/MyRequests';
 import ClientDashboard from '../pages/ClientDashboard/ClientDashboard';
-
 import SpecialistDashboard from '../pages/SpecialistDashboard/SpecialistDashboard';
 import SpecialistSetup from '../pages/SpecialistSetup/SpecialistSetup';
 import CreateService from '../pages/CreateService/CreateService';
@@ -28,7 +24,6 @@ import SpecialistRequestDetail
   from '../pages/SpecialistRequestDetail/SpecialistRequestDetail';
 import SpecialistCertificates
   from '../pages/SpecialistCertificates/SpecialistCertificates';
-
 import AdminDashboard from '../pages/AdminDashboard/AdminDashboard';
 import AdminSpecialists from '../pages/admin/AdminSpecialists';
 import AdminClients from '../pages/admin/AdminClients';
@@ -36,34 +31,28 @@ import AdminCategories from '../pages/admin/AdminCategories';
 import AdminPayouts from '../pages/admin/AdminPayouts';
 import AdminSpecialistCertificates
   from '../pages/AdminSpecialistCertificates/AdminSpecialistCertificates';
-
 import PaymentSuccess from '../pages/payment/PaymentSuccess';
 import VerifyEmail from '../pages/VerifyEmail/VerifyEmail';
 import ForgotPassword
   from '../pages/ForgotPassword/ForgotPassword';
-
 import ResetPassword
   from '../pages/ResetPassword/ResetPassword';
 type UserRole =
   | 'CLIENT'
   | 'SPECIALIST'
   | 'ADMIN';
-
 type ProtectedRouteProps = {
   children: React.ReactNode;
   allowedRoles?: UserRole[];
 };
-
 const ProtectedRoute = ({
   children,
   allowedRoles,
 }: ProtectedRouteProps) => {
   const token =
     localStorage.getItem('token');
-
   const storedUser =
     localStorage.getItem('user');
-
   if (!token || !storedUser) {
     return (
       <Navigate
@@ -72,11 +61,9 @@ const ProtectedRoute = ({
       />
     );
   }
-
   try {
     const user =
       JSON.parse(storedUser);
-
     if (
       allowedRoles &&
       !allowedRoles.includes(
@@ -90,22 +77,18 @@ const ProtectedRoute = ({
         />
       );
     }
-
     return children;
   } catch (error) {
     console.error(
       'ERROR LEYENDO SESIÓN:',
       error
     );
-
     localStorage.removeItem(
       'token'
     );
-
     localStorage.removeItem(
       'user'
     );
-
     return (
       <Navigate
         to="/login"
@@ -114,45 +97,37 @@ const ProtectedRoute = ({
     );
   }
 };
-
 const AppRoutes = () => {
   return (
     <BrowserRouter>
-
       <Routes>
-
         {/* =====================================
             PÚBLICO
         ====================================== */}
-
         <Route
           path="/"
           element={
             <Home />
           }
         />
-
         <Route
           path="/login"
           element={
             <Login />
           }
         />
-
         <Route
           path="/register"
           element={
             <Register />
           }
         />
-
         <Route
           path="/verify-email"
           element={
             <VerifyEmail />
           }
         />
-
         <Route
           path="/payment/success"
           element={
@@ -163,34 +138,28 @@ const AppRoutes = () => {
   path="/forgot-password"
   element={<ForgotPassword />}
 />
-
 <Route
   path="/reset-password"
   element={<ResetPassword />}
 />
-
         {/* =====================================
             ESPECIALISTAS PÚBLICOS
         ====================================== */}
-
         <Route
           path="/specialists"
           element={
             <Specialists />
           }
         />
-
         <Route
           path="/specialists/:id"
           element={
             <SpecialistProfile />
           }
         />
-
         {/* =====================================
             PANEL ESPECIALISTA
         ====================================== */}
-
         <Route
           path="/specialist"
           element={
@@ -203,7 +172,6 @@ const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
-
         <Route
           path="/specialist/profile"
           element={
@@ -216,7 +184,6 @@ const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
-
         <Route
           path="/specialist/earnings"
           element={
@@ -229,7 +196,6 @@ const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
-
         <Route
           path="/specialist/setup"
           element={
@@ -242,7 +208,6 @@ const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
-
         <Route
           path="/specialist/services/new"
           element={
@@ -255,7 +220,6 @@ const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
-
         <Route
           path="/specialist/requests/:id"
           element={
@@ -268,7 +232,6 @@ const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
-
         <Route
           path="/specialist/certificates"
           element={
@@ -281,11 +244,9 @@ const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
-
         {/* =====================================
             PANEL CLIENTE
         ====================================== */}
-
         <Route
           path="/client"
           element={
@@ -298,7 +259,6 @@ const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
-
         <Route
           path="/client/history"
           element={
@@ -311,7 +271,6 @@ const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
-
         <Route
           path="/client/profile"
           element={
@@ -324,7 +283,6 @@ const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
-
         <Route
           path="/client/requests"
           element={
@@ -337,7 +295,6 @@ const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
-
         <Route
           path="/client/favorites"
           element={
@@ -350,11 +307,9 @@ const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
-
         {/* =====================================
             PANEL ADMINISTRADOR
         ====================================== */}
-
         <Route
           path="/admin"
           element={
@@ -367,7 +322,6 @@ const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
-
         <Route
           path="/admin/specialists"
           element={
@@ -380,7 +334,6 @@ const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
-
         <Route
           path="/admin/specialists/:specialistId/certificates"
           element={
@@ -393,7 +346,6 @@ const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
-
         <Route
           path="/admin/payouts"
           element={
@@ -406,7 +358,6 @@ const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
-
         <Route
           path="/admin/clients"
           element={
@@ -419,7 +370,6 @@ const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
-
         <Route
           path="/admin/categories"
           element={
@@ -432,11 +382,9 @@ const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
-
         {/* =====================================
             RUTA NO ENCONTRADA
         ====================================== */}
-
         <Route
           path="*"
           element={
@@ -446,11 +394,8 @@ const AppRoutes = () => {
             />
           }
         />
-
       </Routes>
-
     </BrowserRouter>
   );
 };
-
 export default AppRoutes;

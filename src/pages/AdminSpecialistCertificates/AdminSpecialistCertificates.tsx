@@ -4,21 +4,16 @@ import {
   useMemo,
   useState,
 } from 'react';
-
 import {
   useNavigate,
   useParams,
 } from 'react-router-dom';
-
 import { api } from '../../api/api';
-
 import './AdminSpecialistCertificates.css';
-
 type CertificateStatus =
   | 'PENDING'
   | 'APPROVED'
   | 'REJECTED';
-
 interface Certificate {
   id: number;
   courseName: string;
@@ -26,34 +21,28 @@ interface Certificate {
   certificateUrl: string;
   status: CertificateStatus;
   createdAt: string;
-
   category: {
     id: number;
     name: string;
   };
 }
-
 interface Specialist {
   id: number;
   userId: number;
   name: string;
   email: string;
 }
-
 const AdminSpecialistCertificates =
   () => {
     const navigate =
       useNavigate();
-
     const {
       specialistId,
     } = useParams();
-
     const token =
       localStorage.getItem(
         'token'
       );
-
     const [
       specialist,
       setSpecialist,
@@ -61,7 +50,6 @@ const AdminSpecialistCertificates =
       useState<
         Specialist | null
       >(null);
-
     const [
       certificates,
       setCertificates,
@@ -69,19 +57,16 @@ const AdminSpecialistCertificates =
       useState<
         Certificate[]
       >([]);
-
     const [
       loading,
       setLoading,
     ] =
       useState(true);
-
     const [
       error,
       setError,
     ] =
       useState('');
-
     const [
       processingId,
       setProcessingId,
@@ -89,13 +74,11 @@ const AdminSpecialistCertificates =
       useState<
         number | null
       >(null);
-
     const [
       actionMessage,
       setActionMessage,
     ] =
       useState('');
-
     const numericSpecialistId =
       useMemo(
         () =>
@@ -106,7 +89,6 @@ const AdminSpecialistCertificates =
           specialistId,
         ]
       );
-
     const loadCertificates =
       useCallback(
         async () => {
@@ -115,10 +97,8 @@ const AdminSpecialistCertificates =
               navigate(
                 '/login'
               );
-
               return;
             }
-
             if (
               !Number.isInteger(
                 numericSpecialistId
@@ -129,16 +109,12 @@ const AdminSpecialistCertificates =
               setError(
                 'Especialista inválido.'
               );
-
               return;
             }
-
             setLoading(
               true
             );
-
             setError('');
-
             const response =
               await api.get(
                 `/admin/specialists/${numericSpecialistId}/certificates`,
@@ -149,13 +125,11 @@ const AdminSpecialistCertificates =
                   },
                 }
               );
-
             setSpecialist(
               response.data
                 ?.specialist ||
                 null
             );
-
             setCertificates(
               response.data
                 ?.certificates ||
@@ -169,7 +143,6 @@ const AdminSpecialistCertificates =
               err?.response
                 ?.data || err
             );
-
             setError(
               err?.response
                 ?.data
@@ -188,13 +161,11 @@ const AdminSpecialistCertificates =
           token,
         ]
       );
-
     useEffect(() => {
       loadCertificates();
     }, [
       loadCertificates,
     ]);
-
     const updateStatus =
       async (
         certificateId: number,
@@ -207,19 +178,15 @@ const AdminSpecialistCertificates =
             navigate(
               '/login'
             );
-
             return;
           }
-
           setProcessingId(
             certificateId
           );
-
           setError('');
           setActionMessage(
             ''
           );
-
           const response =
             await api.patch(
               `/admin/certificates/${certificateId}/${action}`,
@@ -231,13 +198,11 @@ const AdminSpecialistCertificates =
                 },
               }
             );
-
           setActionMessage(
             response.data
               ?.message ||
               'Constancia actualizada.'
           );
-
           await loadCertificates();
         } catch (
           err: any
@@ -247,7 +212,6 @@ const AdminSpecialistCertificates =
             err?.response
               ?.data || err
           );
-
           setError(
             err?.response
               ?.data
@@ -260,7 +224,6 @@ const AdminSpecialistCertificates =
           );
         }
       };
-
     const handleDelete =
       async (
         certificate:
@@ -270,29 +233,23 @@ const AdminSpecialistCertificates =
           window.confirm(
             `¿Seguro que deseas eliminar la constancia "${certificate.courseName}"?`
           );
-
         if (!confirmed) {
           return;
         }
-
         try {
           if (!token) {
             navigate(
               '/login'
             );
-
             return;
           }
-
           setProcessingId(
             certificate.id
           );
-
           setError('');
           setActionMessage(
             ''
           );
-
           const response =
             await api.delete(
               `/admin/certificates/${certificate.id}`,
@@ -303,13 +260,11 @@ const AdminSpecialistCertificates =
                 },
               }
             );
-
           setActionMessage(
             response.data
               ?.message ||
               'Constancia eliminada.'
           );
-
           await loadCertificates();
         } catch (
           err: any
@@ -319,7 +274,6 @@ const AdminSpecialistCertificates =
             err?.response
               ?.data || err
           );
-
           setError(
             err?.response
               ?.data
@@ -332,7 +286,6 @@ const AdminSpecialistCertificates =
           );
         }
       };
-
     const statusLabel = (
       status:
         CertificateStatus
@@ -342,15 +295,12 @@ const AdminSpecialistCertificates =
       ) {
         case 'APPROVED':
           return 'Aprobada';
-
         case 'REJECTED':
           return 'Rechazada';
-
         default:
           return 'Pendiente';
       }
     };
-
     const getDocumentUrl =
       (
         certificateUrl:
@@ -363,19 +313,15 @@ const AdminSpecialistCertificates =
         ) {
           return certificateUrl;
         }
-
         /*
           Si tu API corre en localhost:3000
           y certificateUrl viene como:
           /uploads/certificates/archivo.pdf
         */
-
         return `http://localhost:3000${certificateUrl}`;
       };
-
     return (
       <div className="admin-certificates-page">
-
         <div className="admin-certificates-top">
           <button
             type="button"
@@ -388,16 +334,13 @@ const AdminSpecialistCertificates =
           >
             ← Volver a especialistas
           </button>
-
           <div>
             <span className="section-label">
               ESPECIALISTAS
             </span>
-
             <h1>
               Constancias
             </h1>
-
             {specialist && (
               <p>
                 Revisa las
@@ -412,13 +355,11 @@ const AdminSpecialistCertificates =
             )}
           </div>
         </div>
-
         {error && (
           <div className="admin-certificates-error">
             {error}
           </div>
         )}
-
         {actionMessage && (
           <div className="admin-certificates-success">
             {
@@ -426,7 +367,6 @@ const AdminSpecialistCertificates =
             }
           </div>
         )}
-
         {loading ? (
           <div className="admin-certificates-empty">
             Cargando
@@ -438,7 +378,6 @@ const AdminSpecialistCertificates =
             <h3>
               Sin constancias
             </h3>
-
             <p>
               Este especialista
               todavía no ha
@@ -455,7 +394,6 @@ const AdminSpecialistCertificates =
                 const processing =
                   processingId ===
                   certificate.id;
-
                 return (
                   <article
                     key={
@@ -472,13 +410,11 @@ const AdminSpecialistCertificates =
                               .name
                           }
                         </span>
-
                         <h3>
                           {
                             certificate.courseName
                           }
                         </h3>
-
                         <p>
                           Emitida
                           por{' '}
@@ -489,7 +425,6 @@ const AdminSpecialistCertificates =
                           </strong>
                         </p>
                       </div>
-
                       <span
                         className={`certificate-status ${certificate.status.toLowerCase()}`}
                       >
@@ -498,7 +433,6 @@ const AdminSpecialistCertificates =
                         )}
                       </span>
                     </div>
-
                     <div className="certificate-meta">
                       <span>
                         Subida:{' '}
@@ -509,9 +443,7 @@ const AdminSpecialistCertificates =
                         )}
                       </span>
                     </div>
-
                     <div className="certificate-actions">
-
                       <a
                         href={getDocumentUrl(
                           certificate.certificateUrl
@@ -522,7 +454,6 @@ const AdminSpecialistCertificates =
                       >
                         Ver documento
                       </a>xq
-
                       {certificate.status !==
                         'APPROVED' && (
                         <button
@@ -543,7 +474,6 @@ const AdminSpecialistCertificates =
                             : 'Aprobar'}
                         </button>
                       )}
-
                       {certificate.status !==
                         'REJECTED' && (
                         <button
@@ -562,7 +492,6 @@ const AdminSpecialistCertificates =
                           Rechazar
                         </button>
                       )}
-
                       <button
                         type="button"
                         className="delete-button"
@@ -577,7 +506,6 @@ const AdminSpecialistCertificates =
                       >
                         Eliminar
                       </button>
-
                     </div>
                   </article>
                 );
@@ -588,5 +516,4 @@ const AdminSpecialistCertificates =
       </div>
     );
   };
-
 export default AdminSpecialistCertificates;

@@ -4,84 +4,65 @@ import {
   useMemo,
   useState,
 } from 'react';
-
 import {
   useNavigate,
 } from 'react-router-dom';
-
 import { api } from '../../api/api';
 import logo from '../../assets/logo.png';
-
 import './Home.css';
-
 type PriceType =
   | 'HOUR'
   | 'DAY'
   | 'ACTIVITY';
-
 type Category = {
   id: number;
   name: string;
   description?: string | null;
 };
-
 type Service = {
   id: number;
   name: string;
   description?: string | null;
   price: number;
   priceType: PriceType;
-
   category: Category;
 };
-
 type Specialist = {
   id: number;
   userId: number;
   name: string;
-
   description?: string | null;
   experience?: number | null;
-
   state?: string | null;
   municipality?: string | null;
   neighborhood?: string | null;
-
   available: boolean;
   profileCompleted: boolean;
-
   specialties: Category[];
   services: Service[];
-
   startingPrice?: number | null;
 };
-
 const Home = () => {
   const navigate = useNavigate();
 type UserRole =
   | 'CLIENT'
   | 'SPECIALIST'
   | 'ADMIN';
-
 type SessionUser = {
   id?: number;
   name?: string;
   email?: string;
   role?: UserRole;
 };
-
 const token =
   localStorage.getItem('token');
-
 const storedUser =
   localStorage.getItem('user');
-
 const currentUser =
   useMemo<SessionUser | null>(() => {
     if (!storedUser) {
       return null;
     }
-
     try {
       return JSON.parse(storedUser);
     } catch (error) {
@@ -89,38 +70,31 @@ const currentUser =
         'ERROR LEYENDO USUARIO:',
         error
       );
-
       return null;
     }
   }, [storedUser]);
-
 const isLoggedIn =
   Boolean(token && currentUser);
   const [
     categories,
     setCategories,
   ] = useState<Category[]>([]);
-
   const [
     specialists,
     setSpecialists,
   ] = useState<Specialist[]>([]);
-
   const [
     loading,
     setLoading,
   ] = useState(true);
-
   const [
     search,
     setSearch,
   ] = useState('');
-
   const [
     appliedSearch,
     setAppliedSearch,
   ] = useState('');
-
   /*
     CARGAR INFORMACIÓN REAL
   */
@@ -128,7 +102,6 @@ const isLoggedIn =
     async () => {
       try {
         setLoading(true);
-
         const [
           categoriesResponse,
           specialistsResponse,
@@ -136,14 +109,12 @@ const isLoggedIn =
           api.get('/categories'),
           api.get('/specialists'),
         ]);
-
         setCategories(
           categoriesResponse.data
             ?.categories ||
             categoriesResponse.data ||
             []
         );
-
         setSpecialists(
           specialistsResponse.data
             ?.specialists ||
@@ -159,11 +130,9 @@ const isLoggedIn =
         setLoading(false);
       }
     };
-
   useEffect(() => {
     loadHomeData();
   }, []);
-
   /*
     ICONO POR CATEGORÍA
   */
@@ -175,7 +144,6 @@ const isLoggedIn =
         .toLocaleLowerCase(
           'es-MX'
         );
-
     if (
       name.includes(
         'carpinter'
@@ -183,7 +151,6 @@ const isLoggedIn =
     ) {
       return '🪚';
     }
-
     if (
       name.includes(
         'plomer'
@@ -191,7 +158,6 @@ const isLoggedIn =
     ) {
       return '🔧';
     }
-
     if (
       name.includes(
         'electric'
@@ -199,7 +165,6 @@ const isLoggedIn =
     ) {
       return '⚡';
     }
-
     if (
       name.includes(
         'pint'
@@ -207,7 +172,6 @@ const isLoggedIn =
     ) {
       return '🎨';
     }
-
     if (
       name.includes(
         'limpieza'
@@ -215,7 +179,6 @@ const isLoggedIn =
     ) {
       return '🧹';
     }
-
     if (
       name.includes(
         'jardin'
@@ -223,7 +186,6 @@ const isLoggedIn =
     ) {
       return '🌿';
     }
-
     if (
       name.includes(
         'aire'
@@ -231,7 +193,6 @@ const isLoggedIn =
     ) {
       return '❄️';
     }
-
     if (
       name.includes(
         'mecán'
@@ -242,10 +203,8 @@ const isLoggedIn =
     ) {
       return '🔩';
     }
-
     return '🛠️';
   };
-
   /*
     INICIALES
   */
@@ -263,7 +222,6 @@ const isLoggedIn =
       .substring(0, 2)
       .toUpperCase();
   };
-
   /*
     PRECIO
   */
@@ -282,22 +240,18 @@ const isLoggedIn =
       }
     );
   };
-
   const getPriceType = (
     type?: PriceType
   ) => {
     switch (type) {
       case 'HOUR':
         return 'hora';
-
       case 'DAY':
         return 'día';
-
       default:
         return 'servicio';
     }
   };
-
   /*
     ESPECIALISTAS PARA HOME
   */
@@ -309,13 +263,11 @@ const isLoggedIn =
           .toLocaleLowerCase(
             'es-MX'
           );
-
       let result =
         specialists.filter(
           (specialist) =>
             specialist.available
         );
-
       if (term) {
         result =
           result.filter(
@@ -327,7 +279,6 @@ const isLoggedIn =
                       specialty.name
                   )
                   .join(' ');
-
               const serviceNames =
                 specialist.services
                   .map(
@@ -335,7 +286,6 @@ const isLoggedIn =
                       service.name
                   )
                   .join(' ');
-
               const content = [
                 specialist.name,
                 specialist.description,
@@ -349,14 +299,12 @@ const isLoggedIn =
                 .toLocaleLowerCase(
                   'es-MX'
                 );
-
               return content.includes(
                 term
               );
             }
           );
       }
-
       return result.slice(
         0,
         3
@@ -365,7 +313,6 @@ const isLoggedIn =
       specialists,
       appliedSearch,
     ]);
-
   /*
     CATEGORÍAS DESTACADAS
   */
@@ -376,16 +323,13 @@ const isLoggedIn =
         6
       );
     }, [categories]);
-
   const handleSearch = (
     event: FormEvent
   ) => {
     event.preventDefault();
-
     setAppliedSearch(
       search.trim()
     );
-
     window.setTimeout(
       () => {
         document
@@ -400,18 +344,15 @@ const isLoggedIn =
       50
     );
   };
-
   const handleCategory = (
     category: Category
   ) => {
     setSearch(
       category.name
     );
-
     setAppliedSearch(
       category.name
     );
-
     window.setTimeout(
       () => {
         document
@@ -431,44 +372,33 @@ const isLoggedIn =
     navigate('/login');
     return;
   }
-
   switch (currentUser.role) {
     case 'CLIENT':
       navigate('/client');
       break;
-
     case 'SPECIALIST':
       navigate('/specialist');
       break;
-
     case 'ADMIN':
       navigate('/admin');
       break;
-
     default:
       navigate('/');
   }
 };
-
 const handleLogout = () => {
   localStorage.removeItem('token');
   localStorage.removeItem('user');
-
   navigate('/');
   window.location.reload();
 };
-
   return (
     <div className="home-page">
-
       {/* ========================= */}
       {/* NAVBAR */}
       {/* ========================= */}
-
       <header className="home-navbar">
-
         <div className="home-navbar-inner">
-
           <button
             type="button"
             className="home-brand"
@@ -481,9 +411,7 @@ const handleLogout = () => {
               alt="FASYN"
             />
           </button>
-
           <nav className="home-nav">
-
             <button
               type="button"
               onClick={() =>
@@ -499,7 +427,6 @@ const handleLogout = () => {
             >
               Servicios
             </button>
-
             <button
               type="button"
               onClick={() =>
@@ -510,7 +437,6 @@ const handleLogout = () => {
             >
               Especialistas
             </button>
-
 {isLoggedIn ? (
   <>
     <button
@@ -519,7 +445,6 @@ const handleLogout = () => {
     >
       Mi panel
     </button>
-
     <button
       type="button"
       className="home-register"
@@ -538,7 +463,6 @@ const handleLogout = () => {
     >
       Iniciar sesión
     </button>
-
     <button
       type="button"
       className="home-register"
@@ -550,47 +474,31 @@ const handleLogout = () => {
     </button>
   </>
 )}
-
           </nav>
-
         </div>
-
       </header>
-
       <main>
-
         {/* ========================= */}
         {/* HERO */}
         {/* ========================= */}
-
         <section className="home-hero">
-
           <div className="home-hero-glow home-hero-glow-one" />
           <div className="home-hero-glow home-hero-glow-two" />
-
           <div className="home-hero-inner">
-
             <div className="home-hero-copy">
-
               <div className="home-hero-badge">
-
                 <span />
-
                 Profesionales cerca
                 de ti
-
               </div>
-
               <h1>
                 Encuentra al
                 especialista que
-
                 <strong>
                   {' '}
                   necesitas.
                 </strong>
               </h1>
-
               <p>
                 Encuentra profesionales
                 para resolver trabajos
@@ -598,20 +506,16 @@ const handleLogout = () => {
                 proyecto de una forma
                 sencilla y segura.
               </p>
-
               <form
                 className="home-search"
                 onSubmit={
                   handleSearch
                 }
               >
-
                 <div className="home-search-input">
-
                   <span>
                     ⌕
                   </span>
-
                   <input
                     type="text"
                     value={search}
@@ -624,171 +528,123 @@ const handleLogout = () => {
                       )
                     }
                   />
-
                 </div>
-
                 <button
                   type="submit"
                 >
                   Buscar
                 </button>
-
               </form>
-
               <div className="home-hero-features">
-
                 <div>
                   <span>✓</span>
-
                   <small>
                     Profesionales
                     registrados
                   </small>
                 </div>
-
                 <div>
                   <span>✓</span>
-
                   <small>
                     Precios claros
                   </small>
                 </div>
-
                 <div>
                   <span>✓</span>
-
                   <small>
                     Solicitudes
                     administradas
                   </small>
                 </div>
-
               </div>
-
             </div>
-
             <div className="home-hero-visual">
-
               <div className="home-visual-main">
-
                 <div className="home-visual-header">
-
                   <span>
                     FASYN
                   </span>
-
                   <small>
                     PROFESIONALES
                   </small>
-
                 </div>
-
                 <div className="home-visual-title">
                   El trabajo correcto,
                   con la persona correcta.
                 </div>
-
                 <div className="home-visual-list">
-
                   <div>
                     <span>
                       01
                     </span>
-
                     <p>
                       Encuentra el
                       servicio que
                       necesitas.
                     </p>
                   </div>
-
                   <div>
                     <span>
                       02
                     </span>
-
                     <p>
                       Revisa perfiles y
                       servicios.
                     </p>
                   </div>
-
                   <div>
                     <span>
                       03
                     </span>
-
                     <p>
                       Envía tu solicitud.
                     </p>
                   </div>
-
                 </div>
-
               </div>
-
               <div className="home-floating-card">
-
                 <span>
                   DISPONIBILIDAD
                 </span>
-
                 <strong>
                   Profesionales
                   listos para ayudarte
                 </strong>
-
                 <div>
                   <i />
                   En FASYN
                 </div>
-
               </div>
-
             </div>
-
           </div>
-
         </section>
-
         {/* ========================= */}
         {/* CATEGORÍAS */}
         {/* ========================= */}
-
         <section
           id="categories"
           className="home-section"
         >
-
           <div className="home-section-header">
-
             <div>
-
               <span className="home-section-number">
                 01
               </span>
-
               <div>
-
                 <small>
                   SERVICIOS
                 </small>
-
                 <h2>
                   ¿Qué necesitas
                   resolver?
                 </h2>
-
                 <p>
                   Explora las
                   especialidades
                   disponibles en FASYN.
                 </p>
-
               </div>
-
             </div>
-
             <button
               type="button"
               className="home-link-button"
@@ -801,23 +657,16 @@ const handleLogout = () => {
               Ver todos
               <span>→</span>
             </button>
-
           </div>
-
           {loading ? (
-
             <div className="home-loading">
               Cargando servicios...
             </div>
-
           ) : visibleCategories
               .length > 0 ? (
-
             <div className="home-categories-grid">
-
               {visibleCategories.map(
                 (category) => (
-
                   <button
                     type="button"
                     className="home-category-card"
@@ -830,86 +679,61 @@ const handleLogout = () => {
                       )
                     }
                   >
-
                     <div className="home-category-icon">
                       {getCategoryIcon(
                         category.name
                       )}
                     </div>
-
                     <div>
-
                       <strong>
                         {category.name}
                       </strong>
-
                       <span>
                         Ver especialistas
                       </span>
-
                     </div>
-
                     <b>
                       →
                     </b>
-
                   </button>
-
                 )
               )}
-
             </div>
-
           ) : (
-
             <div className="home-empty">
               Aún no hay categorías
               disponibles.
             </div>
-
           )}
-
         </section>
-
         {/* ========================= */}
         {/* ESPECIALISTAS */}
         {/* ========================= */}
-
         <section
           id="specialists"
           className="home-section home-specialists-section"
         >
-
           <div className="home-section-header">
-
             <div>
-
               <span className="home-section-number">
                 02
               </span>
-
               <div>
-
                 <small>
                   ESPECIALISTAS
                 </small>
-
                 <h2>
                   Profesionales
                   disponibles
                 </h2>
-
                 <p>
                   Conoce perfiles y
                   servicios publicados
                   directamente por los
                   especialistas.
                 </p>
-
               </div>
-
             </div>
-
             <button
               type="button"
               className="home-link-button"
@@ -922,21 +746,15 @@ const handleLogout = () => {
               Explorar todos
               <span>→</span>
             </button>
-
           </div>
-
           {appliedSearch && (
-
             <div className="home-search-result">
-
               <span>
                 Resultados para
               </span>
-
               <strong>
                 “{appliedSearch}”
               </strong>
-
               <button
                 type="button"
                 onClick={() => {
@@ -946,27 +764,19 @@ const handleLogout = () => {
               >
                 Limpiar
               </button>
-
             </div>
-
           )}
-
           {loading ? (
-
             <div className="home-loading">
               Buscando especialistas...
             </div>
-
           ) : visibleSpecialists
               .length > 0 ? (
-
             <div className="home-specialists-grid">
-
               {visibleSpecialists.map(
                 (
                   specialist
                 ) => {
-
                   const lowestService =
                     specialist.services
                       ?.length
@@ -985,7 +795,6 @@ const handleLogout = () => {
                             )
                         )[0]
                       : null;
-
                   return (
                     <article
                       className="home-specialist-card"
@@ -993,29 +802,22 @@ const handleLogout = () => {
                         specialist.id
                       }
                     >
-
                       <div className="home-specialist-top">
-
                         <div className="home-specialist-avatar">
                           {getInitials(
                             specialist.name
                           )}
                         </div>
-
                         <div className="home-specialist-info">
-
                           <div className="home-specialist-status">
                             <i />
-
                             Disponible
                           </div>
-
                           <h3>
                             {
                               specialist.name
                             }
                           </h3>
-
                           <p>
                             {specialist
                               .specialties
@@ -1032,19 +834,13 @@ const handleLogout = () => {
                                   )
                               : 'Especialista FASYN'}
                           </p>
-
                         </div>
-
                       </div>
-
                       <div className="home-specialist-details">
-
                         <div>
-
                           <span>
                             EXPERIENCIA
                           </span>
-
                           <strong>
                             {specialist.experience
                               ? `${specialist.experience} ${
@@ -1055,15 +851,11 @@ const handleLogout = () => {
                                 }`
                               : 'No especificada'}
                           </strong>
-
                         </div>
-
                         <div>
-
                           <span>
                             UBICACIÓN
                           </span>
-
                           <strong>
                             {[
                               specialist.neighborhood,
@@ -1078,21 +870,15 @@ const handleLogout = () => {
                               ) ||
                               'No especificada'}
                           </strong>
-
                         </div>
-
                       </div>
-
                       <div className="home-specialist-footer">
-
                         <div>
-
                           <small>
                             {lowestService
                               ? 'Servicios desde'
                               : 'Servicios'}
                           </small>
-
                           {lowestService ? (
                             <>
                               <strong>
@@ -1100,7 +886,6 @@ const handleLogout = () => {
                                   lowestService.price
                                 )}
                               </strong>
-
                               <span>
                                 /{' '}
                                 {getPriceType(
@@ -1113,9 +898,7 @@ const handleLogout = () => {
                               Por publicar
                             </strong>
                           )}
-
                         </div>
-
                         <button
                           type="button"
                           onClick={() =>
@@ -1129,41 +912,31 @@ const handleLogout = () => {
                             →
                           </span>
                         </button>
-
                       </div>
-
                     </article>
                   );
                 }
               )}
-
             </div>
-
           ) : (
-
             <div className="home-empty-specialists">
-
               <div>
                 ⌕
               </div>
-
               <h3>
                 No encontramos
                 especialistas
               </h3>
-
               <p>
                 Intenta buscar otro
                 servicio o consulta
                 todos los profesionales.
               </p>
-
               <button
                 type="button"
                 onClick={() => {
                   setSearch('');
                   setAppliedSearch('');
-
                   navigate(
                     '/specialists'
                   );
@@ -1171,34 +944,24 @@ const handleLogout = () => {
               >
                 Ver especialistas
               </button>
-
             </div>
-
           )}
-
         </section>
-
         {/* ========================= */}
         {/* CTA PROFESIONALES */}
         {/* ========================= */}
-
         <section className="home-professional">
-
           <div className="home-professional-decoration">
             F
           </div>
-
           <div className="home-professional-copy">
-
             <span>
               PARA PROFESIONALES
             </span>
-
             <h2>
               Convierte tu experiencia
               en nuevas oportunidades.
             </h2>
-
             <p>
               Crea tu perfil, registra
               tus especialidades,
@@ -1206,9 +969,7 @@ const handleLogout = () => {
               conecta con personas que
               necesitan tu trabajo.
             </p>
-
           </div>
-
           <button
             type="button"
             onClick={() =>
@@ -1218,51 +979,37 @@ const handleLogout = () => {
             }
           >
             Ofrecer mis servicios
-
             <span>
               →
             </span>
           </button>
-
         </section>
-
       </main>
-
       {/* ========================= */}
       {/* FOOTER */}
       {/* ========================= */}
-
       <footer className="home-footer">
-
         <div>
-
           <img
             src={logo}
             alt="FASYN"
           />
-
           <div>
             <strong>
               FASYN
             </strong>
-
             <span>
               Find All Specialists
               You Need
             </span>
           </div>
-
         </div>
-
         <small>
           Encuentra profesionales
           para cada proyecto.
         </small>
-
       </footer>
-
     </div>
   );
 };
-
 export default Home;
