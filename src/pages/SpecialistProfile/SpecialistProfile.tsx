@@ -163,9 +163,9 @@ const decodeJwtPayload = (
     const padded =
       normalized.padEnd(
         normalized.length +
-          ((4 -
-            (normalized.length % 4)) %
-            4),
+        ((4 -
+          (normalized.length % 4)) %
+          4),
         '='
       );
     return JSON.parse(
@@ -299,7 +299,7 @@ const reverseGeocodeNominatim = async (
   }
   const data:
     NominatimReverseResult =
-      await response.json();
+    await response.json();
   const address =
     data.address || {};
   const municipality =
@@ -889,28 +889,54 @@ const AddressMapPicker = ({
     </div>
   );
 };
+const resolveStoredFileUrl = (
+  fileUrl?: string | null
+) => {
+  if (!fileUrl) {
+    return '';
+  }
+
+  if (/^https?:\/\//i.test(fileUrl)) {
+    return fileUrl;
+  }
+
+  const apiBaseUrl =
+    api.defaults.baseURL ||
+    'http://localhost:3000/api';
+
+  const apiOrigin = apiBaseUrl
+    .replace(/\/api\/?$/, '')
+    .replace(/\/$/, '');
+
+  const normalizedPath =
+    fileUrl.startsWith('/')
+      ? fileUrl
+      : `/${fileUrl}`;
+
+  return `${apiOrigin}${normalizedPath}`;
+};
 const SpecialistProfile = () => {
   const navigate = useNavigate();
   const { id } = useParams();
-const [
-  paymentCoverageError,
-  setPaymentCoverageError,
-] = useState<{
-  requestId: number;
-  code?: string;
-  message: string;
-  municipality?: string;
-  state?: string;
-} | null>(null);
-const [
-  requestCoverageError,
-  setRequestCoverageError,
-] = useState<{
-  code?: string;
-  message: string;
-  municipality?: string;
-  state?: string;
-} | null>(null);
+  const [
+    paymentCoverageError,
+    setPaymentCoverageError,
+  ] = useState<{
+    requestId: number;
+    code?: string;
+    message: string;
+    municipality?: string;
+    state?: string;
+  } | null>(null);
+  const [
+    requestCoverageError,
+    setRequestCoverageError,
+  ] = useState<{
+    code?: string;
+    message: string;
+    municipality?: string;
+    state?: string;
+  } | null>(null);
   /*
     =====================================
     SESIÓN
@@ -997,11 +1023,11 @@ const [
         navigate('/');
     }
   };
-const handleLogout = () => {
-  localStorage.removeItem('token');
-  localStorage.removeItem('user');
-  window.location.replace('/login');
-};
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    window.location.replace('/login');
+  };
   const [
     specialist,
     setSpecialist,
@@ -1043,10 +1069,10 @@ const handleLogout = () => {
   ] = useState<number | null>(
     null
   );
-const [
-  createdRequestId,
-  setCreatedRequestId,
-] = useState<number | null>(null);
+  const [
+    createdRequestId,
+    setCreatedRequestId,
+  ] = useState<number | null>(null);
   const [
     requestMessage,
     setRequestMessage,
@@ -1121,6 +1147,15 @@ const [
     setSavingAddress,
   ] = useState(false);
   const [
+    profileIncompleteModalOpen,
+    setProfileIncompleteModalOpen,
+  ] = useState(false);
+
+  const [
+    missingClientData,
+    setMissingClientData,
+  ] = useState<string[]>([]);
+  const [
     newAddress,
     setNewAddress,
   ] = useState<NewAddressForm>({
@@ -1151,9 +1186,9 @@ const [
           );
         const specialists:
           Specialist[] =
-            response.data
-              ?.specialists ||
-            [];
+          response.data
+            ?.specialists ||
+          [];
         const found =
           specialists.find(
             (item) =>
@@ -1169,18 +1204,18 @@ const [
         }
         setSpecialist(found);
       } catch (
-        requestError: any
+      requestError: any
       ) {
         console.error(
           'ERROR CARGANDO PERFIL:',
           requestError.response
             ?.data ||
-            requestError
+          requestError
         );
         setError(
           requestError.response
             ?.data?.message ||
-            'No fue posible cargar el perfil.'
+          'No fue posible cargar el perfil.'
         );
       } finally {
         setLoading(false);
@@ -1218,10 +1253,10 @@ const [
         setMyRequests(
           response.data
             ?.requests ||
-            []
+          []
         );
       } catch (
-        requestError: any
+      requestError: any
       ) {
         /*
           Puede ocurrir si el usuario
@@ -1245,7 +1280,7 @@ const [
           'ERROR CARGANDO SOLICITUDES:',
           requestError.response
             ?.data ||
-            requestError
+          requestError
         );
       }
     };
@@ -1276,9 +1311,9 @@ const [
           );
         const loadedAddresses:
           ClientAddress[] =
-            response.data
-              ?.addresses ||
-            [];
+          response.data
+            ?.addresses ||
+          [];
         setAddresses(
           loadedAddresses
         );
@@ -1304,13 +1339,13 @@ const [
         }
         return loadedAddresses;
       } catch (
-        addressError: any
+      addressError: any
       ) {
         console.error(
           'ERROR CARGANDO DIRECCIONES:',
           addressError.response
             ?.data ||
-            addressError
+          addressError
         );
         if (
           addressError.response
@@ -1338,222 +1373,336 @@ const [
         setRequestError(
           addressError.response
             ?.data?.message ||
-            'No fue posible cargar tus direcciones.'
+          'No fue posible cargar tus direcciones.'
         );
         return [];
       } finally {
         setLoadingAddresses(false);
       }
     };
-/*
-  DISPONIBILIDAD DEL ESPECIALISTA
-  El backend debe regresar busySlots con intervalos ISO:
-  { start: string, end: string }
-  La validación definitiva de conflictos sigue siendo
-  responsabilidad del backend al crear la solicitud.
-*/
-const loadAvailability = async (
-  date: string,
-  service: Service | null = selectedService
-) => {
-  if (
-    !specialist ||
-    !service ||
-    !date
-  ) {
-    setBusySlots([]);
-    setAvailabilityError('');
-    return;
-  }
-  try {
-    setLoadingAvailability(true);
-    setAvailabilityError('');
-    const response =
-      await api.get(
-        `/specialists/${specialist.id}/availability`,
-        {
-          params: {
-            date,
-            serviceId: service.id,
-          },
-        }
-      );
-    setBusySlots(
-      Array.isArray(
-        response.data?.busySlots
-      )
-        ? response.data.busySlots
-        : []
-    );
-  } catch (availabilityRequestError: any) {
-    console.error(
-      'ERROR CARGANDO DISPONIBILIDAD:',
-      availabilityRequestError.response?.data ||
-        availabilityRequestError
-    );
-    setBusySlots([]);
-    setAvailabilityError(
-      availabilityRequestError.response
-        ?.data?.message ||
-        'No fue posible consultar los horarios disponibles.'
-    );
-  } finally {
-    setLoadingAvailability(false);
-  }
-};
-const scheduleOptions =
-  useMemo<ScheduleOption[]>(() => {
+  /*
+    DISPONIBILIDAD DEL ESPECIALISTA
+    El backend debe regresar busySlots con intervalos ISO:
+    { start: string, end: string }
+    La validación definitiva de conflictos sigue siendo
+    responsabilidad del backend al crear la solicitud.
+  */
+  const loadAvailability = async (
+    date: string,
+    service: Service | null = selectedService
+  ) => {
     if (
-      !serviceDate ||
-      !selectedService
+      !specialist ||
+      !service ||
+      !date
     ) {
-      return [];
+      setBusySlots([]);
+      setAvailabilityError('');
+      return;
     }
-    const result: ScheduleOption[] = [];
-    const durationMinutes =
-      selectedService.priceType === 'HOUR'
-        ? serviceQuantity * 60
-        : Number(
+    try {
+      setLoadingAvailability(true);
+      setAvailabilityError('');
+      const response =
+        await api.get(
+          `/specialists/${specialist.id}/availability`,
+          {
+            params: {
+              date,
+              serviceId: service.id,
+            },
+          }
+        );
+      setBusySlots(
+        Array.isArray(
+          response.data?.busySlots
+        )
+          ? response.data.busySlots
+          : []
+      );
+    } catch (availabilityRequestError: any) {
+      console.error(
+        'ERROR CARGANDO DISPONIBILIDAD:',
+        availabilityRequestError.response?.data ||
+        availabilityRequestError
+      );
+      setBusySlots([]);
+      setAvailabilityError(
+        availabilityRequestError.response
+          ?.data?.message ||
+        'No fue posible consultar los horarios disponibles.'
+      );
+    } finally {
+      setLoadingAvailability(false);
+    }
+  };
+  const scheduleOptions =
+    useMemo<ScheduleOption[]>(() => {
+      if (
+        !serviceDate ||
+        !selectedService
+      ) {
+        return [];
+      }
+      const result: ScheduleOption[] = [];
+      const durationMinutes =
+        selectedService.priceType === 'HOUR'
+          ? serviceQuantity * 60
+          : Number(
             selectedService.durationMinutes
           ) || 60;
-    for (
-      let minuteOfDay = 0;
-      minuteOfDay < 24 * 60;
-      minuteOfDay += SCHEDULE_STEP_MINUTES
-    ) {
-      const hour = Math.floor(
-        minuteOfDay / 60
-      );
-      const minute =
-        minuteOfDay % 60;
-      const time =
-        `${String(hour).padStart(2, '0')}:${String(
-          minute
-        ).padStart(2, '0')}`;
-      const proposedStart =
-        new Date(
-          `${serviceDate}T${time}:00`
+      for (
+        let minuteOfDay = 0;
+        minuteOfDay < 24 * 60;
+        minuteOfDay += SCHEDULE_STEP_MINUTES
+      ) {
+        const hour = Math.floor(
+          minuteOfDay / 60
         );
-      if (
-        Number.isNaN(
-          proposedStart.getTime()
-        )
-      ) {
-        continue;
-      }
-      if (
-        proposedStart.getTime() <=
-        Date.now()
-      ) {
-        result.push({
-          time,
-          available: false,
-          reason: 'PAST',
-        });
-        continue;
-      }
-      const proposedEnd =
-        new Date(
-          proposedStart.getTime() +
+        const minute =
+          minuteOfDay % 60;
+        const time =
+          `${String(hour).padStart(2, '0')}:${String(
+            minute
+          ).padStart(2, '0')}`;
+        const proposedStart =
+          new Date(
+            `${serviceDate}T${time}:00`
+          );
+        if (
+          Number.isNaN(
+            proposedStart.getTime()
+          )
+        ) {
+          continue;
+        }
+        if (
+          proposedStart.getTime() <=
+          Date.now()
+        ) {
+          result.push({
+            time,
+            available: false,
+            reason: 'PAST',
+          });
+          continue;
+        }
+        const proposedEnd =
+          new Date(
+            proposedStart.getTime() +
             (
               durationMinutes +
               TRAVEL_BUFFER_MINUTES
             ) *
-              60_000
-        );
-      const hasConflict =
-        busySlots.some((slot) => {
-          const busyStart =
-            new Date(slot.start);
-          const busyEnd =
-            new Date(slot.end);
-          if (
-            Number.isNaN(
-              busyStart.getTime()
-            ) ||
-            Number.isNaN(
-              busyEnd.getTime()
-            )
-          ) {
-            return false;
-          }
-          return (
-            proposedStart < busyEnd &&
-            proposedEnd > busyStart
+            60_000
           );
+        const hasConflict =
+          busySlots.some((slot) => {
+            const busyStart =
+              new Date(slot.start);
+            const busyEnd =
+              new Date(slot.end);
+            if (
+              Number.isNaN(
+                busyStart.getTime()
+              ) ||
+              Number.isNaN(
+                busyEnd.getTime()
+              )
+            ) {
+              return false;
+            }
+            return (
+              proposedStart < busyEnd &&
+              proposedEnd > busyStart
+            );
+          });
+        result.push({
+          time,
+          available: !hasConflict,
+          reason: hasConflict
+            ? 'BUSY'
+            : undefined,
         });
-      result.push({
-        time,
-        available: !hasConflict,
-        reason: hasConflict
-          ? 'BUSY'
-          : undefined,
+      }
+      return result;
+    }, [
+      serviceDate,
+      selectedService,
+      busySlots,
+      serviceQuantity,
+    ]);
+  const validateClientProfileForRequest =
+    async () => {
+      const currentToken =
+        localStorage.getItem('token');
+
+      if (!currentToken) {
+        return {
+          valid: false,
+          missing: [] as string[],
+        };
+      }
+
+      try {
+        const [
+          profileResponse,
+          addressesResponse,
+        ] = await Promise.all([
+          api.get(
+            '/clients/profile',
+            {
+              headers: {
+                Authorization:
+                  `Bearer ${currentToken}`,
+              },
+            }
+          ),
+
+          api.get(
+            '/addresses',
+            {
+              headers: {
+                Authorization:
+                  `Bearer ${currentToken}`,
+              },
+            }
+          ),
+        ]);
+
+        const clientProfile =
+          profileResponse.data?.profile;
+
+        const loadedAddresses:
+          ClientAddress[] =
+          addressesResponse.data
+            ?.addresses || [];
+
+        const missing: string[] = [];
+
+        if (
+          !clientProfile?.name?.trim()
+        ) {
+          missing.push(
+            'Nombre completo'
+          );
+        }
+
+        if (
+          !clientProfile?.email?.trim()
+        ) {
+          missing.push(
+            'Correo electrónico'
+          );
+        }
+
+        if (
+          !clientProfile?.phone?.trim()
+        ) {
+          missing.push(
+            'Teléfono'
+          );
+        }
+
+        if (
+          loadedAddresses.length === 0
+        ) {
+          missing.push(
+            'Dirección de servicio'
+          );
+        }
+
+        return {
+          valid:
+            missing.length === 0,
+          missing,
+        };
+      } catch (validationError) {
+        console.error(
+          'ERROR VALIDANDO PERFIL CLIENTE:',
+          validationError
+        );
+
+        return {
+          valid: false,
+          missing: [
+            'No fue posible verificar tu perfil',
+          ],
+        };
+      }
+    };
+  const openRequestModal = async (
+    service: Service
+  ) => {
+    const currentToken =
+      localStorage.getItem('token');
+    if (!currentToken) {
+      navigate('/login', {
+        state: {
+          returnTo: `/specialists/${id}`,
+          action: 'request-service',
+          serviceId: service.id,
+        },
       });
+      return;
     }
-    return result;
-  }, [
-    serviceDate,
-    selectedService,
-    busySlots,
-    serviceQuantity,
-  ]);
-const openRequestModal = async (
-  service: Service
-) => {
-  const currentToken =
-    localStorage.getItem('token');
-  if (!currentToken) {
-    navigate('/login', {
-      state: {
-        returnTo: `/specialists/${id}`,
-        action: 'request-service',
-        serviceId: service.id,
-      },
+    if (
+      currentRole !== 'CLIENT'
+    ) {
+      navigate('/login', {
+        state: {
+          returnTo: `/specialists/${id}`,
+          action: 'request-service',
+          serviceId: service.id,
+        },
+      });
+      return;
+    } const profileValidation =
+      await validateClientProfileForRequest();
+
+    if (
+      !profileValidation.valid
+    ) {
+      setMissingClientData(
+        profileValidation.missing
+      );
+
+      setProfileIncompleteModalOpen(
+        true
+      );
+
+      return;
+    }
+    setRequestMessage('');
+    setRequestError('');
+    setRequestCoverageError(null);
+    setCreatedRequestId(null);
+    setSelectedService(service);
+    setServiceMessage('');
+    setServiceDate('');
+    setServiceTime('');
+    setServiceQuantity(1);
+    setBusySlots([]);
+    setAvailabilityError('');
+    setShowNewAddressForm(false);
+    setSelectedAddressId(null);
+    setNewAddress({
+      label: '',
+      state: '',
+      municipality: '',
+      neighborhood: '',
+      postalCode: '',
+      street: '',
+      exteriorNumber: '',
+      interiorNumber: '',
+      references: '',
+      latitude: null,
+      longitude: null,
+      isDefault: false,
     });
-    return;
-  }
-if (
-  currentRole !== 'CLIENT'
-) {
-  navigate('/login', {
-    state: {
-      returnTo: `/specialists/${id}`,
-      action: 'request-service',
-      serviceId: service.id,
-    },
-  });
-  return;
-}
-setRequestMessage('');
-setRequestError('');
-setRequestCoverageError(null);
-setCreatedRequestId(null);
-setSelectedService(service);
-  setServiceMessage('');
-  setServiceDate('');
-  setServiceTime('');
-  setServiceQuantity(1);
-  setBusySlots([]);
-  setAvailabilityError('');
-  setShowNewAddressForm(false);
-  setSelectedAddressId(null);
-  setNewAddress({
-    label: '',
-    state: '',
-    municipality: '',
-    neighborhood: '',
-    postalCode: '',
-    street: '',
-    exteriorNumber: '',
-    interiorNumber: '',
-    references: '',
-    latitude: null,
-    longitude: null,
-    isDefault: false,
-  });
-  setRequestModalOpen(true);
-  await loadAddresses();
-};
+    setRequestModalOpen(true);
+    await loadAddresses();
+  };
   const closeRequestModal =
     () => {
       if (
@@ -1586,152 +1735,205 @@ setSelectedService(service);
       })
     );
   };
-  const handleSaveAddress =
-    async () => {
-      const token =
-        localStorage.getItem(
-          'token'
+  const handleSaveAddress = async () => {
+    const currentToken =
+      localStorage.getItem('token');
+
+    if (!currentToken) {
+      navigate('/login');
+      return;
+    }
+
+    /*
+      Mostramos exactamente qué dato falta.
+      Antes parecía que el botón no hacía nada porque
+      la validación regresaba sin que el error quedara
+      visible junto al botón.
+    */
+    const missingFields: string[] = [];
+
+    if (!newAddress.label.trim()) {
+      missingFields.push('nombre de la dirección');
+    }
+
+    if (!newAddress.state.trim()) {
+      missingFields.push('estado');
+    }
+
+    if (!newAddress.municipality.trim()) {
+      missingFields.push('municipio / alcaldía');
+    }
+
+    if (!newAddress.neighborhood.trim()) {
+      missingFields.push('colonia');
+    }
+
+    if (!newAddress.postalCode.trim()) {
+      missingFields.push('código postal');
+    }
+
+    if (!newAddress.street.trim()) {
+      missingFields.push('calle');
+    }
+
+    if (!newAddress.exteriorNumber.trim()) {
+      missingFields.push('número exterior');
+    }
+
+    if (missingFields.length > 0) {
+      setRequestError(
+        `Falta completar: ${missingFields.join(', ')}.`
+      );
+      return;
+    }
+
+    if (
+      newAddress.latitude === null ||
+      newAddress.longitude === null
+    ) {
+      setRequestError(
+        'Selecciona la ubicación exacta en el mapa antes de guardar.'
+      );
+      return;
+    }
+
+    const payload = {
+      label:
+        newAddress.label.trim(),
+      state:
+        newAddress.state.trim(),
+      municipality:
+        newAddress.municipality.trim(),
+      neighborhood:
+        newAddress.neighborhood.trim(),
+      postalCode:
+        newAddress.postalCode.trim(),
+      street:
+        newAddress.street.trim(),
+      exteriorNumber:
+        newAddress.exteriorNumber.trim(),
+      interiorNumber:
+        newAddress.interiorNumber.trim(),
+      references:
+        newAddress.references.trim(),
+      latitude:
+        newAddress.latitude,
+      longitude:
+        newAddress.longitude,
+      isDefault:
+        newAddress.isDefault,
+    };
+
+    try {
+      setSavingAddress(true);
+      setRequestError('');
+
+      console.log(
+        'GUARDANDO DIRECCIÓN:',
+        payload
+      );
+
+      const response =
+        await api.post(
+          '/addresses',
+          payload,
+          {
+            headers: {
+              Authorization:
+                `Bearer ${currentToken}`,
+            },
+          }
         );
-      if (!token) {
+
+      console.log(
+        'DIRECCIÓN GUARDADA RESPONSE:',
+        response.data
+      );
+
+      /*
+        Soportamos las formas de respuesta más comunes.
+        Si el backend no devuelve la dirección creada,
+        recargamos la lista desde GET /addresses.
+      */
+      const createdAddress:
+        ClientAddress | undefined =
+        response.data?.address ??
+        response.data?.data?.address ??
+        (
+          response.data?.id
+            ? response.data
+            : undefined
+        );
+
+      const loadedAddresses =
+        await loadAddresses();
+
+      const savedAddress =
+        createdAddress ||
+        loadedAddresses.find(
+          (address) =>
+            address.label === payload.label &&
+            address.street === payload.street &&
+            address.exteriorNumber ===
+            payload.exteriorNumber
+        );
+
+      if (savedAddress?.id) {
+        setSelectedAddressId(
+          savedAddress.id
+        );
+      }
+
+      setShowNewAddressForm(false);
+
+      setNewAddress({
+        label: '',
+        state: '',
+        municipality: '',
+        neighborhood: '',
+        postalCode: '',
+        street: '',
+        exteriorNumber: '',
+        interiorNumber: '',
+        references: '',
+        latitude: null,
+        longitude: null,
+        isDefault: false,
+      });
+
+      setRequestError('');
+      setRequestMessage(
+        'Dirección guardada correctamente.'
+      );
+    } catch (addressError: any) {
+      console.error(
+        'ERROR GUARDANDO DIRECCIÓN:',
+        addressError.response?.data ||
+        addressError
+      );
+
+      if (
+        addressError.response?.status === 401
+      ) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
         navigate('/login');
         return;
       }
-      if (
-        !newAddress.label.trim() ||
-        !newAddress.state.trim() ||
-        !newAddress.municipality.trim() ||
-        !newAddress.neighborhood.trim() ||
-        !newAddress.postalCode.trim() ||
-        !newAddress.street.trim() ||
-        !newAddress.exteriorNumber.trim()
-      ) {
-        setRequestError(
-          'Completa todos los campos obligatorios de la dirección.'
-        );
-        return;
-      }
-      if (
-        newAddress.latitude === null ||
-        newAddress.longitude === null
-      ) {
-        setRequestError(
-          'Selecciona la ubicación exacta en el mapa.'
-        );
-        return;
-      }
-      try {
-        setSavingAddress(true);
-        setRequestError('');
-        const response =
-          await api.post(
-            '/addresses',
-            {
-              label:
-                newAddress.label.trim(),
-              state:
-                newAddress.state.trim(),
-              municipality:
-                newAddress.municipality.trim(),
-              neighborhood:
-                newAddress.neighborhood.trim(),
-              postalCode:
-                newAddress.postalCode.trim(),
-              street:
-                newAddress.street.trim(),
-              exteriorNumber:
-                newAddress.exteriorNumber.trim(),
-              interiorNumber:
-                newAddress.interiorNumber.trim(),
-              references:
-                newAddress.references.trim(),
-              latitude:
-                newAddress.latitude,
-              longitude:
-                newAddress.longitude,
-              isDefault:
-                newAddress.isDefault,
-            },
-            {
-              headers: {
-                Authorization:
-                  `Bearer ${token}`,
-              },
-            }
-          );
-        const createdAddress:
-          ClientAddress | undefined =
-            response.data?.address;
-        if (!createdAddress) {
-          throw new Error(
-            'No se recibió la dirección creada.'
-          );
-        }
-        setAddresses(
-          (previous) => {
-            const normalized =
-              createdAddress.isDefault
-                ? previous.map(
-                    (address) => ({
-                      ...address,
-                      isDefault: false,
-                    })
-                  )
-                : previous;
-            return [
-              createdAddress,
-              ...normalized,
-            ];
-          }
-        );
-        setSelectedAddressId(
-          createdAddress.id
-        );
-        setShowNewAddressForm(false);
-        setNewAddress({
-          label: '',
-          state: '',
-          municipality: '',
-          neighborhood: '',
-          postalCode: '',
-          street: '',
-          exteriorNumber: '',
-          interiorNumber: '',
-          references: '',
-          latitude: null,
-          longitude: null,
-          isDefault: false,
-        });
-      } catch (
-        addressError: any
-      ) {
-        console.error(
-          'ERROR GUARDANDO DIRECCIÓN:',
-          addressError.response
-            ?.data ||
-            addressError
-        );
-        if (
-          addressError.response
-            ?.status === 401
-        ) {
-          localStorage.removeItem(
-            'token'
-          );
-          localStorage.removeItem(
-            'user'
-          );
-          navigate('/login');
-          return;
-        }
-        setRequestError(
-          addressError.response
-            ?.data?.message ||
-            'No fue posible guardar la dirección.'
-        );
-      } finally {
-        setSavingAddress(false);
-      }
-    };
+
+      const backendMessage =
+        addressError.response?.data?.message ||
+        addressError.response?.data?.error;
+
+      setRequestError(
+        backendMessage ||
+        'No fue posible guardar la dirección.'
+      );
+    } finally {
+      setSavingAddress(false);
+    }
+  };
+
   useEffect(() => {
     loadSpecialist();
     loadMyRequests();
@@ -1828,13 +2030,13 @@ setSelectedService(service);
       }
     );
   };
-const getClientPrice = (
-  basePrice: number
-) => {
-  return Math.round(
-    Number(basePrice) * 1.15 * 100
-  ) / 100;
-};
+  const getClientPrice = (
+    basePrice: number
+  ) => {
+    return Math.round(
+      Number(basePrice) * 1.15 * 100
+    ) / 100;
+  };
   /*
     RESUMEN DE CONTRATACIÓN
     El frontend solo muestra una estimación.
@@ -1846,20 +2048,20 @@ const getClientPrice = (
       ? selectedService.priceType === 'HOUR'
         ? serviceQuantity * 60
         : Number(
-            selectedService.durationMinutes
-          ) || 60
+          selectedService.durationMinutes
+        ) || 60
       : 0;
- const contractedQuantity =
-  selectedService?.priceType === 'HOUR'
-    ? serviceQuantity
-    : 1;
-const estimatedClientTotal =
-  selectedService
-    ? getClientPrice(
+  const contractedQuantity =
+    selectedService?.priceType === 'HOUR'
+      ? serviceQuantity
+      : 1;
+  const estimatedClientTotal =
+    selectedService
+      ? getClientPrice(
         Number(selectedService.price) *
-          contractedQuantity
+        contractedQuantity
       )
-    : 0;
+      : 0;
   /*
     UBICACIÓN
   */
@@ -1900,18 +2102,18 @@ const estimatedClientTotal =
     BUSCAR SOLICITUD ACTIVA
     DE UN SERVICIO
   */
-const getActiveRequest = (
-  serviceId: number
-) => {
-  return myRequests.find(
-    (request) =>
-      Number(request.serviceId) ===
+  const getActiveRequest = (
+    serviceId: number
+  ) => {
+    return myRequests.find(
+      (request) =>
+        Number(request.serviceId) ===
         Number(serviceId) &&
-      request.status !== 'CANCELLED' &&
-      request.status !== 'REJECTED' &&
-      request.status !== 'COMPLETED'
-  );
-};
+        request.status !== 'CANCELLED' &&
+        request.status !== 'REJECTED' &&
+        request.status !== 'COMPLETED'
+    );
+  };
   /*
     SOLICITAR SERVICIO
   */
@@ -1929,20 +2131,20 @@ const getActiveRequest = (
         );
         return;
       }
-if (
-  selectedService.priceType === 'HOUR' &&
-  (
-    !Number.isInteger(
-      serviceQuantity
-    ) ||
-    serviceQuantity < 1
-  )
-) {
-  setRequestError(
-    'Selecciona una cantidad de horas válida.'
-  );
-  return;
-}
+      if (
+        selectedService.priceType === 'HOUR' &&
+        (
+          !Number.isInteger(
+            serviceQuantity
+          ) ||
+          serviceQuantity < 1
+        )
+      ) {
+        setRequestError(
+          'Selecciona una cantidad de horas válida.'
+        );
+        return;
+      }
       if (
         !serviceDate ||
         !serviceTime
@@ -2027,32 +2229,32 @@ if (
               },
             }
           );
- console.log(
-  'SOLICITUD CREADA:',
-  response.data
-);
-const createdRequest =
-  response.data?.request;
-if (!createdRequest?.id) {
-  throw new Error(
-    'No se recibió la solicitud creada.'
-  );
-}
-setCreatedRequestId(
-  createdRequest.id
-);
-await loadMyRequests();
-setRequestMessage(
-  'Solicitud creada correctamente. Continúa con el pago.'
-);
+        console.log(
+          'SOLICITUD CREADA:',
+          response.data
+        );
+        const createdRequest =
+          response.data?.request;
+        if (!createdRequest?.id) {
+          throw new Error(
+            'No se recibió la solicitud creada.'
+          );
+        }
+        setCreatedRequestId(
+          createdRequest.id
+        );
+        await loadMyRequests();
+        setRequestMessage(
+          'Solicitud creada correctamente. Continúa con el pago.'
+        );
       } catch (
-        requestError: any
+      requestError: any
       ) {
         console.error(
           'ERROR SOLICITANDO SERVICIO:',
           requestError.response
             ?.data ||
-            requestError
+          requestError
         );
         if (
           requestError.response
@@ -2076,7 +2278,7 @@ setRequestMessage(
           setServiceTime('');
           setRequestError(
             data?.message ||
-              'Ese horario acaba de ser ocupado. Selecciona otra hora disponible.'
+            'Ese horario acaba de ser ocupado. Selecciona otra hora disponible.'
           );
           if (serviceDate) {
             await loadAvailability(
@@ -2088,7 +2290,7 @@ setRequestMessage(
         }
         const isOutsideServiceArea =
           data?.code ===
-            'OUTSIDE_SERVICE_AREA' ||
+          'OUTSIDE_SERVICE_AREA' ||
           (
             requestError.response
               ?.status === 409 &&
@@ -2118,7 +2320,7 @@ setRequestMessage(
         }
         setRequestError(
           data?.message ||
-            'No fue posible enviar la solicitud.'
+          'No fue posible enviar la solicitud.'
         );
       } finally {
         setRequestingServiceId(null);
@@ -2168,21 +2370,21 @@ setRequestMessage(
         await loadMyRequests();
         setRequestMessage(
           response.data?.message ||
-            'Solicitud cancelada correctamente.'
+          'Solicitud cancelada correctamente.'
         );
       } catch (
-        requestError: any
+      requestError: any
       ) {
         console.error(
           'ERROR CANCELANDO SOLICITUD:',
           requestError.response
             ?.data ||
-            requestError
+          requestError
         );
         setRequestError(
           requestError.response
             ?.data?.message ||
-            'No fue posible cancelar la solicitud.'
+          'No fue posible cancelar la solicitud.'
         );
       } finally {
         setCancellingRequestId(
@@ -2260,41 +2462,41 @@ setRequestMessage(
         window.location.assign(
           checkoutUrl
         );
-   } catch (
-  paymentError: any
-) {
-  console.error(
-    'ERROR CREANDO PAGO:',
-    paymentError.response?.data ||
-      paymentError
-  );
-  const data =
-    paymentError.response?.data;
-if (
-  data?.code ===
-  'OUTSIDE_SERVICE_AREA'
-) {
-  setPaymentCoverageError({
-    requestId,
-    code:
-      data.code,
-    message:
-      data.message ||
-      'La ubicación está fuera de cobertura.',
-    municipality:
-      data.location?.municipality,
-    state:
-      data.location?.state,
-  });
-  setRequestError('');
-  return;
-}
-  setRequestError(
-    data?.message ||
-      paymentError.message ||
-      'No fue posible iniciar el pago.'
-  );
-}
+      } catch (
+      paymentError: any
+      ) {
+        console.error(
+          'ERROR CREANDO PAGO:',
+          paymentError.response?.data ||
+          paymentError
+        );
+        const data =
+          paymentError.response?.data;
+        if (
+          data?.code ===
+          'OUTSIDE_SERVICE_AREA'
+        ) {
+          setPaymentCoverageError({
+            requestId,
+            code:
+              data.code,
+            message:
+              data.message ||
+              'La ubicación está fuera de cobertura.',
+            municipality:
+              data.location?.municipality,
+            state:
+              data.location?.state,
+          });
+          setRequestError('');
+          return;
+        }
+        setRequestError(
+          data?.message ||
+          paymentError.message ||
+          'No fue posible iniciar el pago.'
+        );
+      }
       finally {
         setCreatingPaymentId(
           null
@@ -2304,232 +2506,232 @@ if (
   /*
     BOTÓN SEGÚN ESTADO
   */
- const [
-  selectedRequestDetail,
-  setSelectedRequestDetail,
-] = useState<ClientServiceRequest | null>(
-  null
-);
-const handleChangeCoverageAddress =
-  async () => {
-    if (!paymentCoverageError) {
-      return;
-    }
-    const requestId =
-      paymentCoverageError.requestId;
-    const currentRequest =
-      myRequests.find(
-        (request) =>
-          request.id === requestId
-      );
-    if (!currentRequest) {
-      setPaymentCoverageError(null);
-      return;
-    }
-    const service =
-      specialist?.services.find(
-        (item) =>
-          item.id ===
-          currentRequest.serviceId
-      );
-    if (!service) {
-      setPaymentCoverageError(null);
-      return;
-    }
-    try {
-      const token =
-        localStorage.getItem('token');
-      if (!token) {
-        navigate('/login');
+  const [
+    selectedRequestDetail,
+    setSelectedRequestDetail,
+  ] = useState<ClientServiceRequest | null>(
+    null
+  );
+  const handleChangeCoverageAddress =
+    async () => {
+      if (!paymentCoverageError) {
         return;
       }
-      await api.patch(
-        `/requests/${requestId}/cancel`,
-        {},
-        {
-          headers: {
-            Authorization:
-              `Bearer ${token}`,
-          },
+      const requestId =
+        paymentCoverageError.requestId;
+      const currentRequest =
+        myRequests.find(
+          (request) =>
+            request.id === requestId
+        );
+      if (!currentRequest) {
+        setPaymentCoverageError(null);
+        return;
+      }
+      const service =
+        specialist?.services.find(
+          (item) =>
+            item.id ===
+            currentRequest.serviceId
+        );
+      if (!service) {
+        setPaymentCoverageError(null);
+        return;
+      }
+      try {
+        const token =
+          localStorage.getItem('token');
+        if (!token) {
+          navigate('/login');
+          return;
         }
-      );
-      await loadMyRequests();
-      setPaymentCoverageError(null);
-      await openRequestModal(
-        service
-      );
-    } catch (error: any) {
-      console.error(
-        'ERROR CAMBIANDO DIRECCIÓN:',
-        error.response?.data ||
+        await api.patch(
+          `/requests/${requestId}/cancel`,
+          {},
+          {
+            headers: {
+              Authorization:
+                `Bearer ${token}`,
+            },
+          }
+        );
+        await loadMyRequests();
+        setPaymentCoverageError(null);
+        await openRequestModal(
+          service
+        );
+      } catch (error: any) {
+        console.error(
+          'ERROR CAMBIANDO DIRECCIÓN:',
+          error.response?.data ||
           error
-      );
-      setPaymentCoverageError(null);
-      setRequestError(
-        error.response?.data?.message ||
+        );
+        setPaymentCoverageError(null);
+        setRequestError(
+          error.response?.data?.message ||
           'No fue posible cambiar la dirección.'
-      );
-    }
-  };
-const baseSubtotal =
-  selectedService
-    ? Number(
+        );
+      }
+    };
+  const baseSubtotal =
+    selectedService
+      ? Number(
         selectedService.price
       ) * contractedQuantity
-    : 0;
-const renderRequestButton = (
-  service: Service
-) => {
-  const existingRequest =
-    getActiveRequest(service.id);
-  // NO EXISTE SOLICITUD
-  if (!existingRequest) {
+      : 0;
+  const renderRequestButton = (
+    service: Service
+  ) => {
+    const existingRequest =
+      getActiveRequest(service.id);
+    // NO EXISTE SOLICITUD
+    if (!existingRequest) {
+      return (
+        <button
+          type="button"
+          disabled={
+            requestingServiceId === service.id
+          }
+          onClick={() =>
+            openRequestModal(service)
+          }
+        >
+          {requestingServiceId === service.id
+            ? 'Enviando...'
+            : 'Solicitar'}
+          <b>→</b>
+        </button>
+      );
+    }
+    const paymentStatus =
+      existingRequest.payment?.status;
+    /*
+      PAGO YA CONFIRMADO +
+      SOLICITUD ESPERANDO PROCESARSE
+    */
+    /*
+      SOLICITUD CREADA PERO NO PAGADA
+    */
+    if (
+      existingRequest.status ===
+      'PENDING_PAYMENT'
+    ) {
+      return (
+        <button
+          type="button"
+          className="public-service-payment"
+          disabled={
+            creatingPaymentId ===
+            existingRequest.id
+          }
+          onClick={() =>
+            handleContinueToPayment(
+              existingRequest.id
+            )
+          }
+        >
+          {creatingPaymentId ===
+            existingRequest.id
+            ? 'Preparando pago...'
+            : 'Continuar al pago'}
+          <b>→</b>
+        </button>
+      );
+    }
+    /*
+      SOLICITUD CREADA PERO NO PAGADA
+    */
+    if (
+      existingRequest.status ===
+      'PENDING_ADMIN' &&
+      paymentStatus !== 'APPROVED'
+    ) {
+      return (
+        <button
+          type="button"
+          className="public-service-payment"
+          disabled={
+            creatingPaymentId ===
+            existingRequest.id
+          }
+          onClick={() =>
+            handleContinueToPayment(
+              existingRequest.id
+            )
+          }
+        >
+          {creatingPaymentId ===
+            existingRequest.id
+            ? 'Preparando pago...'
+            : 'Continuar al pago'}
+          <b>→</b>
+        </button>
+      );
+    }
+    /*
+      ADMIN YA APROBÓ
+    */
+    if (
+      existingRequest.status ===
+      'APPROVED'
+    ) {
+      return (
+        <button
+          type="button"
+          className="public-service-details"
+          onClick={() =>
+            setSelectedRequestDetail(
+              existingRequest
+            )
+          }
+        >
+          Ver detalles
+          <b>→</b>
+        </button>
+      );
+    }
+    if (
+      existingRequest.status ===
+      'IN_PROGRESS'
+    ) {
+      return (
+        <button
+          type="button"
+          disabled
+          className="public-service-approved"
+        >
+          En proceso
+          <b>✓</b>
+        </button>
+      );
+    }
+    if (
+      existingRequest.status ===
+      'COMPLETED'
+    ) {
+      return (
+        <button
+          type="button"
+          disabled
+          className="public-service-completed"
+        >
+          Completado
+          <b>✓</b>
+        </button>
+      );
+    }
     return (
       <button
         type="button"
-        disabled={
-          requestingServiceId === service.id
-        }
         onClick={() =>
           openRequestModal(service)
         }
       >
-        {requestingServiceId === service.id
-          ? 'Enviando...'
-          : 'Solicitar'}
+        Solicitar
         <b>→</b>
       </button>
     );
-  }
-  const paymentStatus =
-    existingRequest.payment?.status;
-  /*
-    PAGO YA CONFIRMADO +
-    SOLICITUD ESPERANDO PROCESARSE
-  */
-/*
-  SOLICITUD CREADA PERO NO PAGADA
-*/
-if (
-  existingRequest.status ===
-  'PENDING_PAYMENT'
-) {
-  return (
-    <button
-      type="button"
-      className="public-service-payment"
-      disabled={
-        creatingPaymentId ===
-        existingRequest.id
-      }
-      onClick={() =>
-        handleContinueToPayment(
-          existingRequest.id
-        )
-      }
-    >
-      {creatingPaymentId ===
-      existingRequest.id
-        ? 'Preparando pago...'
-        : 'Continuar al pago'}
-      <b>→</b>
-    </button>
-  );
-}
-  /*
-    SOLICITUD CREADA PERO NO PAGADA
-  */
-  if (
-    existingRequest.status ===
-      'PENDING_ADMIN' &&
-    paymentStatus !== 'APPROVED'
-  ) {
-    return (
-      <button
-        type="button"
-        className="public-service-payment"
-        disabled={
-          creatingPaymentId ===
-          existingRequest.id
-        }
-        onClick={() =>
-          handleContinueToPayment(
-            existingRequest.id
-          )
-        }
-      >
-        {creatingPaymentId ===
-        existingRequest.id
-          ? 'Preparando pago...'
-          : 'Continuar al pago'}
-        <b>→</b>
-      </button>
-    );
-  }
-  /*
-    ADMIN YA APROBÓ
-  */
-  if (
-  existingRequest.status ===
-  'APPROVED'
-) {
-  return (
-    <button
-      type="button"
-      className="public-service-details"
-      onClick={() =>
-        setSelectedRequestDetail(
-          existingRequest
-        )
-      }
-    >
-      Ver detalles
-      <b>→</b>
-    </button>
-  );
-}
-  if (
-    existingRequest.status ===
-    'IN_PROGRESS'
-  ) {
-    return (
-      <button
-        type="button"
-        disabled
-        className="public-service-approved"
-      >
-        En proceso
-        <b>✓</b>
-      </button>
-    );
-  }
-  if (
-    existingRequest.status ===
-    'COMPLETED'
-  ) {
-    return (
-      <button
-        type="button"
-        disabled
-        className="public-service-completed"
-      >
-        Completado
-        <b>✓</b>
-      </button>
-    );
-  }
-  return (
-    <button
-      type="button"
-      onClick={() =>
-        openRequestModal(service)
-      }
-    >
-      Solicitar
-      <b>→</b>
-    </button>
-  );
-};
+  };
   /*
     LOADING
   */
@@ -2689,9 +2891,18 @@ if (
         </button>
         {/* HERO */}
         <section className="public-profile-hero">
-          <div className="public-profile-avatar">
-            {initials}
-          </div>
+       <div className="public-profile-avatar">
+  {specialist.profilePhotoUrl ? (
+    <img
+      src={resolveStoredFileUrl(
+        specialist.profilePhotoUrl
+      )}
+      alt={specialist.name}
+    />
+  ) : (
+    initials
+  )}
+</div>
           <div className="public-profile-identity">
             <div className="public-profile-name-row">
               <div>
@@ -2730,11 +2941,11 @@ if (
                   {specialist
                     .specialties
                     .length === 0 && (
-                    <span>
-                      Especialista
-                      FASYN
-                    </span>
-                  )}
+                      <span>
+                        Especialista
+                        FASYN
+                      </span>
+                    )}
                 </div>
               </div>
               <button
@@ -2752,12 +2963,11 @@ if (
                 </span>
                 <strong>
                   {specialist.experience
-                    ? `${specialist.experience} ${
-                        specialist.experience ===
-                        1
-                          ? 'año'
-                          : 'años'
-                      }`
+                    ? `${specialist.experience} ${specialist.experience ===
+                      1
+                      ? 'año'
+                      : 'años'
+                    }`
                     : 'No especificada'}
                 </strong>
               </div>
@@ -2810,24 +3020,24 @@ if (
               {specialist
                 .specialties
                 .length > 0 && (
-                <div className="public-profile-tags">
-                  {specialist.specialties.map(
-                    (
-                      specialty
-                    ) => (
-                      <span
-                        key={
-                          specialty.id
-                        }
-                      >
-                        {formatCategoryName(
-                          specialty.name
-                        )}
-                      </span>
-                    )
-                  )}
-                </div>
-              )}
+                  <div className="public-profile-tags">
+                    {specialist.specialties.map(
+                      (
+                        specialty
+                      ) => (
+                        <span
+                          key={
+                            specialty.id
+                          }
+                        >
+                          {formatCategoryName(
+                            specialty.name
+                          )}
+                        </span>
+                      )
+                    )}
+                  </div>
+                )}
             </section>
             {/* SERVICIOS */}
             <section
@@ -2865,6 +3075,102 @@ if (
                     <p>
                       {requestMessage}
                     </p>
+                  </div>
+                </div>
+              )}
+              {profileIncompleteModalOpen && (
+                <div
+                  className="profile-incomplete-overlay"
+                  onClick={() =>
+                    setProfileIncompleteModalOpen(
+                      false
+                    )
+                  }
+                >
+                  <div
+                    className="profile-incomplete-modal"
+                    onClick={(event) =>
+                      event.stopPropagation()
+                    }
+                  >
+                    <button
+                      type="button"
+                      className="profile-incomplete-close"
+                      onClick={() =>
+                        setProfileIncompleteModalOpen(
+                          false
+                        )
+                      }
+                    >
+                      ×
+                    </button>
+
+                    <div className="profile-incomplete-icon">
+                      !
+                    </div>
+
+                    <span className="profile-incomplete-eyebrow">
+                      PERFIL INCOMPLETO
+                    </span>
+
+                    <h2>
+                      Completa tu perfil
+                    </h2>
+
+                    <p>
+                      Antes de solicitar un servicio
+                      necesitamos algunos datos para
+                      poder procesar correctamente tu
+                      solicitud.
+                    </p>
+
+                    {missingClientData.length > 0 && (
+                      <div className="profile-incomplete-fields">
+                        <span>
+                          Te falta completar:
+                        </span>
+
+                        <ul>
+                          {missingClientData.map(
+                            (field) => (
+                              <li key={field}>
+                                {field}
+                              </li>
+                            )
+                          )}
+                        </ul>
+                      </div>
+                    )}
+
+                    <div className="profile-incomplete-actions">
+                      <button
+                        type="button"
+                        className="profile-incomplete-secondary"
+                        onClick={() =>
+                          setProfileIncompleteModalOpen(
+                            false
+                          )
+                        }
+                      >
+                        Ahora no
+                      </button>
+
+                      <button
+                        type="button"
+                        className="profile-incomplete-primary"
+                        onClick={() => {
+                          setProfileIncompleteModalOpen(
+                            false
+                          );
+
+                          navigate(
+                            '/client/profile'
+                          );
+                        }}
+                      >
+                        Completar perfil
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}
@@ -2919,7 +3225,9 @@ if (
                           </small>
                           <strong>
                             {formatPrice(
-                              service.price
+                              getClientPrice(
+                                service.price
+                              )
                             )}
                           </strong>
                           <span>
@@ -3016,7 +3324,9 @@ if (
                 </span>
                 <strong>
                   {formatPrice(
-                    lowestService.price
+                    getClientPrice(
+                      lowestService.price
+                    )
                   )}
                 </strong>
                 <small>
@@ -3106,1281 +3416,1286 @@ if (
         </div>
       </main>
       {requestCoverageError && (
-  <div
-    className="coverage-modal-overlay"
-    role="dialog"
-    aria-modal="true"
-  >
-    <div className="coverage-modal">
-      <button
-        type="button"
-        className="coverage-modal-close"
-        onClick={() =>
-          setRequestCoverageError(null)
-        }
-      >
-        ×
-      </button>
-      <div className="coverage-modal-icon">
-        📍
-      </div>
-      <span className="coverage-modal-eyebrow">
-        COBERTURA NO DISPONIBLE
-      </span>
-      <h2>
-        Esta dirección está fuera
-        de la zona de atención
-      </h2>
-      <p className="coverage-modal-description">
-        {requestCoverageError.message}
-      </p>
-      {(requestCoverageError.municipality ||
-        requestCoverageError.state) && (
-        <div className="coverage-modal-location">
-          <small>
-            UBICACIÓN SELECCIONADA
-          </small>
-          <strong>
-            {[
-              requestCoverageError.municipality,
-              requestCoverageError.state,
-            ]
-              .filter(Boolean)
-              .join(', ')}
-          </strong>
+        <div
+          className="coverage-modal-overlay"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="coverage-modal">
+            <button
+              type="button"
+              className="coverage-modal-close"
+              onClick={() =>
+                setRequestCoverageError(null)
+              }
+            >
+              ×
+            </button>
+            <div className="coverage-modal-icon">
+              📍
+            </div>
+            <span className="coverage-modal-eyebrow">
+              COBERTURA NO DISPONIBLE
+            </span>
+            <h2>
+              Esta dirección está fuera
+              de la zona de atención
+            </h2>
+            <p className="coverage-modal-description">
+              {requestCoverageError.message}
+            </p>
+            {(requestCoverageError.municipality ||
+              requestCoverageError.state) && (
+                <div className="coverage-modal-location">
+                  <small>
+                    UBICACIÓN SELECCIONADA
+                  </small>
+                  <strong>
+                    {[
+                      requestCoverageError.municipality,
+                      requestCoverageError.state,
+                    ]
+                      .filter(Boolean)
+                      .join(', ')}
+                  </strong>
+                </div>
+              )}
+            <p className="coverage-modal-help">
+              Selecciona otra dirección para
+              continuar con la solicitud.
+            </p>
+            <div className="coverage-modal-actions">
+              <button
+                type="button"
+                className="coverage-modal-secondary"
+                onClick={() =>
+                  setRequestCoverageError(null)
+                }
+              >
+                Cerrar
+              </button>
+              <button
+                type="button"
+                className="coverage-modal-primary"
+                onClick={() => {
+                  setRequestCoverageError(null);
+                  setSelectedAddressId(null);
+                  setServiceTime('');
+                  setRequestError('');
+                }}
+              >
+                Cambiar dirección
+                <span>→</span>
+              </button>
+            </div>
+          </div>
         </div>
       )}
-      <p className="coverage-modal-help">
-        Selecciona otra dirección para
-        continuar con la solicitud.
-      </p>
-      <div className="coverage-modal-actions">
-        <button
-          type="button"
-          className="coverage-modal-secondary"
-          onClick={() =>
-            setRequestCoverageError(null)
-          }
+      {paymentCoverageError && (
+        <div
+          className="coverage-modal-overlay"
+          role="dialog"
+          aria-modal="true"
         >
-          Cerrar
-        </button>
-        <button
-          type="button"
-          className="coverage-modal-primary"
-          onClick={() => {
-            setRequestCoverageError(null);
-            setSelectedAddressId(null);
-            setServiceTime('');
-            setRequestError('');
-          }}
-        >
-          Cambiar dirección
-          <span>→</span>
-        </button>
-      </div>
-    </div>
-  </div>
-)}
-{paymentCoverageError && (
-  <div
-    className="coverage-modal-overlay"
-    role="dialog"
-    aria-modal="true"
-  >
-    <div className="coverage-modal">
-      <button
-        type="button"
-        className="coverage-modal-close"
-        onClick={() =>
-          setPaymentCoverageError(null)
-        }
-      >
-        ×
-      </button>
-      <div className="coverage-modal-icon">
-        📍
-      </div>
-      <span className="coverage-modal-eyebrow">
-        COBERTURA NO DISPONIBLE
-      </span>
-      <h2>
-        Esta dirección está fuera
-        de la zona de atención
-      </h2>
-      <p className="coverage-modal-description">
-        El especialista no presta servicios
-        actualmente en esta ubicación.
-      </p>
-      {(paymentCoverageError.municipality ||
-        paymentCoverageError.state) && (
-        <div className="coverage-modal-location">
-          <small>
-            UBICACIÓN DETECTADA
-          </small>
-          <strong>
-            {[
-              paymentCoverageError.municipality,
-              paymentCoverageError.state,
-            ]
-              .filter(Boolean)
-              .join(', ')}
-          </strong>
+          <div className="coverage-modal">
+            <button
+              type="button"
+              className="coverage-modal-close"
+              onClick={() =>
+                setPaymentCoverageError(null)
+              }
+            >
+              ×
+            </button>
+            <div className="coverage-modal-icon">
+              📍
+            </div>
+            <span className="coverage-modal-eyebrow">
+              COBERTURA NO DISPONIBLE
+            </span>
+            <h2>
+              Esta dirección está fuera
+              de la zona de atención
+            </h2>
+            <p className="coverage-modal-description">
+              El especialista no presta servicios
+              actualmente en esta ubicación.
+            </p>
+            {(paymentCoverageError.municipality ||
+              paymentCoverageError.state) && (
+                <div className="coverage-modal-location">
+                  <small>
+                    UBICACIÓN DETECTADA
+                  </small>
+                  <strong>
+                    {[
+                      paymentCoverageError.municipality,
+                      paymentCoverageError.state,
+                    ]
+                      .filter(Boolean)
+                      .join(', ')}
+                  </strong>
+                </div>
+              )}
+            <p className="coverage-modal-help">
+              Selecciona otra dirección para
+              continuar con el pago.
+            </p>
+            <div className="coverage-modal-actions">
+              <button
+                type="button"
+                className="coverage-modal-secondary"
+                onClick={() =>
+                  setPaymentCoverageError(null)
+                }
+              >
+                Cerrar
+              </button>
+              <button
+                type="button"
+                className="coverage-modal-primary"
+                onClick={() =>
+                  void handleChangeCoverageAddress()
+                }
+              >
+                Cambiar dirección
+                <span>→</span>
+              </button>
+            </div>
+          </div>
         </div>
       )}
-      <p className="coverage-modal-help">
-        Selecciona otra dirección para
-        continuar con el pago.
-      </p>
-      <div className="coverage-modal-actions">
-        <button
-          type="button"
-          className="coverage-modal-secondary"
-          onClick={() =>
-            setPaymentCoverageError(null)
-          }
-        >
-          Cerrar
-        </button>
-        <button
-          type="button"
-          className="coverage-modal-primary"
-          onClick={() =>
-            void handleChangeCoverageAddress()
-          }
-        >
-          Cambiar dirección
-          <span>→</span>
-        </button>
-      </div>
-    </div>
-  </div>
-)} 
       {/* MODAL SOLICITAR SERVICIO */}
       {requestModalOpen &&
         selectedService && (
-        <div
-          className="service-request-modal-overlay"
-          onMouseDown={(event) => {
-            if (
-              event.target ===
-              event.currentTarget
-            ) {
-              closeRequestModal();
-            }
-          }}
-        >
-          <div className="service-request-modal">
-            <div className="service-request-modal-header">
-              <div>
-                <span className="service-request-modal-eyebrow">
-                  SOLICITAR SERVICIO
-                </span>
-                <h2>
-                  {selectedService.name}
-                </h2>
-                <p>
-                  Selecciona dónde necesitas
-                  que se realice el servicio.
-                </p>
-              </div>
-              <button
-                type="button"
-                className="service-request-modal-close"
-                onClick={
-                  closeRequestModal
-                }
-                disabled={
-                  requestingServiceId !==
+          <div
+            className="service-request-modal-overlay"
+            onMouseDown={(event) => {
+              if (
+                event.target ===
+                event.currentTarget
+              ) {
+                closeRequestModal();
+              }
+            }}
+          >
+            <div className="service-request-modal">
+              <div className="service-request-modal-header">
+                <div>
+                  <span className="service-request-modal-eyebrow">
+                    SOLICITAR SERVICIO
+                  </span>
+                  <h2>
+                    {selectedService.name}
+                  </h2>
+                  <p>
+                    Selecciona dónde necesitas
+                    que se realice el servicio.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  className="service-request-modal-close"
+                  onClick={
+                    closeRequestModal
+                  }
+                  disabled={
+                    requestingServiceId !==
                     null ||
-                  savingAddress
-                }
-              >
-                ×
-              </button>
-            </div>
-         <div className="service-request-summary">
-  <div>
-    <small>
-      RESUMEN DEL SERVICIO
-    </small>
-    <strong>
-      {selectedService.priceType === 'HOUR'
-        ? `${serviceQuantity} ${
-            serviceQuantity === 1
-              ? 'hora'
-              : 'horas'
-          }`
-        : selectedService.priceType === 'DAY'
-          ? '1 día'
-          : '1 servicio'}
-    </strong>
-    <span>
-      {selectedService.priceType === 'HOUR'
-        ? 'Modalidad por hora'
-        : selectedService.priceType === 'DAY'
-          ? 'Modalidad por día'
-          : 'Modalidad por servicio'}
-    </span>
-  </div>
-  <div className="service-request-summary-price">
-    <small>
-      TOTAL A PAGAR
-    </small>
-    <strong>
-      {formatPrice(
-        estimatedClientTotal
-      )}
-    </strong>
-    <span>
-      Incluye comisión de servicio
-    </span>
-  </div>
-</div>
-            {requestError && (
-              <div className="service-request-modal-error">
-                <span>
-                  !
-                </span>
-                <p>
-                  {requestError}
-                </p>
+                    savingAddress
+                  }
+                >
+                  ×
+                </button>
               </div>
-            )}
-            {!showNewAddressForm && (
-              <>
-                <div className="service-request-section-title">
-                  <div>
-                    <span>
-                      01
-                    </span>
+              <div className="service-request-summary">
+                <div>
+                  <small>
+                    RESUMEN DEL SERVICIO
+                  </small>
+                  <strong>
+                    {selectedService.priceType === 'HOUR'
+                      ? `${serviceQuantity} ${serviceQuantity === 1
+                        ? 'hora'
+                        : 'horas'
+                      }`
+                      : selectedService.priceType === 'DAY'
+                        ? '1 día'
+                        : '1 servicio'}
+                  </strong>
+                  <span>
+                    {selectedService.priceType === 'HOUR'
+                      ? 'Modalidad por hora'
+                      : selectedService.priceType === 'DAY'
+                        ? 'Modalidad por día'
+                        : 'Modalidad por servicio'}
+                  </span>
+                </div>
+                <div className="service-request-summary-price">
+                  <small>
+                    TOTAL A PAGAR
+                  </small>
+                  <strong>
+                    {formatPrice(
+                      estimatedClientTotal
+                    )}
+                  </strong>
+                  <span>
+                    Incluye comisión de servicio
+                  </span>
+                </div>
+              </div>
+              {requestError && !showNewAddressForm && (
+                <div className="service-request-modal-error">
+                  <span>
+                    !
+                  </span>
+                  <p>
+                    {requestError}
+                  </p>
+                </div>
+              )}
+              {!showNewAddressForm && (
+                <>
+                  <div className="service-request-section-title">
                     <div>
-                      <strong>
-                        Dirección del servicio. ss
-                      </strong>
-                      <small>
-                        El especialista acudirá
-                        a esta dirección.
-                      </small>
+                      <span>
+                        01
+                      </span>
+                      <div>
+                        <strong>
+                          Dirección del servicio. ss
+                        </strong>
+                        <small>
+                          El especialista acudirá
+                          a esta dirección.
+                        </small>
+                      </div>
                     </div>
                   </div>
-                </div>
-                {loadingAddresses ? (
-                  <div className="service-request-loading">
-                    <div className="public-profile-spinner" />
-                    <span>
-                      Cargando tus direcciones...
-                    </span>
-                  </div>
-                ) : (
-                  <>
-                    {addresses.length > 0 ? (
-                      <div className="service-address-list">
-                        {addresses.map(
-                          (address) => {
-                            const selected =
-                              selectedAddressId ===
-                              address.id;
-                            return (
-                              <button
-                                key={
-                                  address.id
-                                }
-                                type="button"
-                                className={
-                                  selected
-                                    ? 'service-address-card selected'
-                                    : 'service-address-card'
-                                }
-                                onClick={() => {
-                                  setSelectedAddressId(
-                                    address.id
-                                  );
-                                  setRequestError('');
-                                }}
-                              >
-                                <div className="service-address-radio">
-                                  <span>
-                                    {selected
-                                      ? '●'
-                                      : '○'}
-                                  </span>
-                                </div>
-                                <div className="service-address-content">
-                                  <div className="service-address-title">
-                                    <strong>
-                                      {address.label}
-                                    </strong>
-                                    {address.isDefault && (
-                                      <span>
-                                        Principal
-                                      </span>
-                                    )}
-                                  </div>
-                                  <p>
-                                    {address.street}{' '}
-                                    #{address.exteriorNumber}
-                                    {address.interiorNumber
-                                      ? ` Int. ${address.interiorNumber}`
-                                      : ''}
-                                  </p>
-                                  <small>
-                                    {address.neighborhood},{' '}
-                                    {address.municipality},{' '}
-                                    {address.state}
-                                  </small>
-                                  <small>
-                                    C.P.{' '}
-                                    {address.postalCode}
-                                  </small>
-                                  {address.references && (
-                                    <em>
-                                      Referencias:{' '}
-                                      {address.references}
-                                    </em>
-                                  )}
-                                </div>
-                              </button>
-                            );
-                          }
-                        )}
-                      </div>
-                    ) : (
-                      <div className="service-address-empty">
-                        <div>
-                          ⌂
-                        </div>
-                        <strong>
-                          Aún no tienes direcciones
-                        </strong>
-                        <p>
-                          Agrega la dirección donde
-                          necesitas el servicio.
-                        </p>
-                      </div>
-                    )}
-                    <button
-                      type="button"
-                      className="service-add-address-button"
-                      onClick={() => {
-                        setRequestError('');
-                        setShowNewAddressForm(
-                          true
-                        );
-                      }}
-                    >
+                  {loadingAddresses ? (
+                    <div className="service-request-loading">
+                      <div className="public-profile-spinner" />
                       <span>
-                        +
+                        Cargando tus direcciones...
                       </span>
-                      Agregar nueva dirección
-                    </button>
-                    <div className="service-request-schedule">
-                      <div className="service-request-section-title compact">
-                        <div>
-                          <span>
-                            02
-                          </span>
-                          <div>
-                            <strong>
-                              Fecha y hora
-                            </strong>
-                            <small>
-                              Indica cuándo necesitas
-                              que se realice el servicio.
-                            </small>
-                          </div>
-                        </div>
-                      </div>
-                      {selectedService.priceType === 'HOUR' && (
-                        <div className="service-time-block">
-                          <div className="service-time-block-header">
-                            <div>
-                              <label>
-                                ¿Cuántas horas necesitas? *
-                              </label>
-                              <small>
-                                El precio se calcula por las horas
-                                seleccionadas.
-                              </small>
-                            </div>
-                            <strong>
-                              {serviceQuantity}{' '}
-                              {serviceQuantity === 1
-                                ? 'hora'
-                                : 'horas'}
-                            </strong>
-                          </div>
-                          <div className="service-quantity-options">
-                            {Array.from(
-                              {
-                                length: 8,
-                              },
-                              (
-                                _,
-                                index
-                              ) =>
-                                index + 1
-                            ).map(
-                              (hours) => (
+                    </div>
+                  ) : (
+                    <>
+                      {addresses.length > 0 ? (
+                        <div className="service-address-list">
+                          {addresses.map(
+                            (address) => {
+                              const selected =
+                                selectedAddressId ===
+                                address.id;
+                              return (
                                 <button
-                                  key={hours}
+                                  key={
+                                    address.id
+                                  }
                                   type="button"
                                   className={
-                                    serviceQuantity ===
-                                    hours
-                                      ? 'service-quantity-option active'
-                                      : 'service-quantity-option'
+                                    selected
+                                      ? 'service-address-card selected'
+                                      : 'service-address-card'
                                   }
                                   onClick={() => {
-                                    setServiceQuantity(
-                                      hours
+                                    setSelectedAddressId(
+                                      address.id
                                     );
-                                    setServiceTime(
-                                      ''
-                                    );
-                                    setRequestError(
-                                      ''
-                                    );
+                                    setRequestError('');
                                   }}
                                 >
-                                  {hours}h
+                                  <div className="service-address-radio">
+                                    <span>
+                                      {selected
+                                        ? '●'
+                                        : '○'}
+                                    </span>
+                                  </div>
+                                  <div className="service-address-content">
+                                    <div className="service-address-title">
+                                      <strong>
+                                        {address.label}
+                                      </strong>
+                                      {address.isDefault && (
+                                        <span>
+                                          Principal
+                                        </span>
+                                      )}
+                                    </div>
+                                    <p>
+                                      {address.street}{' '}
+                                      #{address.exteriorNumber}
+                                      {address.interiorNumber
+                                        ? ` Int. ${address.interiorNumber}`
+                                        : ''}
+                                    </p>
+                                    <small>
+                                      {address.neighborhood},{' '}
+                                      {address.municipality},{' '}
+                                      {address.state}
+                                    </small>
+                                    <small>
+                                      C.P.{' '}
+                                      {address.postalCode}
+                                    </small>
+                                    {address.references && (
+                                      <em>
+                                        Referencias:{' '}
+                                        {address.references}
+                                      </em>
+                                    )}
+                                  </div>
                                 </button>
-                              )
-                            )}
+                              );
+                            }
+                          )}
+                        </div>
+                      ) : (
+                        <div className="service-address-empty">
+                          <div>
+                            ⌂
                           </div>
+                          <strong>
+                            Aún no tienes direcciones
+                          </strong>
+                          <p>
+                            Agrega la dirección donde
+                            necesitas el servicio.
+                          </p>
                         </div>
                       )}
-                      <div className="service-schedule-grid">
-                        <div className="service-form-field">
-                          <label
-                            htmlFor="serviceDate"
-                          >
-                            Fechna *
-                          </label>
-                          <input
-                            id="serviceDate"
-                            className="service-date-input"
-                            type="date"
-                            value={
-                              serviceDate
-                            }
-                            min={
-                              getTodayInputValue()
-                            }
-                            onClick={(event) => {
-                              try {
-                                event.currentTarget
-                                  .showPicker?.();
-                              } catch {
-                                // Algunos navegadores abren
-                                // el selector de forma nativa.
-                              }
-                            }}
-                            onChange={(
-                              event
-                            ) => {
-                              const value =
-                                event.target
-                                  .value;
-                              setServiceDate(
-                                value
-                              );
-                              setServiceTime(
-                                ''
-                              );
-                              setBusySlots(
-                                []
-                              );
-                              setRequestError(
-                                ''
-                              );
-                              setAvailabilityError(
-                                ''
-                              );
-                              if (value) {
-                                void loadAvailability(
-                                  value,
-                                  selectedService
-                                );
-                              }
-                            }}
-                          />
+                      <button
+                        type="button"
+                        className="service-add-address-button"
+                        onClick={() => {
+                          setRequestError('');
+                          setShowNewAddressForm(
+                            true
+                          );
+                        }}
+                      >
+                        <span>
+                          +
+                        </span>
+                        Agregar nueva dirección
+                      </button>
+                      <div className="service-request-schedule">
+                        <div className="service-request-section-title compact">
+                          <div>
+                            <span>
+                              02
+                            </span>
+                            <div>
+                              <strong>
+                                Fecha y hora
+                              </strong>
+                              <small>
+                                Indica cuándo necesitas
+                                que se realice el servicio.
+                              </small>
+                            </div>
+                          </div>
                         </div>
-                        <div className="service-form-field">
-                          <label
-                            htmlFor="serviceTime"
-                          >
-                            Hora *
-                          </label>
-                          <div
-                            className={
-                              !serviceDate ||
-                              loadingAvailability ||
-                              Boolean(availabilityError)
-                                ? 'service-time-options disabled'
-                                : 'service-time-options'
-                            }
-                          >
-                            {!serviceDate && (
-                              <div className="service-time-empty">
-                                Selecciona primero una fecha.
+                        {selectedService.priceType === 'HOUR' && (
+                          <div className="service-time-block">
+                            <div className="service-time-block-header">
+                              <div>
+                                <label>
+                                  ¿Cuántas horas necesitas? *
+                                </label>
+                                <small>
+                                  El precio se calcula por las horas
+                                  seleccionadas.
+                                </small>
                               </div>
-                            )}
-                            {serviceDate &&
-                              loadingAvailability && (
-                                <div className="service-time-empty">
-                                  Consultando horarios...
-                                </div>
-                              )}
-                            {serviceDate &&
-                              !loadingAvailability &&
-                              !availabilityError &&
-                              scheduleOptions.map(
-                                (slot) => (
+                              <strong>
+                                {serviceQuantity}{' '}
+                                {serviceQuantity === 1
+                                  ? 'hora'
+                                  : 'horas'}
+                              </strong>
+                            </div>
+                            <div className="service-quantity-options">
+                              {Array.from(
+                                {
+                                  length: 8,
+                                },
+                                (
+                                  _,
+                                  index
+                                ) =>
+                                  index + 1
+                              ).map(
+                                (hours) => (
                                   <button
-                                    key={slot.time}
+                                    key={hours}
                                     type="button"
-                                    disabled={!slot.available}
-                                    className={[
-                                      'service-time-option',
-                                      serviceTime === slot.time
-                                        ? 'active'
-                                        : '',
-                                      !slot.available
-                                        ? 'unavailable'
-                                        : '',
-                                    ]
-                                      .filter(Boolean)
-                                      .join(' ')}
+                                    className={
+                                      serviceQuantity ===
+                                        hours
+                                        ? 'service-quantity-option active'
+                                        : 'service-quantity-option'
+                                    }
                                     onClick={() => {
+                                      setServiceQuantity(
+                                        hours
+                                      );
                                       setServiceTime(
-                                        slot.time
+                                        ''
                                       );
                                       setRequestError(
                                         ''
                                       );
                                     }}
                                   >
-                                    <span>
-                                      {slot.time}
-                                    </span>
-                                    {!slot.available && (
-                                      <small>
-                                        {slot.reason ===
-                                        'PAST'
-                                          ? 'Pasó'
-                                          : 'Ocupado'}
-                                      </small>
-                                    )}
+                                    {hours}h
                                   </button>
                                 )
                               )}
+                            </div>
                           </div>
-                          {availabilityError && (
-                            <small
-                              className="service-schedule-error"
+                        )}
+                        <div className="service-schedule-grid">
+                          <div className="service-form-field">
+                            <label
+                              htmlFor="serviceDate"
                             >
-                              {availabilityError}
-                            </small>
-                          )}
+                              Fechna *
+                            </label>
+                            <input
+                              id="serviceDate"
+                              className="service-date-input"
+                              type="date"
+                              value={
+                                serviceDate
+                              }
+                              min={
+                                getTodayInputValue()
+                              }
+                              onClick={(event) => {
+                                try {
+                                  event.currentTarget
+                                    .showPicker?.();
+                                } catch {
+                                  // Algunos navegadores abren
+                                  // el selector de forma nativa.
+                                }
+                              }}
+                              onChange={(
+                                event
+                              ) => {
+                                const value =
+                                  event.target
+                                    .value;
+                                setServiceDate(
+                                  value
+                                );
+                                setServiceTime(
+                                  ''
+                                );
+                                setBusySlots(
+                                  []
+                                );
+                                setRequestError(
+                                  ''
+                                );
+                                setAvailabilityError(
+                                  ''
+                                );
+                                if (value) {
+                                  void loadAvailability(
+                                    value,
+                                    selectedService
+                                  );
+                                }
+                              }}
+                            />
+                          </div>
+                          <div className="service-form-field">
+                            <label
+                              htmlFor="serviceTime"
+                            >
+                              Hora *
+                            </label>
+                            <div
+                              className={
+                                !serviceDate ||
+                                  loadingAvailability ||
+                                  Boolean(availabilityError)
+                                  ? 'service-time-options disabled'
+                                  : 'service-time-options'
+                              }
+                            >
+                              {!serviceDate && (
+                                <div className="service-time-empty">
+                                  Selecciona primero una fecha.
+                                </div>
+                              )}
+                              {serviceDate &&
+                                loadingAvailability && (
+                                  <div className="service-time-empty">
+                                    Consultando horarios...
+                                  </div>
+                                )}
+                              {serviceDate &&
+                                !loadingAvailability &&
+                                !availabilityError &&
+                                scheduleOptions.map(
+                                  (slot) => (
+                                    <button
+                                      key={slot.time}
+                                      type="button"
+                                      disabled={!slot.available}
+                                      className={[
+                                        'service-time-option',
+                                        serviceTime === slot.time
+                                          ? 'active'
+                                          : '',
+                                        !slot.available
+                                          ? 'unavailable'
+                                          : '',
+                                      ]
+                                        .filter(Boolean)
+                                        .join(' ')}
+                                      onClick={() => {
+                                        setServiceTime(
+                                          slot.time
+                                        );
+                                        setRequestError(
+                                          ''
+                                        );
+                                      }}
+                                    >
+                                      <span>
+                                        {slot.time}
+                                      </span>
+                                      {!slot.available && (
+                                        <small>
+                                          {slot.reason ===
+                                            'PAST'
+                                            ? 'Pasó'
+                                            : 'Ocupado'}
+                                        </small>
+                                      )}
+                                    </button>
+                                  )
+                                )}
+                            </div>
+                            {availabilityError && (
+                              <small
+                                className="service-schedule-error"
+                              >
+                                {availabilityError}
+                              </small>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                      <small className="service-schedule-timezone">
-                        La hora se enviará usando tu zona horaria actual.
-                        El horario considera{' '}
-                        {Math.max(
-                          1,
-                          Math.ceil(
-                            contractedDurationMinutes /
+                        <small className="service-schedule-timezone">
+                          La hora se enviará usando tu zona horaria actual.
+                          El horario considera{' '}
+                          {Math.max(
+                            1,
+                            Math.ceil(
+                              contractedDurationMinutes /
                               60
-                          )
-                        )}{' '}
-                        hora(s) de servicio y 1 hora adicional
-                        de traslado.
-                      </small>
-                    <div className="service-request-summary">
-  <div>
-    <small>
-      RESUMEN DEL SERVICIO
-    </small>
-    <strong>
-      {selectedService.priceType === 'HOUR'
-        ? `${serviceQuantity} ${
-            serviceQuantity === 1
-              ? 'hora'
-              : 'horas'
-          }`
-        : selectedService.priceType === 'DAY'
-          ? '1 día'
-          : '1 servicio'}
-    </strong>
-    <span>
-      {selectedService.priceType === 'HOUR'
-        ? 'Modalidad por hora'
-        : selectedService.priceType === 'DAY'
-          ? 'Modalidad por día'
-          : 'Modalidad por servicio'}
-    </span>
-  </div>
-</div>
-                    </div>
-                    <div className="service-request-message-field">
-                      <div className="service-request-section-title compact">
-                        <div>
-                          <span>
-                            03
-                          </span>
+                            )
+                          )}{' '}
+                          hora(s) de servicio y 1 hora adicional
+                          de traslado.
+                        </small>
+                        <div className="service-request-summary">
                           <div>
-                            <strong>
-                              Indicaciones
-                            </strong>
                             <small>
-                              Información adicional para
-                              que el especialista pueda llegar.
+                              RESUMEN DEL SERVICIO
                             </small>
+                            <strong>
+                              {selectedService.priceType === 'HOUR'
+                                ? `${serviceQuantity} ${serviceQuantity === 1
+                                  ? 'hora'
+                                  : 'horas'
+                                }`
+                                : selectedService.priceType === 'DAY'
+                                  ? '1 día'
+                                  : '1 servicio'}
+                            </strong>
+                            <span>
+                              {selectedService.priceType === 'HOUR'
+                                ? 'Modalidad por hora'
+                                : selectedService.priceType === 'DAY'
+                                  ? 'Modalidad por día'
+                                  : 'Modalidad por servicio'}
+                            </span>
                           </div>
                         </div>
                       </div>
-                      <label
-                        htmlFor="serviceMessage"
-                      >
-                        Indicaciones para el especialista
+                      <div className="service-request-message-field">
+                        <div className="service-request-section-title compact">
+                          <div>
+                            <span>
+                              03
+                            </span>
+                            <div>
+                              <strong>
+                                Indicaciones
+                              </strong>
+                              <small>
+                                Información adicional para
+                                que el especialista pueda llegar.
+                              </small>
+                            </div>
+                          </div>
+                        </div>
+                        <label
+                          htmlFor="serviceMessage"
+                        >
+                          Indicaciones para el especialista
+                        </label>
+                        <textarea
+                          id="serviceMessage"
+                          value={
+                            serviceMessage
+                          }
+                          onChange={(
+                            event
+                          ) =>
+                            setServiceMessage(
+                              event.target
+                                .value
+                            )
+                          }
+                          placeholder="Ej. Tocar el timbre al llegar, preguntar por Juan..."
+                          maxLength={500}
+                        />
+                        <small>
+                          Opcional ·{' '}
+                          {serviceMessage.length}
+                          /500
+                        </small>
+                      </div>
+                    </>
+                  )}
+                </>
+              )}
+              {showNewAddressForm && (
+                <div className="service-new-address">
+                  <div className="service-request-section-title">
+                    <div>
+                      <span>
+                        01
+                      </span>
+                      <div>
+                        <strong>
+                          Nueva dirección
+                        </strong>
+                        <small>
+                          Guarda una nueva dirección
+                          para este y futuros servicios.
+                        </small>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="service-new-address-grid">
+                    <div className="service-form-field">
+                      <label>
+                        Nombre de la dirección *
                       </label>
-                      <textarea
-                        id="serviceMessage"
+                      <input
+                        type="text"
                         value={
-                          serviceMessage
+                          newAddress.label
                         }
                         onChange={(
                           event
                         ) =>
-                          setServiceMessage(
-                            event.target
-                              .value
+                          handleNewAddressChange(
+                            'label',
+                            event.target.value
                           )
                         }
-                        placeholder="Ej. Tocar el timbre al llegar, preguntar por Juan..."
-                        maxLength={500}
+                        placeholder="Ej. Casa, Oficina"
                       />
-                      <small>
-                        Opcional ·{' '}
-                        {serviceMessage.length}
-                        /500
-                      </small>
                     </div>
-                  </>
-                )}
-              </>
-            )}
-            {showNewAddressForm && (
-              <div className="service-new-address">
-                <div className="service-request-section-title">
-                  <div>
+                    <div className="service-form-field">
+                      <label>
+                        Código postal *
+                      </label>
+                      <input
+                        type="text"
+                        value={
+                          newAddress.postalCode
+                        }
+                        onChange={(
+                          event
+                        ) =>
+                          handleNewAddressChange(
+                            'postalCode',
+                            event.target.value
+                          )
+                        }
+                        placeholder="53000"
+                      />
+                    </div>
+                    <div className="service-form-field">
+                      <label>
+                        Estado *
+                      </label>
+                      <input
+                        type="text"
+                        value={
+                          newAddress.state
+                        }
+                        onChange={(
+                          event
+                        ) =>
+                          handleNewAddressChange(
+                            'state',
+                            event.target.value
+                          )
+                        }
+                        placeholder="Estado de México"
+                      />
+                    </div>
+                    <div className="service-form-field">
+                      <label>
+                        Municipio / Alcaldía *
+                      </label>
+                      <input
+                        type="text"
+                        value={
+                          newAddress.municipality
+                        }
+                        onChange={(
+                          event
+                        ) =>
+                          handleNewAddressChange(
+                            'municipality',
+                            event.target.value
+                          )
+                        }
+                        placeholder="Naucalpan de Juárez"
+                      />
+                    </div>
+                    <div className="service-form-field full">
+                      <label>
+                        Colonia *
+                      </label>
+                      <input
+                        type="text"
+                        value={
+                          newAddress.neighborhood
+                        }
+                        onChange={(
+                          event
+                        ) =>
+                          handleNewAddressChange(
+                            'neighborhood',
+                            event.target.value
+                          )
+                        }
+                        placeholder="Colonia"
+                      />
+                    </div>
+                    <div className="service-form-field full">
+                      <label>
+                        Calle *
+                      </label>
+                      <input
+                        type="text"
+                        value={
+                          newAddress.street
+                        }
+                        onChange={(
+                          event
+                        ) =>
+                          handleNewAddressChange(
+                            'street',
+                            event.target.value
+                          )
+                        }
+                        placeholder="Nombre de la calle"
+                      />
+                    </div>
+                    <div className="service-form-field">
+                      <label>
+                        Número exterior *
+                      </label>
+                      <input
+                        type="text"
+                        value={
+                          newAddress.exteriorNumber
+                        }
+                        onChange={(
+                          event
+                        ) =>
+                          handleNewAddressChange(
+                            'exteriorNumber',
+                            event.target.value
+                          )
+                        }
+                        placeholder="123"
+                      />
+                    </div>
+                    <div className="service-form-field">
+                      <label>
+                        Número interior
+                      </label>
+                      <input
+                        type="text"
+                        value={
+                          newAddress.interiorNumber
+                        }
+                        onChange={(
+                          event
+                        ) =>
+                          handleNewAddressChange(
+                            'interiorNumber',
+                            event.target.value
+                          )
+                        }
+                        placeholder="Opcional"
+                      />
+                    </div>
+                    <div className="service-form-field full">
+                      <label>
+                        Referencias
+                      </label>
+                      <textarea
+                        value={
+                          newAddress.references
+                        }
+                        onChange={(
+                          event
+                        ) =>
+                          handleNewAddressChange(
+                            'references',
+                            event.target.value
+                          )
+                        }
+                        placeholder="Ej. Portón negro, casa de dos pisos..."
+                      />
+                    </div>
+                    <div className="service-form-field full service-map-field">
+                      <label>
+                        Ubicación exacta en el mapa *
+                      </label>
+                      <p className="service-map-help">
+                        Haz clic en el mapa para colocar el pin. También puedes arrastrarlo hasta la ubicación exacta donde se realizará el servicio.
+                      </p>
+                      <AddressMapPicker
+                        latitude={
+                          newAddress.latitude
+                        }
+                        longitude={
+                          newAddress.longitude
+                        }
+                        onChange={(
+                          latitude,
+                          longitude
+                        ) => {
+                          setNewAddress(
+                            (
+                              previous
+                            ) => ({
+                              ...previous,
+                              latitude,
+                              longitude,
+                            })
+                          );
+                          setRequestError(
+                            ''
+                          );
+                        }}
+                        onAddressResolved={(
+                          resolved
+                        ) => {
+                          setNewAddress(
+                            (
+                              previous
+                            ) => ({
+                              ...previous,
+                              state:
+                                resolved.state ||
+                                previous.state,
+                              municipality:
+                                resolved.municipality ||
+                                previous.municipality,
+                              neighborhood:
+                                resolved.neighborhood ||
+                                previous.neighborhood,
+                              postalCode:
+                                resolved.postalCode ||
+                                previous.postalCode,
+                              street:
+                                resolved.street ||
+                                previous.street,
+                              exteriorNumber:
+                                resolved.exteriorNumber ||
+                                previous.exteriorNumber,
+                            })
+                          );
+                        }}
+                      />
+                      <div className="service-map-coordinates">
+                        <span>
+                          Latitud:{' '}
+                          <strong>
+                            {newAddress.latitude !== null
+                              ? newAddress.latitude.toFixed(6)
+                              : 'Selecciona un punto'}
+                          </strong>
+                        </span>
+                        <span>
+                          Longitud:{' '}
+                          <strong>
+                            {newAddress.longitude !== null
+                              ? newAddress.longitude.toFixed(6)
+                              : 'Selecciona un punto'}
+                          </strong>
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <label className="service-default-address">
+                    <input
+                      type="checkbox"
+                      checked={
+                        newAddress.isDefault
+                      }
+                      onChange={(
+                        event
+                      ) =>
+                        handleNewAddressChange(
+                          'isDefault',
+                          event.target.checked
+                        )
+                      }
+                    />
                     <span>
-                      01
-                    </span>
-                    <div>
                       <strong>
-                        Nueva dirección
+                        Usar como dirección principal
                       </strong>
                       <small>
-                        Guarda una nueva dirección
-                        para este y futuros servicios.
+                        Se seleccionará automáticamente
+                        en futuras solicitudes.
                       </small>
+                    </span>
+                  </label>
+                  {requestError && (
+                    <div className="service-request-modal-error">
+                      <span>!</span>
+                      <p>{requestError}</p>
                     </div>
-                  </div>
-                </div>
-                <div className="service-new-address-grid">
-                  <div className="service-form-field">
-                    <label>
-                      Nombre de la dirección *
-                    </label>
-                    <input
-                      type="text"
-                      value={
-                        newAddress.label
+                  )}
+
+                  <div className="service-new-address-actions">
+                    <button
+                      type="button"
+                      className="secondary"
+                      disabled={
+                        savingAddress
                       }
-                      onChange={(
-                        event
-                      ) =>
-                        handleNewAddressChange(
-                          'label',
-                          event.target.value
-                        )
-                      }
-                      placeholder="Ej. Casa, Oficina"
-                    />
-                  </div>
-                  <div className="service-form-field">
-                    <label>
-                      Código postal *
-                    </label>
-                    <input
-                      type="text"
-                      value={
-                        newAddress.postalCode
-                      }
-                      onChange={(
-                        event
-                      ) =>
-                        handleNewAddressChange(
-                          'postalCode',
-                          event.target.value
-                        )
-                      }
-                      placeholder="53000"
-                    />
-                  </div>
-                  <div className="service-form-field">
-                    <label>
-                      Estado *
-                    </label>
-                    <input
-                      type="text"
-                      value={
-                        newAddress.state
-                      }
-                      onChange={(
-                        event
-                      ) =>
-                        handleNewAddressChange(
-                          'state',
-                          event.target.value
-                        )
-                      }
-                      placeholder="Estado de México"
-                    />
-                  </div>
-                  <div className="service-form-field">
-                    <label>
-                      Municipio / Alcaldía *
-                    </label>
-                    <input
-                      type="text"
-                      value={
-                        newAddress.municipality
-                      }
-                      onChange={(
-                        event
-                      ) =>
-                        handleNewAddressChange(
-                          'municipality',
-                          event.target.value
-                        )
-                      }
-                      placeholder="Naucalpan de Juárez"
-                    />
-                  </div>
-                  <div className="service-form-field full">
-                    <label>
-                      Colonia *
-                    </label>
-                    <input
-                      type="text"
-                      value={
-                        newAddress.neighborhood
-                      }
-                      onChange={(
-                        event
-                      ) =>
-                        handleNewAddressChange(
-                          'neighborhood',
-                          event.target.value
-                        )
-                      }
-                      placeholder="Colonia"
-                    />
-                  </div>
-                  <div className="service-form-field full">
-                    <label>
-                      Calle *
-                    </label>
-                    <input
-                      type="text"
-                      value={
-                        newAddress.street
-                      }
-                      onChange={(
-                        event
-                      ) =>
-                        handleNewAddressChange(
-                          'street',
-                          event.target.value
-                        )
-                      }
-                      placeholder="Nombre de la calle"
-                    />
-                  </div>
-                  <div className="service-form-field">
-                    <label>
-                      Número exterior *
-                    </label>
-                    <input
-                      type="text"
-                      value={
-                        newAddress.exteriorNumber
-                      }
-                      onChange={(
-                        event
-                      ) =>
-                        handleNewAddressChange(
-                          'exteriorNumber',
-                          event.target.value
-                        )
-                      }
-                      placeholder="123"
-                    />
-                  </div>
-                  <div className="service-form-field">
-                    <label>
-                      Número interior
-                    </label>
-                    <input
-                      type="text"
-                      value={
-                        newAddress.interiorNumber
-                      }
-                      onChange={(
-                        event
-                      ) =>
-                        handleNewAddressChange(
-                          'interiorNumber',
-                          event.target.value
-                        )
-                      }
-                      placeholder="Opcional"
-                    />
-                  </div>
-                  <div className="service-form-field full">
-                    <label>
-                      Referencias
-                    </label>
-                    <textarea
-                      value={
-                        newAddress.references
-                      }
-                      onChange={(
-                        event
-                      ) =>
-                        handleNewAddressChange(
-                          'references',
-                          event.target.value
-                        )
-                      }
-                      placeholder="Ej. Portón negro, casa de dos pisos..."
-                    />
-                  </div>
-                  <div className="service-form-field full service-map-field">
-                    <label>
-                      Ubicación exacta en el mapa *
-                    </label>
-                    <p className="service-map-help">
-                      Haz clic en el mapa para colocar el pin. También puedes arrastrarlo hasta la ubicación exacta donde se realizará el servicio.
-                    </p>
-                    <AddressMapPicker
-                      latitude={
-                        newAddress.latitude
-                      }
-                      longitude={
-                        newAddress.longitude
-                      }
-                      onChange={(
-                        latitude,
-                        longitude
-                      ) => {
-                        setNewAddress(
-                          (
-                            previous
-                          ) => ({
-                            ...previous,
-                            latitude,
-                            longitude,
-                          })
-                        );
-                        setRequestError(
-                          ''
+                      onClick={() => {
+                        setRequestError('');
+                        setShowNewAddressForm(
+                          false
                         );
                       }}
-                      onAddressResolved={(
-                        resolved
-                      ) => {
-                        setNewAddress(
-                          (
-                            previous
-                          ) => ({
-                            ...previous,
-                            state:
-                              resolved.state ||
-                              previous.state,
-                            municipality:
-                              resolved.municipality ||
-                              previous.municipality,
-                            neighborhood:
-                              resolved.neighborhood ||
-                              previous.neighborhood,
-                            postalCode:
-                              resolved.postalCode ||
-                              previous.postalCode,
-                            street:
-                              resolved.street ||
-                              previous.street,
-                            exteriorNumber:
-                              resolved.exteriorNumber ||
-                              previous.exteriorNumber,
-                          })
-                        );
-                      }}
-                    />
-                    <div className="service-map-coordinates">
-                      <span>
-                        Latitud:{' '}
-                        <strong>
-                          {newAddress.latitude !== null
-                            ? newAddress.latitude.toFixed(6)
-                            : 'Selecciona un punto'}
-                        </strong>
-                      </span>
-                      <span>
-                        Longitud:{' '}
-                        <strong>
-                          {newAddress.longitude !== null
-                            ? newAddress.longitude.toFixed(6)
-                            : 'Selecciona un punto'}
-                        </strong>
-                      </span>
-                    </div>
+                    >
+                      Volver
+                    </button>
+                    <button
+                      type="button"
+                      className="primary"
+                      disabled={
+                        savingAddress
+                      }
+                      onClick={
+                        handleSaveAddress
+                      }
+                    >
+                      {savingAddress
+                        ? 'Guardando...'
+                        : 'Guardar dirección'}
+                    </button>
                   </div>
                 </div>
-                <label className="service-default-address">
-                  <input
-                    type="checkbox"
-                    checked={
-                      newAddress.isDefault
-                    }
-                    onChange={(
-                      event
-                    ) =>
-                      handleNewAddressChange(
-                        'isDefault',
-                        event.target.checked
-                      )
-                    }
-                  />
-                  <span>
-                    <strong>
-                      Usar como dirección principal
-                    </strong>
-                    <small>
-                      Se seleccionará automáticamente
-                      en futuras solicitudes.
-                    </small>
-                  </span>
-                </label>
-                <div className="service-new-address-actions">
+              )}
+              {!showNewAddressForm && (
+                <div className="service-request-modal-footer">
                   <button
                     type="button"
                     className="secondary"
-                    disabled={
-                      savingAddress
-                    }
-                    onClick={() => {
-                      setRequestError('');
-                      setShowNewAddressForm(
-                        false
-                      );
-                    }}
-                  >
-                    Volver
-                  </button>
-                  <button
-                    type="button"
-                    className="primary"
-                    disabled={
-                      savingAddress
-                    }
                     onClick={
-                      handleSaveAddress
+                      closeRequestModal
+                    }
+                    disabled={
+                      requestingServiceId !==
+                      null
                     }
                   >
-                    {savingAddress
-                      ? 'Guardando...'
-                      : 'Guardar dirección'}
+                    Cancelar
                   </button>
+                  {createdRequestId === null ? (
+                    <button
+                      type="button"
+                      className="primary"
+                      onClick={
+                        handleRequestService
+                      }
+                      disabled={
+                        loadingAddresses ||
+                        !selectedAddressId ||
+                        !serviceDate ||
+                        !serviceTime ||
+                        loadingAvailability ||
+                        Boolean(availabilityError) ||
+                        requestingServiceId !==
+                        null
+                      }
+                    >
+                      {requestingServiceId !==
+                        null
+                        ? 'Enviando solicitud...'
+                        : 'Enviar solccicitud'}
+                      <span>
+                        →
+                      </span>
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      className="primary"
+                      onClick={() =>
+                        handleContinueToPayment(
+                          createdRequestId
+                        )
+                      }
+                      disabled={
+                        creatingPaymentId ===
+                        createdRequestId
+                      }
+                    >
+                      {creatingPaymentId ===
+                        createdRequestId
+                        ? 'Preparando pago...'
+                        : 'Continuar al pago'}
+                      <span>
+                        →
+                      </span>
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      {selectedRequestDetail && (
+        <div
+          className="service-detail-overlay"
+          onMouseDown={(event) => {
+            if (
+              event.target ===
+              event.currentTarget
+            ) {
+              setSelectedRequestDetail(
+                null
+              );
+            }
+          }}
+        >
+          <div className="service-detail-modal">
+            <button
+              type="button"
+              className="service-detail-close"
+              onClick={() =>
+                setSelectedRequestDetail(
+                  null
+                )
+              }
+              aria-label="Cerrar"
+            >
+              ×
+            </button>
+            <div className="service-detail-top">
+              <div className="service-detail-success-icon">
+                ✓
+              </div>
+              <span className="service-detail-eyebrow">
+                SERVICIO CONFIRMADO
+              </span>
+              <h2>
+                Tu servicio está solicitado
+              </h2>
+              <p>
+                El pago fue confirmado y tu
+                solicitud ya está registrada.
+              </p>
+            </div>
+            <div className="service-detail-service-card">
+              <div className="service-detail-service-copy">
+                <small>
+                  SOLICITUD
+                </small>
+                <strong>
+                  Solicitud #
+                  {selectedRequestDetail.id}
+                </strong>
+                {selectedRequestDetail
+                  .scheduledAt && (
+                    <span>
+                      {new Date(
+                        selectedRequestDetail
+                          .scheduledAt
+                      ).toLocaleDateString(
+                        'es-MX',
+                        {
+                          weekday: 'long',
+                          day: 'numeric',
+                          month: 'long',
+                          year: 'numeric',
+                        }
+                      )}
+                    </span>
+                  )}
+              </div>
+              <div className="service-detail-payment-chip">
+                <span>
+                  ✓
+                </span>
+                Pagado
+              </div>
+            </div>
+            <div className="service-detail-info-grid">
+              <div className="service-detail-info">
+                <div className="service-detail-info-icon">
+                  $
+                </div>
+                <div>
+                  <small>
+                    TOTAL PAGADO
+                  </small>
+                  <strong>
+                    {selectedRequestDetail
+                      .payment?.amount
+                      ? Number(
+                        selectedRequestDetail
+                          .payment.amount
+                      ).toLocaleString(
+                        'es-MX',
+                        {
+                          style:
+                            'currency',
+                          currency:
+                            'MXN',
+                        }
+                      )
+                      : 'No disponible'}
+                  </strong>
                 </div>
               </div>
-            )}
-            {!showNewAddressForm && (
-              <div className="service-request-modal-footer">
-                <button
-                  type="button"
-                  className="secondary"
-                  onClick={
-                    closeRequestModal
-                  }
-                  disabled={
-                    requestingServiceId !==
-                    null
-                  }
-                >
-                  Cancelar
-                </button>
-{createdRequestId === null ? (
-  <button
-    type="button"
-    className="primary"
-    onClick={
-      handleRequestService
-    }
-    disabled={
-      loadingAddresses ||
-      !selectedAddressId ||
-      !serviceDate ||
-      !serviceTime ||
-      loadingAvailability ||
-      Boolean(availabilityError) ||
-      requestingServiceId !==
-        null
-    }
-  >
-    {requestingServiceId !==
-    null
-      ? 'Enviando solicitud...'
-      : 'Enviar solccicitud'}
-    <span>
-      →
-    </span>
-  </button>
-) : (
-  <button
-    type="button"
-    className="primary"
-    onClick={() =>
-      handleContinueToPayment(
-        createdRequestId
-      )
-    }
-    disabled={
-      creatingPaymentId ===
-      createdRequestId
-    }
-  >
-    {creatingPaymentId ===
-    createdRequestId
-      ? 'Preparando pago...'
-      : 'Continuar al pago'}
-    <span>
-      →
-    </span>
-  </button>
-)}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
- {selectedRequestDetail && (
-  <div
-    className="service-detail-overlay"
-    onMouseDown={(event) => {
-      if (
-        event.target ===
-        event.currentTarget
-      ) {
-        setSelectedRequestDetail(
-          null
-        );
-      }
-    }}
-  >
-    <div className="service-detail-modal">
-      <button
-        type="button"
-        className="service-detail-close"
-        onClick={() =>
-          setSelectedRequestDetail(
-            null
-          )
-        }
-        aria-label="Cerrar"
-      >
-        ×
-      </button>
-      <div className="service-detail-top">
-        <div className="service-detail-success-icon">
-          ✓
-        </div>
-        <span className="service-detail-eyebrow">
-          SERVICIO CONFIRMADO
-        </span>
-        <h2>
-          Tu servicio está solicitado
-        </h2>
-        <p>
-          El pago fue confirmado y tu
-          solicitud ya está registrada.
-        </p>
-      </div>
-      <div className="service-detail-service-card">
-        <div className="service-detail-service-copy">
-          <small>
-            SOLICITUD
-          </small>
-          <strong>
-            Solicitud #
-            {selectedRequestDetail.id}
-          </strong>
-          {selectedRequestDetail
-            .scheduledAt && (
-            <span>
-              {new Date(
-                selectedRequestDetail
-                  .scheduledAt
-              ).toLocaleDateString(
-                'es-MX',
-                {
-                  weekday: 'long',
-                  day: 'numeric',
-                  month: 'long',
-                  year: 'numeric',
-                }
-              )}
-            </span>
-          )}
-        </div>
-        <div className="service-detail-payment-chip">
-          <span>
-            ✓
-          </span>
-          Pagado
-        </div>
-      </div>
-      <div className="service-detail-info-grid">
-        <div className="service-detail-info">
-          <div className="service-detail-info-icon">
-            $
-          </div>
-          <div>
-            <small>
-              TOTAL PAGADO
-            </small>
-            <strong>
-              {selectedRequestDetail
-                .payment?.amount
-                ? Number(
-                    selectedRequestDetail
-                      .payment.amount
-                  ).toLocaleString(
-                    'es-MX',
-                    {
-                      style:
-                        'currency',
-                      currency:
-                        'MXN',
-                    }
-                  )
-                : 'No disponible'}
-            </strong>
-          </div>
-        </div>
-        <div className="service-detail-info">
-          <div className="service-detail-info-icon">
-            ◷
-          </div>
-          <div>
-            <small>
-              HORARIO
-            </small>
-            <strong>
-              {selectedRequestDetail
-                .scheduledAt
-                ? new Date(
-                    selectedRequestDetail
+              <div className="service-detail-info">
+                <div className="service-detail-info-icon">
+                  ◷
+                </div>
+                <div>
+                  <small>
+                    HORARIO
+                  </small>
+                  <strong>
+                    {selectedRequestDetail
                       .scheduledAt
-                  ).toLocaleTimeString(
-                    'es-MX',
-                    {
-                      hour:
-                        '2-digit',
-                      minute:
-                        '2-digit',
-                    }
-                  )
-                : 'Por definir'}
-            </strong>
-          </div>
-        </div>
-      </div>
-      <div className="service-detail-progress">
-        <div className="service-detail-progress-line">
-          <div className="service-detail-step completed">
-            <span>
-              ✓
-            </span>
-            <small>
-              Solicitud
-            </small>
-          </div>
-          <div className="service-detail-progress-bar completed" />
-          <div className="service-detail-step completed">
-            <span>
-              ✓
-            </span>
-            <small>
-              Pago
-            </small>
-          </div>
-          <div className="service-detail-progress-bar" />
-          <div className="service-detail-step">
-            <span>
-              3
-            </span>
-            <small>
-              Servicio
-            </small>
-          </div>
-        </div>
-      </div>
-      {selectedRequestDetail
-        .message && (
-        <div className="service-detail-notes">
-          <small>
-            INDICACIONES DEL SERVICIO
-          </small>
-          <p>
+                      ? new Date(
+                        selectedRequestDetail
+                          .scheduledAt
+                      ).toLocaleTimeString(
+                        'es-MX',
+                        {
+                          hour:
+                            '2-digit',
+                          minute:
+                            '2-digit',
+                        }
+                      )
+                      : 'Por definir'}
+                  </strong>
+                </div>
+              </div>
+            </div>
+            <div className="service-detail-progress">
+              <div className="service-detail-progress-line">
+                <div className="service-detail-step completed">
+                  <span>
+                    ✓
+                  </span>
+                  <small>
+                    Solicitud
+                  </small>
+                </div>
+                <div className="service-detail-progress-bar completed" />
+                <div className="service-detail-step completed">
+                  <span>
+                    ✓
+                  </span>
+                  <small>
+                    Pago
+                  </small>
+                </div>
+                <div className="service-detail-progress-bar" />
+                <div className="service-detail-step">
+                  <span>
+                    3
+                  </span>
+                  <small>
+                    Servicio
+                  </small>
+                </div>
+              </div>
+            </div>
             {selectedRequestDetail
-              .message}
-          </p>
+              .message && (
+                <div className="service-detail-notes">
+                  <small>
+                    INDICACIONES DEL SERVICIO
+                  </small>
+                  <p>
+                    {selectedRequestDetail
+                      .message}
+                  </p>
+                </div>
+              )}
+            <div className="service-detail-footer">
+              <button
+                type="button"
+                className="service-detail-secondary"
+                onClick={() =>
+                  setSelectedRequestDetail(
+                    null
+                  )
+                }
+              >
+                Cerrar
+              </button>
+              <button
+                type="button"
+                className="service-detail-primary"
+                onClick={() =>
+                  navigate(
+                    '/client/requests'
+                  )
+                }
+              >
+                Ir a mis solicitudes
+                <span>
+                  →
+                </span>
+              </button>
+            </div>
+          </div>
         </div>
       )}
-      <div className="service-detail-footer">
-        <button
-          type="button"
-          className="service-detail-secondary"
-          onClick={() =>
-            setSelectedRequestDetail(
-              null
-            )
-          }
-        >
-          Cerrar
-        </button>
-        <button
-          type="button"
-          className="service-detail-primary"
-          onClick={() =>
-            navigate(
-              '/client/requests'
-            )
-          }
-        >
-          Ir a mis solicitudes
-          <span>
-            →
-          </span>
-        </button>
-      </div>
-    </div>
-  </div>
-)}
     </div>
   );
 };

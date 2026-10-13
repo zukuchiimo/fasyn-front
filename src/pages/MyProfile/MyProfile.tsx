@@ -2219,46 +2219,46 @@ await saveServiceAreas(token);
   />
   {serviceAreas.length > 0 ? (
     <div className="my-profile-service-areas">
-      {serviceAreas.map(
-        (area) => (
-          <div
-            key={
-              `${area.stateCode}-${area.municipalityCode}`
-            }
-            className="my-profile-service-area"
-          >
-            <div>
-              <strong>
-                {
-                  area.municipalityName
-                }
-              </strong>
-              <span>
-                {area.stateName}
-              </span>
-            </div>
-            <button
-              type="button"
-              onClick={() =>
-                setServiceAreas(
-                  (current) =>
-                    current.filter(
-                      (item) =>
-                        getServiceAreaKey(
-                          item
-                        ) !==
-                        getServiceAreaKey(
-                          area
-                        )
-                    )
-                )
-              }
-            >
-              Eliminar
-            </button>
-          </div>
+   {serviceAreas.map((area) => (
+  <div
+    key={`${area.stateCode}-${area.municipalityCode}`}
+    className="my-profile-service-area"
+  >
+    <div className="my-profile-service-area-info">
+      <div className="my-profile-service-area-icon">
+        ✓
+      </div>
+
+      <div>
+        <strong>
+          {area.municipalityName}
+        </strong>
+
+        <span>
+          {area.stateName}
+        </span>
+      </div>
+    </div>
+
+    <button
+      type="button"
+      className="my-profile-service-area-remove"
+      onClick={() =>
+        setServiceAreas((current) =>
+          current.filter(
+            (item) =>
+              getServiceAreaKey(item) !==
+              getServiceAreaKey(area)
+          )
         )
-      )}
+      }
+      aria-label={`Eliminar ${area.municipalityName}`}
+      title="Eliminar zona"
+    >
+      ×
+    </button>
+  </div>
+))}
     </div>
   ) : (
     <div className="my-profile-empty">

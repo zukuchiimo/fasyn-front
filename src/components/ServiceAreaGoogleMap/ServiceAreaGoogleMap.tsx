@@ -46,7 +46,7 @@ type FeatureMeta = {
   distanceKm: number;
   allowed: boolean;
 };
-const MAX_DISTANCE_KM = 80;
+const MAX_DISTANCE_KM = 50;
 const MAX_DISTANCE_METERS = MAX_DISTANCE_KM * 1000;
 const ZONE_MARKER_SCALE = 10;
 const DEFAULT_CENTER = {
@@ -174,32 +174,95 @@ STATE_NAME_TO_CODE[
 STATE_NAME_TO_CODE[
   'mexico'
 ] = '15';
- const getFeatureArea = (
+const getFeatureArea = (
   feature: google.maps.Data.Feature,
   savedAreas: ServiceArea[]
 ): ServiceArea | null => {
-  const stateName =
-    String(
-      feature.getProperty('NAME_1') ??
-        ''
-    ).trim();
-  const municipalityName =
-    String(
-      feature.getProperty('NAME_2') ??
-        ''
-    ).trim();
-  if (
-    !stateName ||
-    !municipalityName
-  ) {
-    return null;
-  }
   /*
-    El GeoJSON que usamos no contiene
-    claves INEGI.
-    Por eso buscamos si este polígono
-    corresponde a una zona que ya tenemos
-    guardada en la BD.
+    ============================================
+    LEER DATOS DEL MUNICIPIO
+
+    Soportamos tanto:
+    - GeoJSON con NAME_1 / NAME_2
+    - GeoJSON INEGI con CVEGEO, CVE_ENT,
+      CVE_MUN, NOMGEO, etc.
+    ============================================
+  */
+
+  const fullCode = String(
+    feature.getProperty('CVEGEO') ??
+      feature.getProperty('cvegeo') ??
+      feature.getProperty('CVE_GEO') ??
+      ''
+  ).trim();
+
+  let stateCode = normalizeCode(
+    feature.getProperty('CVE_ENT') ??
+      feature.getProperty('cve_agee') ??
+      feature.getProperty('state_code') ??
+      (
+        fullCode.length >= 5
+          ? fullCode.slice(0, 2)
+          : ''
+      ),
+    2
+  );
+
+  let municipalityCode = normalizeCode(
+    feature.getProperty('CVE_MUN') ??
+      feature.getProperty('cve_agem') ??
+      feature.getProperty('mun_code') ??
+      (
+        fullCode.length >= 5
+          ? fullCode.slice(2, 5)
+          : ''
+      ),
+    3
+  );
+
+  const rawStateName = String(
+    feature.getProperty('NOM_ENT') ??
+      feature.getProperty('nom_agee') ??
+      feature.getProperty('state_name') ??
+      feature.getProperty('NAME_1') ??
+      ''
+  ).trim();
+
+  const municipalityName = String(
+    feature.getProperty('NOM_MUN') ??
+      feature.getProperty('nom_agem') ??
+      feature.getProperty('NOMGEO') ??
+      feature.getProperty('mun_name') ??
+      feature.getProperty('NAME_2') ??
+      feature.getProperty('municipality') ??
+      feature.getProperty('name') ??
+      ''
+  ).trim();
+
+  /*
+    Si el GeoJSON no trae la clave del estado,
+    tratamos de obtenerla por su nombre.
+  */
+  if (
+    !stateCode &&
+    rawStateName
+  ) {
+    stateCode =
+      STATE_NAME_TO_CODE[
+        normalizeText(
+          rawStateName
+        )
+      ] || '';
+  }
+
+  const stateName =
+    rawStateName ||
+    STATE_NAMES[stateCode] ||
+    '';
+
+  /*
+    Si ya estaba guardado en BD,
+    usamos las claves reales guardadas.
   */
   const savedArea =
     savedAreas.find(
@@ -217,24 +280,36 @@ STATE_NAME_TO_CODE[
             municipalityName
           )
     );
-  /*
-    Si ya estaba guardada, regresamos
-    el objeto REAL de la BD.
-    Así conservamos:
-    stateCode
-    municipalityCode
-  */
+
   if (savedArea) {
     return savedArea;
   }
+
   /*
-    Municipio disponible en el mapa,
-    pero todavía sin clave INEGI.
+    Para poder pintar necesitamos,
+    como mínimo, nombre del estado
+    y municipio.
+  */
+  if (
+    !stateName ||
+    !municipalityName
+  ) {
+    return null;
+  }
+
+  /*
+    Si el GeoJSON trae claves oficiales,
+    se conservan.
+
+    Si no las trae, el municipio todavía
+    se puede mostrar en el mapa, aunque
+    toggleArea impedirá guardarlo hasta
+    tener sus claves.
   */
   return {
-    stateCode: '',
+    stateCode,
     stateName,
-    municipalityCode: '',
+    municipalityCode,
     municipalityName,
   };
 };
@@ -631,7 +706,7 @@ const buildFeatureCache =
       Podemos pintar municipios aunque
       el usuario NO comparta ubicación.
       Si existe ubicación:
-      calculamos el radio de 80 km.
+      calculamos el radio de 50 km.
       Si no existe:
       simplemente mostramos azul/verde.
     */
@@ -873,7 +948,7 @@ useEffect(() => {
             onErrorRef.current?.(
               `Esta zona está aproximadamente a ${Math.round(
                 meta.distanceKm
-              )} km. Solo puedes seleccionar zonas dentro de 80 km.`
+              )} km. Solo puedes seleccionar zonas dentro de 50 km.`
             );
             return;
           }
@@ -965,7 +1040,7 @@ toggleArea(meta.area);
             RADIO DE COBERTURA
           </span>
           <strong>
-            Máximo 80 km
+            Máximo 50 km
           </strong>
         </div>
         <p>
@@ -977,7 +1052,7 @@ toggleArea(meta.area);
       {!currentLocation && (
         <div className="service-map-warning">
           Usa tu ubicación actual para
-          calcular el radio de 80 km.
+          calcular el radio de 50 km.
         </div>
       )}
       {error && (

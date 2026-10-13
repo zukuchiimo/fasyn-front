@@ -748,6 +748,146 @@
   border-top-color: #5c7cff;
   border-radius: 50%;
   animation: my-profile-spin 0.8s linear infinite;
+}.my-profile-service-areas {
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(220px, 1fr)
+  );
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.my-profile-service-area {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+
+  padding: 14px 16px;
+
+  background: #ffffff;
+
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+
+  box-shadow:
+    0 4px 12px
+    rgba(15, 23, 42, 0.06);
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.my-profile-service-area:hover {
+  transform: translateY(-2px);
+
+  border-color: #86efac;
+
+  box-shadow:
+    0 8px 20px
+    rgba(15, 23, 42, 0.09);
+}
+
+.my-profile-service-area-info {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+
+  min-width: 0;
+}
+
+.my-profile-service-area-icon {
+  width: 34px;
+  height: 34px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  border-radius: 50%;
+
+  background: #dcfce7;
+  color: #15803d;
+
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.my-profile-service-area-info > div:last-child {
+  min-width: 0;
+}
+
+.my-profile-service-area strong {
+  display: block;
+
+  color: #0f172a;
+
+  font-size: 14px;
+  font-weight: 800;
+
+  line-height: 1.25;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.my-profile-service-area span {
+  display: block;
+
+  margin-top: 3px;
+
+  color: #64748b;
+
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.my-profile-service-area-remove {
+  width: 32px;
+  height: 32px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  padding: 0;
+
+  border: 0;
+  border-radius: 10px;
+
+  background: #f8fafc;
+  color: #94a3b8;
+
+  font-size: 20px;
+  line-height: 1;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.my-profile-service-area-remove:hover {
+  background: #fee2e2;
+  color: #dc2626;
+
+  transform: scale(1.05);
+}
+
+@media (max-width: 640px) {
+  .my-profile-service-areas {
+    grid-template-columns: 1fr;
+  }
 }
 @keyframes my-profile-spin {
   to {

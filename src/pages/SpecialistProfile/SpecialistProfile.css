@@ -2770,3 +2770,180 @@
   border: 1px solid #a7f3d0;
   color: #047857;
 }
+.profile-incomplete-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 20px;
+
+  background:
+    rgba(15, 23, 42, 0.6);
+
+  backdrop-filter: blur(4px);
+}
+
+.profile-incomplete-modal {
+  position: relative;
+
+  width: 100%;
+  max-width: 460px;
+
+  padding: 34px;
+
+  background: #ffffff;
+
+  border-radius: 24px;
+
+  box-shadow:
+    0 24px 70px
+    rgba(15, 23, 42, 0.2);
+}
+
+.profile-incomplete-close {
+  position: absolute;
+  top: 16px;
+  right: 18px;
+
+  width: 34px;
+  height: 34px;
+
+  border: 0;
+  border-radius: 10px;
+
+  background: #f8fafc;
+  color: #64748b;
+
+  font-size: 22px;
+
+  cursor: pointer;
+}
+
+.profile-incomplete-icon {
+  width: 52px;
+  height: 52px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-bottom: 18px;
+
+  border-radius: 16px;
+
+  background: #fff7ed;
+  color: #ea580c;
+
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.profile-incomplete-eyebrow {
+  display: block;
+
+  margin-bottom: 6px;
+
+  color: #ea580c;
+
+  font-size: 12px;
+  font-weight: 800;
+
+  letter-spacing: 0.08em;
+}
+
+.profile-incomplete-modal h2 {
+  margin: 0;
+
+  color: #0f172a;
+
+  font-size: 26px;
+}
+
+.profile-incomplete-modal > p {
+  margin:
+    12px 0 20px;
+
+  color: #64748b;
+
+  line-height: 1.6;
+}
+
+.profile-incomplete-fields {
+  padding: 16px 18px;
+
+  border-radius: 14px;
+
+  background: #f8fafc;
+}
+
+.profile-incomplete-fields span {
+  display: block;
+
+  margin-bottom: 8px;
+
+  color: #475569;
+
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.profile-incomplete-fields ul {
+  margin: 0;
+  padding-left: 20px;
+
+  color: #0f172a;
+}
+
+.profile-incomplete-fields li {
+  margin: 5px 0;
+}
+
+.profile-incomplete-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+
+  margin-top: 24px;
+}
+
+.profile-incomplete-secondary,
+.profile-incomplete-primary {
+  min-height: 44px;
+
+  padding: 0 18px;
+
+  border-radius: 12px;
+
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+.profile-incomplete-secondary {
+  border:
+    1px solid #e2e8f0;
+
+  background: #ffffff;
+  color: #475569;
+}
+
+.profile-incomplete-primary {
+  border: 0;
+
+  background: #2563eb;
+  color: #ffffff;
+}
+.public-profile-avatar {
+  overflow: hidden;
+}
+
+.public-profile-avatar img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
