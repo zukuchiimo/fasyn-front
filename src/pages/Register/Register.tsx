@@ -1,7 +1,6 @@
-import {
-  FormEvent,
-  useState,
-} from 'react';
+
+import { useState } from 'react';
+import type { FormEvent } from 'react';
 import {
   useNavigate,
 } from 'react-router-dom';
@@ -41,7 +40,7 @@ const [needsVerification, setNeedsVerification] =
   useState(false);
 const [resending, setResending] =
   useState(false);
-const [verificationSent, setVerificationSent] =
+const [, setVerificationSent] =
   useState(false);
   const [
     confirmPassword,

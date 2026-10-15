@@ -1,15 +1,17 @@
 import {
-  FormEvent,
   useEffect,
   useMemo,
   useState,
 } from 'react';
+
+import type { FormEvent } from 'react';
 import {
   useNavigate,
 } from 'react-router-dom';
 import { api } from '../../api/api';
 import logo from '../../assets/logo.png';
 import './Home.css';
+import { Helmet } from 'react-helmet-async';
 type PriceType =
   | 'HOUR'
   | 'DAY'
@@ -392,7 +394,52 @@ const handleLogout = () => {
   navigate('/');
   window.location.reload();
 };
-  return (
+ return (
+  <>
+    <Helmet>
+      <html lang="es-MX" />
+
+      <title>
+        Feisynn | Encuentra especialistas y servicios cerca de ti
+      </title>
+
+      <meta
+        name="description"
+        content="Encuentra especialistas en plomería, electricidad, carpintería, limpieza y más servicios en Feisynn. Explora profesionales, consulta precios y solicita servicios para tu hogar o negocio."
+      />
+
+      <meta
+        name="robots"
+        content="index, follow"
+      />
+
+      <meta
+        name="keywords"
+        content="Feisynn, especialistas, servicios a domicilio, plomeros, electricistas, carpinteros, limpieza, profesionales, México"
+      />
+
+      <meta
+        property="og:type"
+        content="website"
+      />
+
+      <meta
+        property="og:title"
+        content="Feisynn | Encuentra especialistas cerca de ti"
+      />
+
+      <meta
+        property="og:description"
+        content="Encuentra y contrata especialistas para tu hogar, negocio o proyecto en Feisynn."
+      />
+
+      <meta
+        name="twitter:card"
+        content="summary_large_image"
+      />
+    </Helmet>
+
+   
     <div className="home-page">
       {/* ========================= */}
       {/* NAVBAR */}
@@ -1010,6 +1057,7 @@ const handleLogout = () => {
         </small>
       </footer>
     </div>
+     </>
   );
 };
 export default Home;

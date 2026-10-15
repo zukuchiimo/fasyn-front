@@ -1,4 +1,6 @@
+
 import { useEffect, useState } from 'react';
+import type { CSSProperties } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 const PaymentSuccess = () => {
   const navigate = useNavigate();
@@ -69,8 +71,8 @@ const PaymentSuccess = () => {
     </div>
   );
 };
-const styles = {
-  container: {
+const styles: Record<string, CSSProperties> = {
+    container: {
     minHeight: '100vh',
     display: 'flex',
     justifyContent: 'center',
