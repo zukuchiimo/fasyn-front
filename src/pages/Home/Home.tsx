@@ -9,7 +9,7 @@ import {
   useNavigate,
 } from 'react-router-dom';
 import { api } from '../../api/api';
-import logo from '../../assets/logo.png';
+import logo from '../../assets/fasyn_logo_transparente.png';
 import './Home.css';
 import { Helmet } from 'react-helmet-async';
 type PriceType =
