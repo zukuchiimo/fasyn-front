@@ -4,7 +4,7 @@ import {
   useState,
 } from 'react';
 import { useNavigate } from 'react-router-dom';
-import logo from '../../assets/fasyn_logo_transparente.png';
+import logo from '../../assets/fasyn_logo_blanco_transparente_blanco.png';
 import { api } from '../../api/api';
 import './ClientDashboard.css';
 type ClientRequest = {
