@@ -121,39 +121,48 @@ const ClientDashboard = () => {
         : `/${fileUrl}`;
     return `${apiOrigin}${normalizedPath}`;
   };
+  // Consulta información real cada vez que el cliente regresa al Dashboard.
+  // Así se refleja la preferencia de WhatsApp recién guardada en Mi perfil.
   useEffect(() => {
-    const loadClientProfile =
-      async () => {
-        if (!token) {
-          setProfileLoading(false);
-          return;
-        }
-        setProfileLoading(true);
-        setProfileError(false);
-        try {
-          const response =
-            await api.get(
-              '/clients/profile',
-              {
-                headers: {
-                  Authorization:
-                    `Bearer ${token}`,
-                },
-              }
-            );
-          setClientProfile(response.data?.profile ?? null);
-        } catch (error: any) {
-          setProfileError(true);
-          console.error(
-            'ERROR CARGANDO PERFIL CLIENTE:',
-            error.response?.data ||
-              error
-          );
-        } finally {
-          setProfileLoading(false);
-        }
-      };
-    loadClientProfile();
+    if (!token) {
+      setClientProfile(null);
+      setProfileLoading(false);
+      return;
+    }
+
+    let active = true;
+    const loadClientProfile = async () => {
+      setProfileLoading(true);
+      setProfileError(false);
+      try {
+        const response = await api.get('/clients/profile', {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { _refresh: Date.now() },
+        });
+        if (!active) return;
+        setClientProfile(response.data?.profile ?? null);
+      } catch (error: any) {
+        if (!active) return;
+        setProfileError(true);
+        console.error('ERROR CARGANDO PERFIL CLIENTE:', error.response?.data || error);
+      } finally {
+        if (active) setProfileLoading(false);
+      }
+    };
+
+    void loadClientProfile();
+    const refreshOnFocus = () => { void loadClientProfile(); };
+    const refreshOnVisible = () => {
+      if (document.visibilityState === 'visible') void loadClientProfile();
+    };
+    window.addEventListener('focus', refreshOnFocus);
+    document.addEventListener('visibilitychange', refreshOnVisible);
+
+    return () => {
+      active = false;
+      window.removeEventListener('focus', refreshOnFocus);
+      document.removeEventListener('visibilitychange', refreshOnVisible);
+    };
   }, [token]);
   // Complementa los datos generales con las direcciones reales del cliente.
   // No se inventa información cuando la API aún no la proporciona.
@@ -186,10 +195,15 @@ const ClientDashboard = () => {
     if (!hasValue(clientProfile.email)) missing.push('Correo electrónico');
     if (clientProfile.emailVerified === false) missing.push('Verificar correo electrónico');
     if (!hasValue(clientProfile.phone)) missing.push('Teléfono');
-    // Evita marcar como completada una preferencia que el backend no devuelve.
-    if (clientProfile.hasWhatsApp == null && !hasValue(clientProfile.whatsapp) && !hasValue(clientProfile.whatsappNumber)) {
+    // false significa que respondió «No» y es un dato completo.
+    // null/undefined significa que aún no ha indicado su preferencia.
+    if (clientProfile.hasWhatsApp !== true && clientProfile.hasWhatsApp !== false) {
       missing.push('Indicar si tienes WhatsApp');
-    } else if (clientProfile.hasWhatsApp === true && !hasValue(clientProfile.whatsapp) && !hasValue(clientProfile.whatsappNumber)) {
+    } else if (
+      clientProfile.hasWhatsApp === true &&
+      !hasValue(clientProfile.whatsappNumber) &&
+      !hasValue(clientProfile.whatsapp)
+    ) {
       missing.push('Número de WhatsApp');
     }
     const embedded = clientProfile.address;
