@@ -494,34 +494,27 @@ const Login = () => {
                 : 'Iniciar sesión'}
             </button>
           </form>
-          <div className="create-account" style={{ display: 'flex', flexDirection: 'column', gap: 12, alignItems: 'stretch' }}>
-            <span>¿Todavía no tienes cuenta? Elige cómo quieres registrarte:</span>
-            <Link to="/register?role=CLIENT" style={{ display: 'block', textAlign: 'center' }}>
-              Registrarme como cliente
-            </Link>
-            <Link to="/register?role=SPECIALIST" style={{ display: 'block', textAlign: 'center' }}>
-              Registrarme como especialista
-            </Link>
+          <div className="login-registration">
+            <div className="login-registration-heading">
+              <strong>¿Primera vez en FASYN?</strong>
+              <span>Elige cómo quieres comenzar</span>
+            </div>
+            <div className="login-registration-options">
+              <Link to="/register?role=CLIENT" className="login-role-option">
+                <span className="login-role-icon" aria-hidden="true">⌂</span>
+                <span className="login-role-text"><strong>Soy cliente</strong><small>Quiero contratar servicios</small></span>
+                <span className="login-role-arrow" aria-hidden="true">→</span>
+              </Link>
+              <Link to="/register?role=SPECIALIST" className="login-role-option">
+                <span className="login-role-icon" aria-hidden="true">✦</span>
+                <span className="login-role-text"><strong>Soy especialista</strong><small>Quiero ofrecer mis servicios</small></span>
+                <span className="login-role-arrow" aria-hidden="true">→</span>
+              </Link>
+            </div>
           </div>
-          <div className="login-separator">
-            <span />
-            <p>
-              o
-            </p>
-            <span />
-          </div>
-          <Link
-            to="/specialists"
-            className="explore-button"
-          >
-            Explorar especialistas
+          <Link to="/specialists" className="explore-button">
+            Explorar especialistas <span aria-hidden="true">↗</span>
           </Link>
-          <p className="specialist-message">
-            ¿Ofreces servicios
-            profesionales? Crea tu
-            perfil en FASYN y conecta
-            con nuevos clientes.
-          </p>
         </div>
       </section>
       {specialistDisabled && (
@@ -548,7 +541,7 @@ const Login = () => {
             </h2>
             <p>
               Tu cuenta de especialista se
-              encuentra deshabilitada y  or
+              encuentra deshabilitada y por
               el momento no puedes ingresar
               al panel profesional.
             </p>
