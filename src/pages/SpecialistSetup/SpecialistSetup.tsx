@@ -10,7 +10,7 @@ import {
 import ServiceAreaGoogleMap
   from '../../components/ServiceAreaGoogleMap/ServiceAreaGoogleMap';
 import { api } from '../../api/api';
-import logo from '../../assets/logo.png';
+import logo from '../../assets/fasyn_logo_blanco_transparente_blanco.png';
 import './SpecialistSetup.css';
 import './SpecialistSetup.legal.css';
 interface Category {

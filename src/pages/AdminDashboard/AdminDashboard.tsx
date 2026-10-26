@@ -358,10 +358,7 @@ const handleLogout = () => {
       {/* SIDEBAR */}
       <aside className="admin-sidebar">
         <div className="admin-brand">
-          <img
-            src={logo}
-            alt="FASYN"
-          />
+         
           <span>
             ADMIN
           </span>

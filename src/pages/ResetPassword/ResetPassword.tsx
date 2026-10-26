@@ -7,7 +7,7 @@ import {
   useSearchParams,
 } from 'react-router-dom';
 import { api } from '../../api/api';
-import logo from '../../assets/logo.png';
+import logo from '../../assets/fasyn_logo_blanco_transparente_blanco.png';
 import './ResetPassword.css';
 const ResetPassword = () => {
   const navigate =

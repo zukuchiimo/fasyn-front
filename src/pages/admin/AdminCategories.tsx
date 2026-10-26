@@ -6,7 +6,7 @@ import {
 } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../api/api';
-import logo from '../../assets/logo.png';
+import logo from '../../assets/fasyn_logo_blanco_transparente_blanco.png';
 import './AdminCategories.css';
 interface CategorySpecialist {
   specialistId: number;

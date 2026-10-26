@@ -1,0 +1,87 @@
+/* FASYN | Perfil v3. Solo estilos: mantiene ClientProfile.css y funciones. */
+.fasyn-profile-page, .fasyn-profile-page * { box-sizing: border-box; }
+.fasyn-profile-page.client-dashboard { display:block !important; width:100% !important; max-width:none !important; min-height:100vh; margin:0 !important; padding:0 !important; background:#f3f5fa; color:#172544; font-family:Inter,system-ui,-apple-system,'Segoe UI',sans-serif; }
+.fasyn-profile-page .client-sidebar { position:fixed !important; inset:0 auto 0 0 !important; width:248px !important; height:100vh !important; min-height:0 !important; overflow-y:auto; z-index:30; display:flex; flex-direction:column; background:#111f3e; border:0; }
+.fasyn-profile-page .client-sidebar-bottom { margin-top:auto; }
+.fasyn-profile-page .client-main { display:block !important; width:calc(100% - 248px) !important; max-width:none !important; min-width:0 !important; margin:0 0 0 248px !important; min-height:100vh; padding:38px clamp(20px,3.6vw,64px) 64px !important; background:#f3f5fa; }
+.fasyn-profile-page .client-header { display:flex; align-items:center; justify-content:space-between; gap:20px; width:100%; max-width:1300px; margin:0 auto 25px; text-align:left; padding:0; }
+.fasyn-profile-page .client-header h1 { font-size:clamp(28px,2.8vw,38px); line-height:1.16; font-weight:750; letter-spacing:-.035em; color:#14223e; margin:8px 0; }
+.fasyn-profile-page .client-header p { font-size:14px; line-height:1.6; color:#6d7c97; margin:0; }
+.fasyn-profile-page .client-eyebrow, .fasyn-profile-page .client-section-eyebrow { font-size:11px; font-weight:800; letter-spacing:.13em; color:#526bf6; }
+.fasyn-profile-page .find-specialist-button { min-height:42px; padding:10px 17px; border-radius:10px; background:#526bf6; color:#fff; font-size:13px; font-weight:700; flex:0 0 auto; }
+.fasyn-profile-page .client-profile-grid { display:grid !important; grid-template-columns:minmax(225px, .8fr) minmax(0,2.2fr) !important; align-items:start !important; gap:20px; width:100% !important; max-width:1300px !important; margin:0 auto !important; padding:0 !important; }
+.fasyn-profile-page .client-panel { min-width:0; max-width:none !important; margin:0; border-radius:16px; border:1px solid #e3e8f1; background:#fff; box-shadow:0 4px 24px rgba(32,48,79,.04); overflow:hidden; }
+.fasyn-profile-page .client-profile-photo-card, .fasyn-profile-page .client-profile-data-card { width:100% !important; min-width:0; max-width:none !important; }
+.fasyn-profile-page .client-panel-header { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:22px 25px 18px; border-bottom:1px solid #edf0f5; text-align:left; margin:0; }
+.fasyn-profile-page .client-panel-header h2 { font-size:19px; font-weight:740; color:#172641; line-height:1.3; margin:5px 0; }
+.fasyn-profile-page .client-panel-header p { font-size:13px; color:#78869c; line-height:1.45; margin:0; }
+.fasyn-profile-page .client-profile-photo-body { display:flex; flex-direction:column; align-items:center; padding:28px 24px 25px !important; text-align:center; min-height:0 !important; height:auto !important; }
+.fasyn-profile-page .client-profile-photo { width:122px; height:122px; margin:0 auto 16px; border-radius:50%; overflow:hidden; }
+.fasyn-profile-page .client-profile-photo img { width:100%; height:100%; object-fit:cover; }
+.fasyn-profile-page .client-profile-photo-body h3 { font-size:19px; color:#14223e; margin:8px 0 4px; }
+.fasyn-profile-page .client-profile-role { font-size:12px; color:#8190a7; }
+.fasyn-profile-page .client-profile-photo-button { min-height:42px; margin-top:18px; padding:10px 20px; border-radius:10px; font-size:13px; font-weight:750; background:#526bf6; color:white; width:100%; max-width:215px; }
+.fasyn-profile-page .client-profile-photo-body > small { margin-top:9px; font-size:11px; color:#909db1; }
+.fasyn-profile-page .client-profile-status { margin-top:23px !important; width:100%; padding-top:16px; border-top:1px solid #edf0f5; text-align:left; }
+.fasyn-profile-page .client-profile-status > span { font-size:10px; }
+.fasyn-profile-page .client-profile-status strong { font-size:13px; }
+.fasyn-profile-page .client-profile-form { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; padding:24px 25px; }
+.fasyn-profile-page .client-profile-form > label { display:block; min-width:0; }
+.fasyn-profile-page .client-profile-form label > span { display:block; margin-bottom:7px; font-size:12px; font-weight:700; color:#4c5a75; text-align:left; }
+.fasyn-profile-page .client-profile-form input:not([type=radio]):not([type=checkbox]),.fasyn-profile-page .client-profile-form select,.fasyn-profile-page .client-profile-form textarea { width:100%; min-width:0; max-width:100%; height:46px; padding:10px 13px; font-size:14px; border:1px solid #dbe2ed; border-radius:10px; background:#fff; color:#14233e; box-shadow:none; }
+.fasyn-profile-page .client-profile-form input:focus { outline:2px solid #d6dfff; border-color:#6c82f6; }
+.fasyn-profile-page .client-profile-form input:disabled { background:#f5f7fa; }
+.fasyn-profile-page .client-profile-whatsapp { grid-column:1 / -1; display:grid; gap:10px; padding:15px 17px !important; border:1px solid #e3e9f2 !important; border-radius:12px; background:#f8faff; }
+.fasyn-profile-page .client-profile-whatsapp > strong { font-size:14px; font-weight:720; }
+.fasyn-profile-page .client-profile-whatsapp label { font-size:14px; color:#35445d; }
+.fasyn-profile-page .client-profile-whatsapp input[type=radio] { accent-color:#516bf6; width:16px; height:16px; }
+.fasyn-profile-page .client-profile-info-row { display:grid; grid-template-columns:1fr 1fr; gap:18px; padding:16px 0; margin:0 25px; border-top:1px solid #edf0f5; }
+.fasyn-profile-page .client-profile-info-row span { font-size:10px; color:#8693a9; }
+.fasyn-profile-page .client-profile-info-row strong { font-size:12px; color:#21304c; }
+.fasyn-profile-page .client-profile-actions { display:flex; justify-content:flex-end; gap:11px; padding:18px 25px; border-top:1px solid #edf0f5; }
+.fasyn-profile-page .client-profile-actions button { min-height:44px; min-width:135px; border-radius:10px; padding:10px 16px; font-size:13px; font-weight:750; cursor:pointer; }
+.fasyn-profile-page .client-profile-cancel { background:#fff; border:1px solid #dae2ef; color:#4a5a77; }
+.fasyn-profile-page .client-profile-save { border:0; background:#526bf6; color:white; padding:11px 17px; min-height:42px; border-radius:10px; font-size:13px; font-weight:750; cursor:pointer; }
+.fasyn-profile-page .client-profile-address-card { grid-column:1 / -1 !important; width:100% !important; margin:0 !important; }
+.fasyn-profile-page .client-address-list { display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:14px; padding:24px 25px; }
+.fasyn-profile-page .client-address-card { padding:18px; background:#f9fbfe; border:1px solid #e3e9f3; border-radius:12px; margin:0; }
+.fasyn-profile-page .client-address-card strong { font-size:15px; }
+.fasyn-profile-page .client-address-card p { font-size:13px; line-height:1.6; }
+.fasyn-profile-page .client-address-card small { font-size:11px; }
+.fasyn-profile-page .client-profile-address-form { margin:0; padding:0 0 22px; }
+.fasyn-profile-page .client-address-map-section { margin:12px 25px 22px; }
+.fasyn-profile-page .service-address-map { height:360px; }
+.fasyn-profile-page .service-map-search input { font-size:13px; }
+.fasyn-profile-page .service-map-search button,.fasyn-profile-page .service-map-location-button { font-size:13px; }
+@media(max-width:1050px) { .fasyn-profile-page .client-sidebar{width:210px !important;} .fasyn-profile-page .client-main{width:calc(100% - 210px) !important;margin-left:210px !important;padding:28px 22px 50px !important;} .fasyn-profile-page .client-profile-grid{grid-template-columns:minmax(200px,.9fr) minmax(0,1.7fr) !important;} }
+@media(max-width:800px) { .fasyn-profile-page .client-profile-grid{grid-template-columns:minmax(0,1fr) !important;} .fasyn-profile-page .client-profile-photo-card{grid-column:1 / -1;} .fasyn-profile-page .client-profile-photo-body{padding:22px !important;} }
+@media(max-width:650px) { .fasyn-profile-page .client-sidebar{position:relative !important;inset:auto !important;width:100% !important;height:auto !important;min-height:0 !important;} .fasyn-profile-page .client-main{margin:0 !important;width:100% !important;padding:22px 15px 40px !important;} .fasyn-profile-page .client-header{flex-wrap:wrap;} .fasyn-profile-page .client-profile-form{grid-template-columns:1fr;padding:20px;} .fasyn-profile-page .client-panel-header{padding:20px;} .fasyn-profile-page .client-profile-info-row{margin:0 20px;} .fasyn-profile-page .client-profile-actions{padding:18px 20px;} .fasyn-profile-page .client-profile-actions button{min-width:0;flex:1;} .fasyn-profile-page .client-address-list{padding:18px;} .fasyn-profile-page .client-address-map-section{margin:12px 18px 20px;} .fasyn-profile-page .service-map-toolbar{flex-wrap:wrap;} }
+
+/* Tarjetas de direcciones: composición editorial, legible y adaptable. */
+.fasyn-profile-page .client-profile-address-card > .client-panel-header { gap:20px; }
+.fasyn-profile-page .client-profile-address-card > .client-panel-header .client-profile-save { flex:0 0 auto; white-space:nowrap; }
+.fasyn-profile-page .client-address-list { grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr)); gap:18px; padding:26px; }
+.fasyn-profile-page .client-address-card { padding:0; overflow:hidden; border:1px solid #e4e9f3; background:#fff; border-radius:16px; box-shadow:0 8px 25px rgba(17,31,62,.045); transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease; }
+.fasyn-profile-page .client-address-card:hover { transform:translateY(-2px); border-color:#c5d0fa; box-shadow:0 14px 30px rgba(17,31,62,.09); }
+.fasyn-profile-page .client-address-card-header { display:flex; flex-direction:row; align-items:center; justify-content:space-between; gap:12px; margin:0; padding:20px 22px; border-bottom:1px solid #edf1f7; }
+.fasyn-profile-page .client-address-card-header > .fasyn-address-heading { display:flex; align-items:center; flex-direction:row; gap:13px; min-width:0; }
+.fasyn-profile-page .fasyn-address-icon { width:44px; height:44px; flex:0 0 44px; display:grid; place-items:center; background:#eef2ff; border-radius:12px; color:#526bf6; font-size:28px; line-height:1; }
+.fasyn-profile-page .fasyn-address-heading-copy { display:flex; flex-direction:column; align-items:flex-start; min-width:0; gap:3px; }
+.fasyn-profile-page .client-address-card .fasyn-address-heading-copy strong { font-size:17px; font-weight:750; color:#182746; text-transform:none; overflow-wrap:anywhere; }
+.fasyn-profile-page .fasyn-address-subtitle { color:#94a0b3; font-size:12px; }
+.fasyn-profile-page .client-address-default { flex:0 0 auto; margin:0; display:inline-flex; align-items:center; gap:4px; padding:7px 11px; border-radius:999px; background:#e9f8f0; color:#208653; font-size:12px; font-weight:750; white-space:nowrap; }
+.fasyn-profile-page .fasyn-address-details { padding:22px 22px 20px; }
+.fasyn-profile-page .fasyn-address-field-label { display:block; color:#8a98ae; font-size:10px; font-weight:800; letter-spacing:.12em; margin-bottom:9px; }
+.fasyn-profile-page .client-address-card .fasyn-address-street { margin:0 0 5px; font-size:17px; font-weight:750; color:#172541; line-height:1.4; overflow-wrap:anywhere; }
+.fasyn-profile-page .client-address-card .fasyn-address-location { margin:0; font-size:13px; line-height:1.6; color:#64718a; overflow-wrap:anywhere; }
+.fasyn-profile-page .fasyn-address-postal { display:inline-block; margin-top:12px; padding:6px 10px; border-radius:8px; background:#f2f5fb; color:#445677; font-size:12px; font-weight:700; }
+.fasyn-profile-page .fasyn-address-references { border-top:1px solid #edf1f7; background:#fafbfe; padding:17px 22px 19px; }
+.fasyn-profile-page .client-address-card .fasyn-address-references p { font-size:13px; line-height:1.55; color:#566781; margin:0; overflow-wrap:anywhere; }
+@media(max-width:650px) {
+  .fasyn-profile-page .client-profile-address-card > .client-panel-header { align-items:stretch; flex-direction:column; }
+  .fasyn-profile-page .client-profile-address-card > .client-panel-header .client-profile-save { width:100%; }
+  .fasyn-profile-page .client-address-list { padding:16px; grid-template-columns:minmax(0,1fr); }
+  .fasyn-profile-page .client-address-card-header { padding:18px; flex-wrap:wrap; }
+  .fasyn-profile-page .fasyn-address-details { padding:18px; }
+  .fasyn-profile-page .fasyn-address-references { padding:16px 18px; }
+}

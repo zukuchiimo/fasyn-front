@@ -6,7 +6,8 @@ import {
 import {
   useNavigate,
 } from 'react-router-dom';
-import logo from '../../../assets/logo.png';
+import logo from '../../../assets/fasyn_logo_blanco_transparente_blanco.png';
+
 import { api } from '../../../api/api';
 import '../../client/ClientProfile.css';
 import './MyRequests.css';
