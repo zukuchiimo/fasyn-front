@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { api } from '../../api/api';
 import logo from '../../assets/fasyn_logo_transparente.png';
 import './Register.css';
@@ -10,6 +10,9 @@ const PASSWORD_RULE = /^(?=.*[A-Z])(?=.*\d).{6,12}$/;
 
 const Register = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const role: 'CLIENT' | 'SPECIALIST' = searchParams.get('role') === 'SPECIALIST' ? 'SPECIALIST' : 'CLIENT';
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -48,6 +51,8 @@ const Register = () => {
     try {
       setLoading(true);
       const response = await api.post('/auth/register', {
+        name: name.trim(),
+        role,
         email: email.trim().toLowerCase(),
         password,
         confirmPassword,
@@ -120,10 +125,31 @@ const Register = () => {
           <div className="register-card">
             <div className="register-header">
               <span>CREAR CUENTA</span>
-              <h2>Comienza en FASYN</h2>
-              <p>Solo necesitas tu correo y una contraseña. Completarás tu perfil después.</p>
+              <h2 style={{ color: '#000' }}>Comienza en FASYN</h2>
+              <p>Elige cómo usar FASYN y crea tu cuenta en unos pasos.</p>
             </div>
             <form className="register-form" onSubmit={handleRegister}>
+              <fieldset className="register-role-group">
+                <legend>¿Cómo quieres usar FASYN?</legend>
+                <div className="register-role-selector">
+                  <button type="button" className={`register-role-card ${role === 'CLIENT' ? 'active' : ''}`} aria-pressed={role === 'CLIENT'} onClick={() => setSearchParams({ role: 'CLIENT' })}>
+                    <span className="register-role-icon" aria-hidden="true">⌂</span>
+                    <span className="register-role-copy"><strong>Quiero contratar</strong><small>Soy cliente</small></span>
+                    <span className="register-role-check" aria-hidden="true">{role === 'CLIENT' ? '✓' : ''}</span>
+                  </button>
+                  <button type="button" className={`register-role-card ${role === 'SPECIALIST' ? 'active' : ''}`} aria-pressed={role === 'SPECIALIST'} onClick={() => setSearchParams({ role: 'SPECIALIST' })}>
+                    <span className="register-role-icon" aria-hidden="true">✦</span>
+                    <span className="register-role-copy"><strong>Quiero ofrecer</strong><small>Soy especialista</small></span>
+                    <span className="register-role-check" aria-hidden="true">{role === 'SPECIALIST' ? '✓' : ''}</span>
+                  </button>
+                </div>
+              </fieldset>
+              <div className="register-field">
+                <label htmlFor="register-name">Nombre completo</label>
+                <div className="register-input">
+                  <input id="register-name" type="text" autoComplete="name" placeholder="Tu nombre completo" value={name} onChange={(event) => setName(event.target.value)} required />
+                </div>
+              </div>
               <div className="register-field">
                 <label htmlFor="register-email">Correo electrónico</label>
                 <div className="register-input">
@@ -153,9 +179,9 @@ const Register = () => {
                     {showPassword ? 'Ocultar' : 'Ver'}
                   </button>
                 </div>
-                <div aria-live="polite" style={{ display: 'flex', flexDirection: 'column', gap: 5, marginTop: 10, fontSize: 13 }}>
+                <div className="register-password-checks" aria-live="polite">
                   {passwordChecks.map((check) => (
-                    <span key={check.label} style={{ color: check.ok ? '#15803d' : '#64748b' }}>
+                    <span key={check.label} className={check.ok ? 'valid' : ''}>
                       {check.ok ? '✓' : '○'} {check.label}
                     </span>
                   ))}
@@ -201,7 +227,7 @@ const Register = () => {
                   )}
                 </div>
               )}
-              <button type="submit" className="register-submit" disabled={loading || !email.trim() || !PASSWORD_RULE.test(password) || !confirmPassword || password !== confirmPassword}>
+              <button type="submit" className="register-submit" disabled={loading || !name.trim() || !email.trim() || !PASSWORD_RULE.test(password) || !confirmPassword || password !== confirmPassword}>
                 {loading ? 'Creando cuenta...' : 'Crear cuenta'} {!loading && <span>→</span>}
               </button>
             </form>

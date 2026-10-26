@@ -494,13 +494,13 @@ const Login = () => {
                 : 'Iniciar sesión'}
             </button>
           </form>
-          <div className="create-account">
-            <span>
-              ¿Todavía no tienes
-              cuenta?
-            </span>
-            <Link to="/register">
-              Crear una cuenta
+          <div className="create-account" style={{ display: 'flex', flexDirection: 'column', gap: 12, alignItems: 'stretch' }}>
+            <span>¿Todavía no tienes cuenta? Elige cómo quieres registrarte:</span>
+            <Link to="/register?role=CLIENT" style={{ display: 'block', textAlign: 'center' }}>
+              Registrarme como cliente
+            </Link>
+            <Link to="/register?role=SPECIALIST" style={{ display: 'block', textAlign: 'center' }}>
+              Registrarme como especialista
             </Link>
           </div>
           <div className="login-separator">
@@ -548,7 +548,7 @@ const Login = () => {
             </h2>
             <p>
               Tu cuenta de especialista se
-              encuentra deshabilitada y por
+              encuentra deshabilitada y  or
               el momento no puedes ingresar
               al panel profesional.
             </p>
