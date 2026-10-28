@@ -13,6 +13,7 @@ import { api } from '../../api/api';
 import logo from '../../assets/fasyn_logo_blanco_transparente_blanco.png';
 import './SpecialistSetup.css';
 import './SpecialistSetup.legal.css';
+import './SpecialistSetup.especialidades.css';
 interface Category {
   id: number;
   name: string;
@@ -219,6 +220,10 @@ const SpecialistSetup = () => {
   const [step, setStep] = useState(1);
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
+  const [specialtyQuery, setSpecialtyQuery] = useState('');
+  const [newSpecialty, setNewSpecialty] = useState('');
+  const [creatingSpecialty, setCreatingSpecialty] = useState(false);
+  const [specialtyMessage, setSpecialtyMessage] = useState('');
   const [serviceAreas, setServiceAreas] = useState<ServiceArea[]>([]);
   const [currentLocation, setCurrentLocation] = useState<Coordinates | null>(null);
   const [currentStateCode, setCurrentStateCode] = useState('');
@@ -402,7 +407,7 @@ const SpecialistSetup = () => {
       try {
         setLoadingCategories(true);
         const response = await api.get('/categories');
-        setCategories(response.data.categories || []);
+        setCategories(Array.isArray(response.data?.categories) ? response.data.categories : Array.isArray(response.data) ? response.data : []);
       } catch (error) {
         console.error('ERROR CARGANDO CATEGORÍAS:', error);
         setError(
@@ -414,6 +419,81 @@ const SpecialistSetup = () => {
     };
     loadCategories();
   }, []);
+  const visibleCategories = categories.filter((category) =>
+    category.name.toLocaleLowerCase('es-MX').includes(
+      specialtyQuery.trim().toLocaleLowerCase('es-MX')
+    )
+  );
+
+  const createSpecialty = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const name = newSpecialty.trim().replace(/\s+/g, ' ');
+    if (name.length < 3 || name.length > 80) {
+      setSpecialtyMessage('Escribe una especialidad de 3 a 80 caracteres.');
+      return;
+    }
+    const existing = categories.find(
+      (item) => item.name.trim().toLocaleLowerCase('es-MX') === name.toLocaleLowerCase('es-MX')
+    );
+    if (existing) {
+      setSelectedCategories((current) => current.includes(existing.id) ? current : [...current, existing.id]);
+      setSpecialtyQuery('');
+      setNewSpecialty('');
+      setSpecialtyMessage('Esta especialidad ya existía. La seleccionamos para ti.');
+      return;
+    }
+    const token = localStorage.getItem('token');
+    if (!token) {
+      navigate('/login');
+      return;
+    }
+    try {
+      setCreatingSpecialty(true);
+      setSpecialtyMessage('');
+      // Crear o actualizar el perfil profesional como borrador.
+await api.post(
+  '/specialists/profile',
+  form,
+  {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  }
+);
+      const response = await api.post(
+        '/specialists/specialties/new',
+        { name },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      // Consultamos el catálogo real para evitar mostrar una categoría ficticia.
+      const refreshed = await api.get('/categories');
+      const fetchedCategories: Category[] = Array.isArray(refreshed.data?.categories)
+        ? refreshed.data.categories
+        : Array.isArray(refreshed.data) ? refreshed.data : [];
+      setCategories(fetchedCategories);
+      const returnedCategory = response.data?.category ?? response.data?.specialty;
+      const saved = fetchedCategories.find((item) =>
+        (returnedCategory?.id && item.id === returnedCategory.id) ||
+        item.name.trim().toLocaleLowerCase('es-MX') === name.toLocaleLowerCase('es-MX')
+      );
+      if (saved) {
+        setSelectedCategories((current) => current.includes(saved.id) ? current : [...current, saved.id]);
+        setNewSpecialty('');
+        setSpecialtyQuery('');
+        setSpecialtyMessage('Especialidad creada y seleccionada correctamente.');
+      } else {
+        setSpecialtyMessage('La solicitud se procesó, pero la especialidad todavía no aparece en el catálogo. Actualiza la lista antes de continuar.');
+      }
+    } catch (requestError: any) {
+      setSpecialtyMessage(
+        requestError.response?.data?.message ||
+        'No fue posible crear la especialidad. Intenta nuevamente.'
+      );
+    } finally {
+      setCreatingSpecialty(false);
+    }
+  };
+
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -767,6 +847,7 @@ const removeServiceArea = (index: number) => {
           },
         }
       );
+      
       console.log(
         'PERFIL GUARDADO:',
         profileResponse.data
@@ -1376,41 +1457,63 @@ const removeServiceArea = (index: number) => {
                     Después podrás crear servicios y precios específicos.
                   </p>
                 </div>
+                <div className="fasyn-specialties-tools">
+                  <label htmlFor="specialty-search">Buscar especialidad</label>
+                  <input
+                    id="specialty-search"
+                    type="search"
+                    value={specialtyQuery}
+                    onChange={(e) => setSpecialtyQuery(e.target.value)}
+                    placeholder="Ej. Carpintería, limpieza, electricidad"
+                  />
+                </div>
                 {loadingCategories ? (
-                  <div className="categories-loading">
-                    Cargando especialidades...
-                  </div>
-                ) : categories.length === 0 ? (
+                  <div className="categories-loading">Cargando especialidades...</div>
+                ) : visibleCategories.length === 0 ? (
                   <div className="categories-empty">
-                    No hay especialidades disponibles.
+                    {categories.length === 0
+                      ? 'Todavía no hay especialidades registradas. Puedes agregar la primera.'
+                      : 'No encontramos esa especialidad. Puedes crearla abajo.'}
                   </div>
                 ) : (
                   <div className="setup-options">
-                    {categories.map((category) => {
-                      const selected =
-                        selectedCategories.includes(category.id);
+                    {visibleCategories.map((category) => {
+                      const selected = selectedCategories.includes(category.id);
                       return (
                         <button
                           key={category.id}
                           type="button"
-                          className={
-                            selected
-                              ? 'specialty-option selected'
-                              : 'specialty-option'
-                          }
-                          onClick={() =>
-                            toggleCategory(category.id)
-                          }
+                          className={selected ? 'specialty-option selected' : 'specialty-option'}
+                          onClick={() => toggleCategory(category.id)}
                         >
-                          <span className="specialty-selector">
-                            {selected ? '✓' : ''}
-                          </span>
+                          <span className="specialty-selector">{selected ? '✓' : ''}</span>
                           <span>{category.name}</span>
                         </button>
                       );
                     })}
                   </div>
                 )}
+                <form className="fasyn-create-specialty" onSubmit={createSpecialty}>
+                  <div>
+                    <strong>¿No encuentras tu especialidad?</strong>
+                    <p>Escribe el nombre de tu oficio o actividad para agregarlo a FASYN.</p>
+                  </div>
+                  <div className="fasyn-create-specialty-controls">
+                    <input
+                      type="text"
+                      aria-label="Nueva especialidad"
+                      placeholder="Nombre de la especialidad"
+                      value={newSpecialty}
+                      onChange={(e) => { setNewSpecialty(e.target.value); setSpecialtyMessage(''); }}
+                      maxLength={80}
+                      disabled={creatingSpecialty}
+                    />
+                    <button type="submit" disabled={creatingSpecialty || newSpecialty.trim().length < 3}>
+                      {creatingSpecialty ? 'Guardando...' : '+ Agregar especialidad'}
+                    </button>
+                  </div>
+                  {specialtyMessage && <p className="fasyn-specialty-feedback" role="status">{specialtyMessage}</p>}
+                </form>
               </section>
             )}
             {step === 6 && (
