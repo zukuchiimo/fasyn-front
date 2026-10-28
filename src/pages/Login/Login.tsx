@@ -30,6 +30,7 @@ const Login = () => {
     useState(false);
   const [verificationSent, setVerificationSent] =
     useState(false);
+    const [showPassword, setShowPassword] = useState(false);
   const [
     specialistDisabled,
     setSpecialistDisabled,
@@ -438,29 +439,36 @@ const Login = () => {
                 required
               />
             </div>
-            <div className="form-field">
-              <div className="password-header">
-                <label htmlFor="password">
-                  Contraseña
-                </label>
-                <Link to="/forgot-password">
-                  ¿Olvidaste tu contraseña?
-                </Link>
-              </div>
-              <input
-                id="password"
-                type="password"
-                placeholder="Ingresa tu contraseña"
-                value={password}
-                onChange={(e) =>
-                  setPassword(
-                    e.target.value
-                  )
-                }
-                autoComplete="current-password"
-                required
-              />
-            </div>
+       <div className="form-field">
+  <div className="password-header">
+    <label htmlFor="password">Contraseña</label>
+    <Link to="/forgot-password">
+      ¿Olvidaste tu contraseña?
+    </Link>
+  </div>
+
+  <div className="login-password-wrapper">
+    <input
+      id="password"
+      type={showPassword ? 'text' : 'password'}
+      placeholder="Ingresa tu contraseña"
+      value={password}
+      onChange={(e) => setPassword(e.target.value)}
+      autoComplete="current-password"
+      required
+    />
+
+    <button
+      type="button"
+      className="login-password-toggle"
+      onClick={() => setShowPassword(!showPassword)}
+      aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+      aria-pressed={showPassword}
+    >
+      {showPassword ? 'Ocultar' : 'Ver'}
+    </button>
+  </div>
+</div>
             {error && (
               <div className="login-error">
                 <div>{error}</div>

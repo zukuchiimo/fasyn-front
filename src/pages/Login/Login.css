@@ -90,6 +90,31 @@
 .specialist-disabled-actions { display: grid; gap: 10px; margin-top: 18px; }
 .specialist-disabled-contact-button, .specialist-disabled-button { display: flex; justify-content: center; align-items: center; width: 100%; min-height: 46px; border: 0; border-radius: 10px; background: #526fff; color: white; font-family: inherit; font-size: 13px; font-weight: 750; text-decoration: none; cursor: pointer; }
 .specialist-disabled-button { background: #e9edf5; color: #293653; }
+.login-password-wrapper {
+  position: relative;
+}
+
+.login-password-wrapper input {
+  padding-right: 85px;
+}
+
+.login-password-toggle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 8px;
+  border: none;
+  background: transparent;
+  color: #5879ff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.login-password-toggle:hover {
+  color: #3555dc;
+}
 @media (min-width: 1480px) { .login-page { grid-template-columns: minmax(0, 1fr) minmax(520px, .9fr); } }
 @media (max-width: 1100px) { .login-page { grid-template-columns: minmax(0, 1fr) minmax(430px, 1fr); } .login-brand { padding-inline: 36px; } .brand-content h1 { font-size: clamp(38px, 4.5vw, 55px); } .login-access { padding: 45px 30px; } .service-item { padding: 12px; } }
 @media (max-width: 850px) { .login-page { grid-template-columns: 1fr; } .login-brand { min-height: auto; padding: 27px 30px 31px; } .brand-logo img { width: 150px; } .brand-content { margin: 0; max-width: 640px; padding: 45px 0 25px; } .brand-content h1 { max-width: 550px; font-size: clamp(38px, 6vw, 53px); } .brand-description { margin-top: 18px; } .services-preview { margin-top: 24px; } .brand-footer { display: none; } .login-access { min-height: auto; padding: 46px 24px 62px; } }
