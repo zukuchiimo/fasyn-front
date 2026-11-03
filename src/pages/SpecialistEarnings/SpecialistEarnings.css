@@ -1202,3 +1202,252 @@
       1fr;
   }
 }
+
+/* ============================================================
+   RESPONSIVE ADICIONAL | FASYN - MIS GANANCIAS
+   Preserva el diseño y los colores de escritorio existentes.
+   ============================================================ */
+.earnings-page { width: 100%; min-width: 0; overflow-x: clip; }
+.earnings-page .earnings-main,
+.earnings-page .earnings-heading,
+.earnings-page .earnings-heading-content,
+.earnings-page .earnings-grid,
+.earnings-page .earnings-card,
+.earnings-page .earnings-wallet-card,
+.earnings-page .earnings-wallet-top > div,
+.earnings-page .service-earning-content,
+.earnings-page .transaction-information { min-width: 0; }
+.earnings-page .earnings-heading > div:last-child { min-width: 0; }
+.earnings-page .earnings-card,
+.earnings-page .earnings-wallet-card { max-width: 100%; }
+.earnings-page .service-earning-content strong,
+.earnings-page .service-earning-content span,
+.earnings-page .transaction-information strong,
+.earnings-page .transaction-information span { overflow-wrap: anywhere; }
+.earnings-page .wallet-balance { overflow-wrap: anywhere; }
+.earnings-page .withdraw-overlay { overflow-y: auto; overscroll-behavior: contain; }
+.earnings-page .withdraw-modal { max-height: calc(100dvh - 40px); overflow-y: auto; }
+.earnings-page .withdraw-field input,
+.earnings-page .withdraw-field select { box-sizing: border-box; min-width: 0; }
+
+@media (max-width: 1024px) {
+  .earnings-page .earnings-main { padding-left: 24px; padding-right: 24px; }
+  .earnings-page .earnings-grid { grid-template-columns: minmax(0, 1fr); }
+  .earnings-page .earnings-heading { align-items: flex-start; }
+  .earnings-page .earnings-heading > div:last-child {
+    display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px;
+  }
+}
+
+@media (max-width: 700px) {
+  .earnings-page .earnings-header-inner { padding: 0 16px; gap: 10px; }
+  .earnings-page .earnings-brand { min-width: 0; }
+  .earnings-page .earnings-brand img { max-width: 112px; height: auto; max-height: 35px; }
+  .earnings-page .earnings-main { padding: 24px 16px 52px; }
+  .earnings-page .earnings-heading { display: flex; flex-direction: column; gap: 16px; }
+  .earnings-page .earnings-heading > div:last-child { width: 100%; justify-content: flex-start; }
+  .earnings-page .earnings-heading .earnings-refresh { min-height: 42px; }
+  .earnings-page .earnings-wallet-card { padding: 22px 18px; }
+  .earnings-page .earnings-wallet-top { display: flex; flex-direction: column; gap: 20px; }
+  .earnings-page .wallet-withdraw-button { max-width: 100%; white-space: normal; text-align: center; }
+  .earnings-page .wallet-stats { margin-top: 22px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .earnings-page .wallet-stat:last-child:nth-child(odd) { grid-column: 1 / -1; }
+  .earnings-page .wallet-stat { min-width: 0; }
+  .earnings-page .earnings-card { padding: 18px; }
+  .earnings-page .earnings-card-header { flex-wrap: wrap; gap: 12px; }
+  .earnings-page .service-earning-item { align-items: flex-start; }
+  .earnings-page .service-earning-info { flex: 1; }
+  .earnings-page .service-earning-content strong { white-space: normal; }
+  .earnings-page .withdraw-overlay { padding: 12px; align-items: center; }
+  .earnings-page .withdraw-modal { max-height: calc(100dvh - 24px); padding: 20px 16px; }
+}
+
+@media (max-width: 420px) {
+  .earnings-page .earnings-back-button { font-size: 10px; padding: 0 9px; }
+  .earnings-page .earnings-header-inner { padding: 0 12px; }
+  .earnings-page .earnings-main { padding-left: 12px; padding-right: 12px; }
+  .earnings-page .earnings-heading > div:last-child { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .earnings-page .earnings-refresh { min-width: 0; padding: 0 8px; }
+  .earnings-page .wallet-stats { grid-template-columns: minmax(0, 1fr); }
+  .earnings-page .wallet-stat:last-child:nth-child(odd) { grid-column: auto; }
+  .earnings-page .service-earning-item { flex-wrap: wrap; }
+  .earnings-page .service-earning-amount { margin-left: 49px; text-align: left; }
+  .earnings-page .earnings-transaction { grid-template-columns: 34px minmax(0, 1fr); }
+  .earnings-page .transaction-amount { grid-column: 2; text-align: left; }
+  .earnings-page .withdraw-actions { grid-template-columns: 1fr; }
+}
+
+
+/* ================================================================
+   FASYN | MIS GANANCIAS - RESPONSIVE COMPLETO (v2)
+   Solo geometria/layout; no cambia paleta ni diseno de escritorio.
+   ================================================================ */
+.earnings-page,
+.earnings-page *,
+.earnings-page *::before,
+.earnings-page *::after { box-sizing: border-box; }
+
+.earnings-heading-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.earnings-page .earnings-header-inner,
+.earnings-page .earnings-main,
+.earnings-page .earnings-heading,
+.earnings-page .earnings-heading-actions,
+.earnings-page .earnings-grid,
+.earnings-page .earnings-grid > *,
+.earnings-page .earnings-card,
+.earnings-page .earnings-card-header > *,
+.earnings-page .service-earning-item > *,
+.earnings-page .service-earning-info,
+.earnings-page .earnings-transaction > *,
+.earnings-page .withdraw-modal,
+.earnings-page .withdraw-modal > * { min-width: 0; }
+
+.earnings-page .earnings-wallet-card,
+.earnings-page .earnings-card,
+.earnings-page .withdraw-modal { max-width: 100%; }
+
+.earnings-page .earnings-heading h1,
+.earnings-page .earnings-heading p,
+.earnings-page .earnings-card-header h2,
+.earnings-page .earnings-card-header p,
+.earnings-page .service-earning-content,
+.earnings-page .transaction-information,
+.earnings-page .withdraw-modal-header h2,
+.earnings-page .wallet-stat strong {
+  overflow-wrap: anywhere;
+}
+
+.earnings-page .service-earning-item,
+.earnings-page .earnings-transaction { width: 100%; }
+
+.earnings-page .wallet-stats { min-width: 0; }
+.earnings-page .wallet-stat { min-width: 0; }
+.earnings-page .wallet-stat strong { display: block; }
+.earnings-page .earnings-transaction .transaction-amount { min-width: 0; }
+.earnings-page .withdraw-overlay {
+  max-width: 100vw;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  padding-top: max(12px, env(safe-area-inset-top));
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
+}
+.earnings-page .withdraw-modal {
+  margin: auto;
+  max-height: calc(100dvh - 24px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.earnings-page .withdraw-field input,
+.earnings-page .withdraw-field select {
+  min-width: 0;
+  max-width: 100%;
+}
+
+@media (min-width: 701px) and (max-width: 1100px) {
+  .earnings-page .earnings-main { padding-left: 24px; padding-right: 24px; }
+  .earnings-page .earnings-grid { grid-template-columns: minmax(0, 1fr); }
+  .earnings-page .earnings-heading { gap: 16px; }
+  .earnings-page .earnings-heading-actions { flex-shrink: 0; }
+}
+
+@media (max-width: 700px) {
+  .earnings-page .earnings-header { height: auto; min-height: 64px; }
+  .earnings-page .earnings-header-inner {
+    min-height: 64px;
+    padding-left: 16px;
+    padding-right: 16px;
+    gap: 12px;
+  }
+  .earnings-page .earnings-brand { flex: 0 1 auto; }
+  .earnings-page .earnings-brand img {
+    display: block;
+    width: auto;
+    max-width: min(125px, 34vw);
+    max-height: 34px;
+    object-fit: contain;
+  }
+  .earnings-page .earnings-back-button {
+    flex: 0 1 auto;
+    min-width: 0;
+    padding: 0 12px;
+    text-align: center;
+    line-height: 1.2;
+  }
+  .earnings-page .earnings-main { padding: 22px 16px 48px; }
+  .earnings-page .earnings-heading {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+  .earnings-page .earnings-heading-actions {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .earnings-page .earnings-heading-actions > button {
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+    padding: 8px 10px;
+    white-space: normal;
+  }
+  .earnings-page .earnings-wallet-card { min-height: 0; padding: 22px 18px; }
+  .earnings-page .earnings-wallet-top { flex-direction: column; align-items: stretch; gap: 18px; }
+  .earnings-page .wallet-balance { font-size: clamp(26px, 8vw, 36px); line-height: 1.15; }
+  .earnings-page .wallet-withdraw-button { width: 100%; min-height: 44px; }
+  .earnings-page .wallet-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin-top: 20px;
+  }
+  .earnings-page .wallet-stat:last-child:nth-child(odd) { grid-column: 1 / -1; }
+  .earnings-page .earnings-grid { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  .earnings-page .earnings-card { padding: 18px; }
+  .earnings-page .earnings-card-header { flex-wrap: wrap; gap: 12px; }
+  .earnings-page .earnings-card-header .earnings-refresh { min-height: 42px; }
+  .earnings-page .service-earning-item { align-items: flex-start; }
+  .earnings-page .service-earning-info { flex: 1 1 auto; }
+  .earnings-page .service-earning-content strong { white-space: normal; }
+  .earnings-page .earnings-transaction { column-gap: 8px; }
+  .earnings-page .withdraw-overlay { padding-left: 12px; padding-right: 12px; }
+  .earnings-page .withdraw-modal {
+    padding: 20px 16px;
+    max-height: calc(100dvh - 24px);
+  }
+  .earnings-page .withdraw-modal-header { gap: 10px; }
+  .earnings-page .withdraw-modal-header h2 { line-height: 1.3; }
+  .earnings-page .withdraw-field input,
+  .earnings-page .withdraw-field select { font-size: 16px; }
+}
+
+@media (max-width: 430px) {
+  .earnings-page .earnings-header-inner { padding-left: 12px; padding-right: 12px; }
+  .earnings-page .earnings-brand img { max-width: min(105px, 30vw); }
+  .earnings-page .earnings-back-button { font-size: 10px; padding: 0 9px; }
+  .earnings-page .earnings-main { padding-left: 12px; padding-right: 12px; }
+  .earnings-page .earnings-card { padding: 16px 14px; }
+  .earnings-page .earnings-heading h1 { font-size: clamp(20px, 6vw, 24px); }
+  .earnings-page .wallet-stats { grid-template-columns: minmax(0, 1fr); }
+  .earnings-page .wallet-stat:last-child:nth-child(odd) { grid-column: auto; }
+  .earnings-page .service-earning-item { flex-wrap: wrap; row-gap: 8px; }
+  .earnings-page .service-earning-amount { width: 100%; margin-left: 49px; text-align: left; }
+  .earnings-page .earnings-transaction { grid-template-columns: 34px minmax(0, 1fr); }
+  .earnings-page .transaction-amount { grid-column: 2; text-align: left; }
+  .earnings-page .withdraw-actions { grid-template-columns: minmax(0, 1fr); }
+  .earnings-page .withdraw-modal { padding: 18px 14px; }
+}
+
+@media (max-width: 340px) {
+  .earnings-page .earnings-heading-actions { grid-template-columns: minmax(0, 1fr); }
+  .earnings-page .earnings-back-button { max-width: 58vw; }
+  .earnings-page .service-earning-amount { margin-left: 0; }
+}
