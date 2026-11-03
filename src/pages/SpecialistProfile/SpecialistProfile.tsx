@@ -4459,7 +4459,7 @@ const SpecialistProfile = () => {
                       {requestingServiceId !==
                         null
                         ? 'Enviando solicitud...'
-                        : 'Enviar solccicitud'}
+                        : 'Enviar solicitud'}
                       <span>
                         →
                       </span>

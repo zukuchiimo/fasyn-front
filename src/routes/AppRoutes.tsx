@@ -211,13 +211,9 @@ const AppRoutes = () => {
         <Route
           path="/specialist/services/new"
           element={
-            <ProtectedRoute
-              allowedRoles={[
-                'SPECIALIST',
-              ]}
-            >
+            
               <CreateService />
-            </ProtectedRoute>
+         
           }
         />
         <Route
