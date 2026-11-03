@@ -634,23 +634,21 @@ const SpecialistEarnings = () => {
             );
             return;
           }
-          await api.post(
-            '/wallet/accounts',
-            {
-              type: 'BANK_ACCOUNT',
-              bankName: bankName.trim(),
-              accountHolderName:
-                accountHolderName.trim(),
-              clabe: normalizedClabe,
-              isDefault: makeDefault,
-            },
-            {
-              headers: {
-                Authorization:
-                  `Bearer ${token}`,
-              },
-            }
-          );
+await api.post(
+  '/wallet/accounts',
+  {
+    type: 'BANK_ACCOUNT',
+    bankName: bankName.trim(),
+    accountHolderName: accountHolderName.trim(),
+    last4: normalizedClabe.slice(-4),
+    isDefault: makeDefault,
+  },
+  {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  }
+);
         }
         setShowAccountModal(false);
         await loadData();
